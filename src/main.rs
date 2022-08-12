@@ -4,7 +4,7 @@ mod lexer;
 
 fn main() {
     let lexed = lexer::lex("
-        let ab = 5 ; let k = true;
+        let a = 5;
     ");
 
     println!("\n{:?}", lexed);
