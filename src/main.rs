@@ -1,3 +1,11 @@
+use std::io;
+
+mod lexer;
+
 fn main() {
-    println!("Hello, world!");
+    let lexed = lexer::lex("
+        let ab = 5 ; let k = true;
+    ");
+
+    println!("\n{:?}", lexed);
 }
