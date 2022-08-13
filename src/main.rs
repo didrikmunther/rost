@@ -1,5 +1,3 @@
-use std::io;
-
 mod lexer;
 
 fn main() {
