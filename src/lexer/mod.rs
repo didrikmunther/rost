@@ -1,8 +1,11 @@
 mod system;
-use system::{CommentLexer, IdentifierLexer, KeywordLexer, Lexer, LiteralNumberLexer, SymbolLexer};
+use system::{
+    CommentLexer, IdentifierLexer, KeywordLexer, Lexer, LiteralNumberLexer, StringLexer,
+    SymbolLexer,
+};
 
 mod letter;
-use letter::{get_letters};
+use letter::get_letters;
 pub use letter::Letter;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -37,6 +40,7 @@ pub fn lex(text: &str) -> Result<Vec<Token>, String> {
 
     let lexers: Vec<Box<dyn Lexer>> = vec![
         Box::new(CommentLexer::new()),
+        Box::new(StringLexer::new()),
         Box::new(KeywordLexer::new()),
         Box::new(LiteralNumberLexer::new()),
         Box::new(IdentifierLexer::new()),

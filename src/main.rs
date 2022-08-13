@@ -2,8 +2,7 @@ mod lexer;
 
 fn main() {
     let lexed = lexer::lex("
-        // here
-        let a = 5;
+        let a = \"abc\";
     ");
 
     println!("\n{:?}", lexed);
