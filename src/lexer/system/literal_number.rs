@@ -64,6 +64,14 @@ mod tests {
     use crate::lexer::letter::{get_letters, EOF};
 
     #[test]
+    fn is_number_works() {
+        assert!(is_number("1"));
+        assert!(is_number("123"));
+        assert!(!is_number("a"));
+        assert!(!is_number("a123"));
+    }
+
+    #[test]
     fn literal_number_works() {
         let letters = &get_letters("5");
         let lexed = LiteralNumberLexer::new().lex(letters);
