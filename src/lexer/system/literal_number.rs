@@ -37,7 +37,7 @@ impl Lexer for LiteralNumberLexer {
                 continue;
             }
 
-            if !cur.is_numeric() || cur.is_whitespace() || eof {
+            if !cur.is_digit(10) || cur.is_whitespace() || eof {
                 let word: String = buf.iter().collect();
 
                 if word.len() <= 0 {
@@ -55,5 +55,20 @@ impl Lexer for LiteralNumberLexer {
         }
 
         None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::lexer::letter::{get_letters, EOF};
+
+    #[test]
+    fn literal_number_works() {
+        let letters = &get_letters("5");
+        let lexed = LiteralNumberLexer::new().lex(letters);
+        let rest: &[Letter] = &[EOF];
+
+        assert_eq!(lexed, Some((Token::Literal(Literal::Int(5)), rest)));
     }
 }

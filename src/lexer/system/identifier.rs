@@ -38,3 +38,18 @@ impl Lexer for IdentifierLexer {
         None
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::lexer::letter::{get_letters, EOF};
+
+    #[test]
+    fn identifier_works() {
+        let letters = &get_letters("abc");
+        let lexed = IdentifierLexer::new().lex(letters);
+        let rest: &[Letter] = &[EOF];
+
+        assert_eq!(lexed, Some((Token::Identifier(String::from("abc")), rest)));
+    }
+}

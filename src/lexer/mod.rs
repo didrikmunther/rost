@@ -1,7 +1,9 @@
-use std::iter;
-
 mod system;
-use system::{IdentifierLexer, KeywordLexer, Lexer, LiteralNumberLexer, SymbolLexer};
+use system::{CommentLexer, IdentifierLexer, KeywordLexer, Lexer, LiteralNumberLexer, SymbolLexer};
+
+mod letter;
+use letter::{get_letters};
+pub use letter::Letter;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Keyword {
@@ -26,25 +28,18 @@ pub enum Token {
     Keyword(Keyword),
     Identifier(String),
     Literal(Literal),
+    Comment(String),
 }
-
-pub type Letter = (usize, char, bool);
 
 pub fn lex(text: &str) -> Result<Vec<Token>, String> {
     let mut res = Vec::<Token>::new();
-    let chars: Vec<Letter> = text
-        .chars()
-        .enumerate()
-        .map(|(i, v)| (i, v, false))
-        .chain(iter::once((0, ' ', true)))
-        .collect();
-
-    let mut chars: &[Letter] = &chars;
+    let mut chars: &[Letter] = &get_letters(text);
 
     let lexers: Vec<Box<dyn Lexer>> = vec![
+        Box::new(CommentLexer::new()),
         Box::new(KeywordLexer::new()),
-        Box::new(IdentifierLexer::new()),
         Box::new(LiteralNumberLexer::new()),
+        Box::new(IdentifierLexer::new()),
         Box::new(SymbolLexer::new()),
     ];
 

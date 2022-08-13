@@ -47,3 +47,18 @@ impl Lexer for SymbolLexer {
         None
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::lexer::letter::{get_letters, EOF};
+
+    #[test]
+    fn symbol_works() {
+        let letters = &get_letters("=>");
+        let lexed = SymbolLexer::new().lex(letters);
+        let rest: &[Letter] = &[EOF];
+
+        assert_eq!(lexed, Some((Token::Keyword(Keyword::Arrow), rest)));
+    }
+}

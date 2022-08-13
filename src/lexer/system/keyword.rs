@@ -31,3 +31,18 @@ impl Lexer for KeywordLexer {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::lexer::letter::{get_letters, EOF};
+
+    #[test]
+    fn keyword_works() {
+        let letters = &get_letters("let");
+        let lexed = KeywordLexer::new().lex(letters);
+        let rest: &[Letter] = &[EOF];
+
+        assert_eq!(lexed, Some((Token::Keyword(Keyword::Let), rest)));
+    }
+}

@@ -1,10 +1,12 @@
 pub use super::{Keyword, Letter, Literal, Token};
 
+pub mod comment;
 pub mod identifier;
 pub mod keyword;
 pub mod literal_number;
 pub mod symbol;
 
+pub use comment::CommentLexer;
 pub use identifier::IdentifierLexer;
 pub use keyword::KeywordLexer;
 pub use literal_number::LiteralNumberLexer;
