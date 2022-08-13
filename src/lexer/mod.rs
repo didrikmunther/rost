@@ -30,7 +30,7 @@ pub enum Keyword {
     Comment,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Literal {
     String(String),
     Int(i32),

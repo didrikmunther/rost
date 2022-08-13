@@ -37,7 +37,6 @@ pub struct Expression {
 
 #[derive(Debug)]
 pub enum ExpressionKind {
-    Empty,
     Primary(Primary),
     Binary(BinaryExpression),
 }
@@ -47,7 +46,7 @@ pub struct BinaryExpression {
     pos: Range<usize>,
     left: Box<Expression>,
     right: Box<Expression>,
-    operator: Token,
+    operator: Keyword,
 }
 
 #[derive(Debug)]
@@ -69,7 +68,69 @@ impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Result<Program, ParserError> {
         let mut program = vec![];
 
+        while !self.is_end() {
+            program.push(self.declaration()?);
+        }
+
         return Ok(program);
+    }
+
+    fn declaration(&mut self) -> Result<Declaration, ParserError> {
+        let statement = self.statement()?;
+
+        Ok(Declaration {
+            pos: statement.pos.clone(),
+            kind: DeclarationKind::Statement(statement),
+        })
+    }
+
+    fn statement(&mut self) -> Result<Statement, ParserError> {
+        let expression = self.expression()?;
+
+        Ok(Statement {
+            pos: expression.pos.clone(),
+            kind: StatementKind::Expression(expression),
+        })
+    }
+
+    fn expression(&mut self) -> Result<Expression, ParserError> {
+        self.addition()
+    }
+
+    fn addition(&mut self) -> Result<Expression, ParserError> {
+        let mut expr = self.primary()?;
+
+        while let Some(block) = self.get(&[Keyword::Plus, Keyword::Minus]) {
+            let right = self.primary()?;
+            let pos = expr.pos.start..right.pos.end;
+            
+            expr = Expression {
+                pos: pos.clone(),
+                kind: ExpressionKind::Binary(BinaryExpression {
+                    pos,
+                    left: Box::new(expr),
+                    right: Box::new(right),
+                    operator: block.kind
+                }),
+            }
+        }
+
+        Ok(expr)
+    }
+
+    fn primary(&mut self) -> Result<Expression, ParserError> {
+        if let Some(block) = self.get(&[Keyword::Literal, Keyword::Identifier]) {
+            return Ok(Expression {
+                pos: block.pos.clone(),
+                kind: ExpressionKind::Primary(match &block.token {
+                    Token::Identifier(identifier) => Primary::Identifier(identifier.clone()),
+                    Token::Literal(literal) => Primary::Literal(literal.clone()),
+                    _ => return Err(ParserError),
+                }),
+            });
+        }
+
+        return Err(ParserError);
     }
 
     fn get_at(&self, index: usize) -> Option<&'a Block> {
@@ -77,11 +138,7 @@ impl<'a> Parser<'a> {
     }
 
     fn peek(&self) -> Option<&'a Block> {
-        self.get_at(self.index + 1)
-    }
-
-    fn set_index(&mut self, index: usize) {
-        self.index = index;
+        self.get_at(self.index)
     }
 
     fn is_end(&self) -> bool {

@@ -22,19 +22,19 @@ impl LexerError {
             .clone()
             .last()
             .and_then(|i| Some(self.pos.start - i))
-            .unwrap_or(0);
+            .unwrap_or(self.pos.start);
 
         let margin: usize = 1;
 
         let caret = format!(
             "{}{}",
-            String::from(" ").repeat(line_pos - 1),
+            String::from(" ").repeat(line_pos),
             String::from("^").repeat(self.pos.end - self.pos.start),
         );
 
         let msg = format!(
             "{}└─ {}",
-            String::from(" ").repeat(line_pos - 1),
+            String::from(" ").repeat(line_pos),
             self.message
         );
 
