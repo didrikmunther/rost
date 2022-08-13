@@ -5,7 +5,9 @@ use phf::phf_map;
 static SYMBOLS: phf::Map<&'static str, Keyword> = phf_map! {
     "=" => Keyword::Equals,
     ";" => Keyword::Semicolon,
-    "=>" => Keyword::Equals // todo: temp
+    "=>" => Keyword::Arrow,
+    "+" => Keyword::Plus,
+    "-" => Keyword::Minus,
 };
 
 pub struct SymbolLexer;

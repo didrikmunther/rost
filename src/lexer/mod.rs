@@ -8,6 +8,9 @@ pub enum Keyword {
     Let,
     Equals,
     Semicolon,
+    Plus,
+    Minus,
+    Arrow,
 }
 
 #[derive(Debug, PartialEq)]
