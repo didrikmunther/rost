@@ -1,30 +1,40 @@
-use super::{Letter, Token};
+use super::{Letter, Lexer, Token};
 
 fn is_identifier(word: &str) -> bool {
     let mut chars = word.chars();
     chars.next().map(char::is_alphabetic).unwrap_or(false) && chars.all(char::is_alphanumeric)
 }
 
-pub fn identifier_lexer<'a>(chars: &'a [Letter]) -> Option<(Token, &'a [Letter])> {
-    let mut buf = Vec::<char>::new();
+pub struct IdentifierLexer;
 
-    for (i, &(_pos, cur, eof)) in chars.into_iter().enumerate() {
-        if buf.is_empty() && cur.is_whitespace() {
-            continue;
-        }
+impl IdentifierLexer {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
 
-        if !cur.is_alphanumeric() || cur.is_whitespace() || eof {
-            let word: String = buf.iter().collect();
+impl Lexer for IdentifierLexer {
+    fn lex<'a>(&self, chars: &'a [Letter]) -> Option<(Token, &'a [Letter])> {
+        let mut buf = Vec::<char>::new();
 
-            if word.len() <= 0 || !is_identifier(&word) {
-                return None;
+        for (i, &(_pos, cur, eof)) in chars.into_iter().enumerate() {
+            if buf.is_empty() && cur.is_whitespace() {
+                continue;
             }
 
-            return Some((Token::Identifier(word), &chars[i..]));
+            if !cur.is_alphanumeric() || cur.is_whitespace() || eof {
+                let word: String = buf.iter().collect();
+
+                if word.len() <= 0 || !is_identifier(&word) {
+                    return None;
+                }
+
+                return Some((Token::Identifier(word), &chars[i..]));
+            }
+
+            buf.push(cur);
         }
 
-        buf.push(cur);
+        None
     }
-
-    None
 }

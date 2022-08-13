@@ -1,7 +1,7 @@
 use std::iter;
 
 mod system;
-use system::{identifier_lexer, keyword_lexer, literal_number_lexer, symbol_lexer};
+use system::{IdentifierLexer, KeywordLexer, Lexer, LiteralNumberLexer, SymbolLexer};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Keyword {
@@ -38,11 +38,11 @@ pub fn lex(text: &str) -> Result<Vec<Token>, String> {
 
     let mut chars: &[Letter] = &chars;
 
-    let lexers = [
-        literal_number_lexer,
-        keyword_lexer,
-        identifier_lexer,
-        symbol_lexer,
+    let lexers: Vec<Box<dyn Lexer>> = vec![
+        Box::new(KeywordLexer::new()),
+        Box::new(IdentifierLexer::new()),
+        Box::new(LiteralNumberLexer::new()),
+        Box::new(SymbolLexer::new()),
     ];
 
     loop {
@@ -57,9 +57,9 @@ pub fn lex(text: &str) -> Result<Vec<Token>, String> {
 
         let mut hit = false;
 
-        for lexer in lexers {
-            if let Some((token, new_chars)) = lexer(chars) {
-                println!("New token: {:?}", token);
+        for lexer in &lexers {
+            if let Some((token, new_chars)) = lexer.lex(chars) {
+                // println!("New token: {:?}", token);
                 res.push(token);
                 chars = new_chars;
                 hit = true;
@@ -83,7 +83,7 @@ mod tests {
     fn lexer_works() {
         let lexed = lex("
             let a = 5;
-            let b = 1;
+            let     b=1 ;
         ");
 
         assert_eq!(
