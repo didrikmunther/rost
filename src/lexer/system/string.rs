@@ -13,7 +13,6 @@ impl Lexer for StringLexer {
         let mut buf = Vec::<char>::new();
         let mut is_string = false;
         let mut start = 0;
-        let mut last = 0;
 
         for (i, &(pos, cur, eof)) in chars.into_iter().enumerate() {
             if buf.is_empty() && cur.is_whitespace() {
@@ -26,8 +25,8 @@ impl Lexer for StringLexer {
 
             if is_string && eof {
                 return Err(LexerError {
-                    pos: start..last,
-                    message: String::from("Unexpected EOF for string"),
+                    pos: start..start + 1,
+                    message: String::from("Unterminated quote"),
                 });
             }
 
@@ -45,7 +44,6 @@ impl Lexer for StringLexer {
             }
 
             buf.push(cur);
-            last = pos;
         }
 
         Ok(None)
@@ -80,7 +78,7 @@ mod tests {
             lexed,
             Err(LexerError {
                 pos: 0..3,
-                message: String::from("Unexpected EOF for string")
+                message: String::from("Unterminated quote")
             })
         );
     }

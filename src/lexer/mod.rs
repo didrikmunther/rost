@@ -1,12 +1,16 @@
 use std::ops::Range;
 
+mod error;
+mod letter;
 mod system;
+
+pub use error::LexerError;
+
 use system::{
     CommentLexer, IdentifierLexer, KeywordLexer, Lexer, LiteralNumberLexer, StringLexer,
     SymbolLexer,
 };
 
-mod letter;
 pub use letter::Letter;
 use letter::{get_letters, UnexpectedToken};
 
@@ -42,12 +46,6 @@ pub struct Block {
     token: Token,
 }
 
-#[derive(Debug, PartialEq)]
-pub struct LexerError {
-    pos: Range<usize>,
-    message: String,
-}
-
 pub fn lex(text: &str) -> Result<Vec<Block>, LexerError> {
     let mut res = Vec::<Block>::new();
     let mut chars: &[Letter] = &get_letters(text);
@@ -78,12 +76,12 @@ pub fn lex(text: &str) -> Result<Vec<Block>, LexerError> {
         for lexer in &lexers {
             if let Some((token, new_pos)) = lexer.lex(chars)? {
                 res.push(Block {
-                    pos: pos..new_pos,
+                    pos: pos..pos + new_pos,
                     token,
                 });
 
                 chars = &chars[new_pos..];
-                pos = new_pos;
+                pos += new_pos;
                 hit = true;
                 break;
             }
@@ -104,9 +102,9 @@ pub fn lex(text: &str) -> Result<Vec<Block>, LexerError> {
 
 #[cfg(test)]
 mod tests {
+    use super::Keyword::*;
     use super::*;
     use Token::*;
-    use super::Keyword::*;
 
     #[test]
     fn lexer_works() {
@@ -119,47 +117,47 @@ mod tests {
             lexed,
             Ok(vec![
                 Block {
-                    pos: 13..3,
+                    pos: 13..16,
                     token: Keyword(Let)
                 },
                 Block {
-                    pos: 4..1,
+                    pos: 17..18,
                     token: Identifier(String::from("a"))
                 },
                 Block {
-                    pos: 2..1,
+                    pos: 19..20,
                     token: Keyword(Equals)
                 },
                 Block {
-                    pos: 2..1,
+                    pos: 21..22,
                     token: Literal(super::Literal::Int(5))
                 },
                 Block {
-                    pos: 1..1,
+                    pos: 22..23,
                     token: Keyword(Semicolon)
                 },
                 Block {
-                    pos: 14..3,
+                    pos: 36..39,
                     token: Keyword(Let)
                 },
                 Block {
-                    pos: 8..1,
+                    pos: 44..45,
                     token: Identifier(String::from("b"))
                 },
                 Block {
-                    pos: 1..1,
+                    pos: 45..46,
                     token: Keyword(Equals)
                 },
                 Block {
-                    pos: 1..5,
+                    pos: 46..51,
                     token: Literal(super::Literal::String(String::from("abc")))
                 },
                 Block {
-                    pos: 6..1,
+                    pos: 52..53,
                     token: Keyword(Semicolon)
                 },
                 Block {
-                    pos: 11..11,
+                    pos: 63..63,
                     token: EOF
                 }
             ])
