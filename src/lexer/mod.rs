@@ -68,7 +68,6 @@ pub fn lex(text: &str) -> Result<Vec<Token>, LexerError> {
 
         for lexer in &lexers {
             if let Some((token, new_chars)) = lexer.lex(chars)? {
-                // println!("New token: {:?}", token);
                 res.push(token);
                 chars = new_chars;
                 hit = true;
