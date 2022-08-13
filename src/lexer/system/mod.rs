@@ -1,4 +1,4 @@
-pub use super::{Keyword, Letter, Literal, Token};
+pub use super::{Keyword, Letter, LexerError, Literal, Token};
 
 pub mod comment;
 pub mod identifier;
@@ -15,5 +15,5 @@ pub use string::StringLexer;
 pub use symbol::SymbolLexer;
 
 pub trait Lexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Option<(Token, &'a [Letter])>;
+    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, &'a [Letter])>, LexerError>;
 }

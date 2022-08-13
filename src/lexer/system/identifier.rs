@@ -1,4 +1,4 @@
-use super::{Letter, Lexer, Token};
+use super::{Letter, Lexer, LexerError, Token};
 
 fn is_identifier(word: &str) -> bool {
     let mut chars = word.chars();
@@ -14,7 +14,7 @@ impl IdentifierLexer {
 }
 
 impl Lexer for IdentifierLexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Option<(Token, &'a [Letter])> {
+    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, &'a [Letter])>, LexerError> {
         let mut buf = Vec::<char>::new();
 
         for (i, &(_pos, cur, eof)) in chars.into_iter().enumerate() {
@@ -26,16 +26,16 @@ impl Lexer for IdentifierLexer {
                 let word: String = buf.iter().collect();
 
                 if word.len() <= 0 || !is_identifier(&word) {
-                    return None;
+                    return Ok(None);
                 }
 
-                return Some((Token::Identifier(word), &chars[i..]));
+                return Ok(Some((Token::Identifier(word), &chars[i..])));
             }
 
             buf.push(cur);
         }
 
-        None
+        Ok(None)
     }
 }
 
@@ -60,6 +60,9 @@ mod tests {
         let lexed = IdentifierLexer::new().lex(letters);
         let rest: &[Letter] = &[EOF];
 
-        assert_eq!(lexed, Some((Token::Identifier(String::from("abc")), rest)));
+        assert_eq!(
+            lexed,
+            Ok(Some((Token::Identifier(String::from("abc")), rest)))
+        );
     }
 }

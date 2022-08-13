@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 mod system;
 use system::{
     CommentLexer, IdentifierLexer, KeywordLexer, Lexer, LiteralNumberLexer, StringLexer,
@@ -5,8 +7,8 @@ use system::{
 };
 
 mod letter;
-use letter::get_letters;
 pub use letter::Letter;
+use letter::{get_letters, UnexpectedToken};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Keyword {
@@ -34,7 +36,13 @@ pub enum Token {
     Comment(String),
 }
 
-pub fn lex(text: &str) -> Result<Vec<Token>, String> {
+#[derive(Debug, PartialEq)]
+pub struct LexerError {
+    pos: Range<usize>,
+    message: String,
+}
+
+pub fn lex(text: &str) -> Result<Vec<Token>, LexerError> {
     let mut res = Vec::<Token>::new();
     let mut chars: &[Letter] = &get_letters(text);
 
@@ -60,7 +68,7 @@ pub fn lex(text: &str) -> Result<Vec<Token>, String> {
         let mut hit = false;
 
         for lexer in &lexers {
-            if let Some((token, new_chars)) = lexer.lex(chars) {
+            if let Some((token, new_chars)) = lexer.lex(chars)? {
                 // println!("New token: {:?}", token);
                 res.push(token);
                 chars = new_chars;
@@ -70,7 +78,7 @@ pub fn lex(text: &str) -> Result<Vec<Token>, String> {
         }
 
         if !hit {
-            return Err(format!("Unexpected token: {:?}", chars.iter().next()));
+            return Err(chars.iter().next().unwrap().unexpected_token());
         }
     }
 
@@ -102,6 +110,21 @@ mod tests {
                 Token::Literal(Literal::Int(1)),
                 Token::Keyword(Keyword::Semicolon)
             ])
+        );
+    }
+
+    #[test]
+    fn unexpected_token_err_works() {
+        let lexed = lex("
+            let ¢ = 5;
+        ");
+
+        assert_eq!(
+            lexed,
+            Err(LexerError {
+                pos: 17..18,
+                message: String::from("Unexpected token: '¢'")
+            })
         );
     }
 }

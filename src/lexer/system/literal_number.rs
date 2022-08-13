@@ -1,4 +1,4 @@
-use super::{Letter, Lexer, Literal, Token};
+use super::{Letter, Lexer, LexerError, Literal, Token};
 
 fn is_number(word: &str) -> bool {
     word.chars().all(char::is_numeric)
@@ -29,7 +29,7 @@ impl LiteralNumberLexer {
 }
 
 impl Lexer for LiteralNumberLexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Option<(Token, &'a [Letter])> {
+    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, &'a [Letter])>, LexerError> {
         let mut buf = Vec::<char>::new();
 
         for (i, &(_pos, cur, eof)) in chars.into_iter().enumerate() {
@@ -41,20 +41,20 @@ impl Lexer for LiteralNumberLexer {
                 let word: String = buf.iter().collect();
 
                 if word.len() <= 0 {
-                    return None;
+                    return Ok(None);
                 }
 
                 if let Some(literal) = get_literal(&word) {
-                    return Some((Token::Literal(literal), &chars[i..]));
+                    return Ok(Some((Token::Literal(literal), &chars[i..])));
                 } else {
-                    return None;
+                    return Ok(None);
                 }
             }
 
             buf.push(cur);
         }
 
-        None
+        Ok(None)
     }
 }
 
@@ -77,6 +77,6 @@ mod tests {
         let lexed = LiteralNumberLexer::new().lex(letters);
         let rest: &[Letter] = &[EOF];
 
-        assert_eq!(lexed, Some((Token::Literal(Literal::Int(5)), rest)));
+        assert_eq!(lexed, Ok(Some((Token::Literal(Literal::Int(5)), rest))));
     }
 }

@@ -1,4 +1,4 @@
-use super::{identifier::IdentifierLexer, Keyword, Letter, Lexer, Token};
+use super::{identifier::IdentifierLexer, Keyword, Letter, Lexer, LexerError, Token};
 use phf::phf_map;
 
 static KEYWORDS: phf::Map<&'static str, Keyword> = phf_map! {
@@ -18,16 +18,16 @@ impl KeywordLexer {
 }
 
 impl Lexer for KeywordLexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Option<(Token, &'a [Letter])> {
+    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, &'a [Letter])>, LexerError> {
         match self.identifier_lexer.lex(chars) {
-            Some((Token::Identifier(identifier), new_chars)) => {
-                if let Some(keyword) = KEYWORDS.get(&identifier) {
+            Ok(Some((Token::Identifier(identifier), new_chars))) => {
+                Ok(if let Some(keyword) = KEYWORDS.get(&identifier) {
                     Some((Token::Keyword(*keyword), new_chars))
                 } else {
                     None
-                }
+                })
             }
-            _ => None,
+            _ => Ok(None),
         }
     }
 }
@@ -43,6 +43,6 @@ mod tests {
         let lexed = KeywordLexer::new().lex(letters);
         let rest: &[Letter] = &[EOF];
 
-        assert_eq!(lexed, Some((Token::Keyword(Keyword::Let), rest)));
+        assert_eq!(lexed, Ok(Some((Token::Keyword(Keyword::Let), rest))));
     }
 }

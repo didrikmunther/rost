@@ -1,4 +1,4 @@
-use super::{Letter, Lexer, Token};
+use super::{Letter, Lexer, LexerError, Token};
 
 pub struct CommentLexer;
 
@@ -9,7 +9,7 @@ impl CommentLexer {
 }
 
 impl Lexer for CommentLexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Option<(Token, &'a [Letter])> {
+    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, &'a [Letter])>, LexerError> {
         let mut buf = Vec::<char>::new();
         let mut is_comment = false;
 
@@ -19,7 +19,7 @@ impl Lexer for CommentLexer {
             }
 
             if !is_comment && buf.len() >= 2 {
-                return None;
+                return Ok(None);
             }
 
             if !is_comment && buf.len() == 1 && cur == '/' {
@@ -29,13 +29,13 @@ impl Lexer for CommentLexer {
             }
 
             if is_comment && (eof || cur == '\n') {
-                return Some((Token::Comment(buf.iter().collect()), &chars[i..]));
+                return Ok(Some((Token::Comment(buf.iter().collect()), &chars[i..])));
             }
 
             buf.push(cur);
         }
 
-        None
+        Ok(None)
     }
 }
 
@@ -50,6 +50,6 @@ mod tests {
         let lexed = CommentLexer::new().lex(letters);
         let rest: &[Letter] = &[EOF];
 
-        assert_eq!(lexed, Some((Token::Comment(String::from("hej")), rest)));
+        assert_eq!(lexed, Ok(Some((Token::Comment(String::from("hej")), rest))));
     }
 }

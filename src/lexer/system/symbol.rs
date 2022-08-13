@@ -1,4 +1,4 @@
-use super::{Keyword, Letter, Lexer, Token};
+use super::{Keyword, Letter, Lexer, LexerError, Token};
 use phf::phf_map;
 
 // Symbols are not alphanumerical
@@ -19,7 +19,7 @@ impl SymbolLexer {
 }
 
 impl Lexer for SymbolLexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Option<(Token, &'a [Letter])> {
+    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, &'a [Letter])>, LexerError> {
         let mut buf = Vec::<char>::new();
 
         for (i, &(_pos, cur, eof)) in chars.into_iter().enumerate() {
@@ -31,20 +31,20 @@ impl Lexer for SymbolLexer {
                 let word: String = buf.iter().collect();
 
                 if word.len() <= 0 {
-                    return None;
+                    return Ok(None);
                 }
 
                 if let Some(&symbol) = SYMBOLS.get(&word) {
-                    return Some((Token::Keyword(symbol), &chars[i..]));
+                    return Ok(Some((Token::Keyword(symbol), &chars[i..])));
                 } else {
-                    return None;
+                    return Ok(None);
                 }
             }
 
             buf.push(cur);
         }
 
-        None
+        Ok(None)
     }
 }
 
@@ -59,6 +59,6 @@ mod tests {
         let lexed = SymbolLexer::new().lex(letters);
         let rest: &[Letter] = &[EOF];
 
-        assert_eq!(lexed, Some((Token::Keyword(Keyword::Arrow), rest)));
+        assert_eq!(lexed, Ok(Some((Token::Keyword(Keyword::Arrow), rest))));
     }
 }
