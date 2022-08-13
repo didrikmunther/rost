@@ -15,5 +15,5 @@ pub use string::StringLexer;
 pub use symbol::SymbolLexer;
 
 pub trait Lexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, &'a [Letter])>, LexerError>;
+    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, usize)>, LexerError>;
 }

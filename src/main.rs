@@ -1,7 +1,12 @@
 mod lexer;
+mod parser;
 
 fn main() {
-    let lexed = lexer::lex("let ¢ = 5;");
+    let text = "5+ 5;";
 
-    println!("\n{:?}", lexed);
+    let document = lexer::lex(text).unwrap();
+    println!("\n{:?}", document);
+
+    let parsed = parser::parse(document, text);
+    println!("\n{:?}", parsed);
 }

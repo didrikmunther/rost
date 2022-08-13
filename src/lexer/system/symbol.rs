@@ -19,7 +19,7 @@ impl SymbolLexer {
 }
 
 impl Lexer for SymbolLexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, &'a [Letter])>, LexerError> {
+    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, usize)>, LexerError> {
         let mut buf = Vec::<char>::new();
 
         for (mut i, &(_pos, cur, eof)) in chars.into_iter().enumerate() {
@@ -40,7 +40,7 @@ impl Lexer for SymbolLexer {
                 while let Some(_) = word.pop() {
                     i -= 1;
                     if let Some(&symbol) = SYMBOLS.get(&word) {
-                        return Ok(Some((Token::Keyword(symbol), &chars[i..])));
+                        return Ok(Some((Token::Keyword(symbol), i)));
                     }
                 }
 
@@ -57,14 +57,13 @@ impl Lexer for SymbolLexer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::lexer::letter::{get_letters, EOF};
+    use crate::lexer::letter::{get_letters};
 
     #[test]
     fn symbol_works() {
         let letters = &get_letters("=>");
         let lexed = SymbolLexer::new().lex(letters);
-        let rest: &[Letter] = &[EOF];
 
-        assert_eq!(lexed, Ok(Some((Token::Keyword(Keyword::Arrow), rest))));
+        assert_eq!(lexed, Ok(Some((Token::Keyword(Keyword::Arrow), 2))));
     }
 }

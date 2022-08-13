@@ -9,7 +9,7 @@ impl CommentLexer {
 }
 
 impl Lexer for CommentLexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, &'a [Letter])>, LexerError> {
+    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, usize)>, LexerError> {
         let mut buf = Vec::<char>::new();
         let mut is_comment = false;
 
@@ -29,7 +29,7 @@ impl Lexer for CommentLexer {
             }
 
             if is_comment && (eof || cur == '\n') {
-                return Ok(Some((Token::Comment(buf.iter().collect()), &chars[i..])));
+                return Ok(Some((Token::Comment(buf.iter().collect()), i)));
             }
 
             buf.push(cur);
@@ -42,14 +42,13 @@ impl Lexer for CommentLexer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::lexer::letter::{get_letters, EOF};
+    use crate::lexer::letter::get_letters;
 
     #[test]
     fn comment_works() {
         let letters = &get_letters("// hej");
         let lexed = CommentLexer::new().lex(letters);
-        let rest: &[Letter] = &[EOF];
 
-        assert_eq!(lexed, Ok(Some((Token::Comment(String::from("hej")), rest))));
+        assert_eq!(lexed, Ok(Some((Token::Comment(String::from("hej")), 6))));
     }
 }

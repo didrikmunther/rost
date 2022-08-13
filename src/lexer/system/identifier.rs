@@ -14,7 +14,7 @@ impl IdentifierLexer {
 }
 
 impl Lexer for IdentifierLexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, &'a [Letter])>, LexerError> {
+    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, usize)>, LexerError> {
         let mut buf = Vec::<char>::new();
 
         for (i, &(_pos, cur, eof)) in chars.into_iter().enumerate() {
@@ -29,7 +29,7 @@ impl Lexer for IdentifierLexer {
                     return Ok(None);
                 }
 
-                return Ok(Some((Token::Identifier(word), &chars[i..])));
+                return Ok(Some((Token::Identifier(word), i)));
             }
 
             buf.push(cur);
@@ -42,7 +42,7 @@ impl Lexer for IdentifierLexer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::lexer::letter::{get_letters, EOF};
+    use crate::lexer::letter::get_letters;
 
     #[test]
     fn is_identifier_works() {
@@ -58,11 +58,7 @@ mod tests {
     fn identifier_works() {
         let letters = &get_letters("abc");
         let lexed = IdentifierLexer::new().lex(letters);
-        let rest: &[Letter] = &[EOF];
 
-        assert_eq!(
-            lexed,
-            Ok(Some((Token::Identifier(String::from("abc")), rest)))
-        );
+        assert_eq!(lexed, Ok(Some((Token::Identifier(String::from("abc")), 3))));
     }
 }

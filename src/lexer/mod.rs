@@ -33,6 +33,13 @@ pub enum Token {
     Identifier(String),
     Literal(Literal),
     Comment(String),
+    EOF,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Block {
+    pos: Range<usize>,
+    token: Token,
 }
 
 #[derive(Debug, PartialEq)]
@@ -41,9 +48,10 @@ pub struct LexerError {
     message: String,
 }
 
-pub fn lex(text: &str) -> Result<Vec<Token>, LexerError> {
-    let mut res = Vec::<Token>::new();
+pub fn lex(text: &str) -> Result<Vec<Block>, LexerError> {
+    let mut res = Vec::<Block>::new();
     let mut chars: &[Letter] = &get_letters(text);
+    let mut pos = 0;
 
     let lexers: Vec<Box<dyn Lexer>> = vec![
         Box::new(CommentLexer::new()),
@@ -61,15 +69,21 @@ pub fn lex(text: &str) -> Result<Vec<Token>, LexerError> {
 
         if chars[0].1.is_whitespace() {
             chars = &chars[1..];
+            pos += 1;
             continue;
         }
 
         let mut hit = false;
 
         for lexer in &lexers {
-            if let Some((token, new_chars)) = lexer.lex(chars)? {
-                res.push(token);
-                chars = new_chars;
+            if let Some((token, new_pos)) = lexer.lex(chars)? {
+                res.push(Block {
+                    pos: pos..new_pos,
+                    token,
+                });
+
+                chars = &chars[new_pos..];
+                pos = new_pos;
                 hit = true;
                 break;
             }
@@ -80,12 +94,19 @@ pub fn lex(text: &str) -> Result<Vec<Token>, LexerError> {
         }
     }
 
+    res.push(Block {
+        pos: pos..pos,
+        token: Token::EOF,
+    });
+
     Ok(res)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use Token::*;
+    use super::Keyword::*;
 
     #[test]
     fn lexer_works() {
@@ -97,16 +118,50 @@ mod tests {
         assert_eq!(
             lexed,
             Ok(vec![
-                Token::Keyword(Keyword::Let),
-                Token::Identifier(String::from("a")),
-                Token::Keyword(Keyword::Equals),
-                Token::Literal(Literal::Int(5)),
-                Token::Keyword(Keyword::Semicolon),
-                Token::Keyword(Keyword::Let),
-                Token::Identifier(String::from("b")),
-                Token::Keyword(Keyword::Equals),
-                Token::Literal(Literal::String(String::from("abc"))),
-                Token::Keyword(Keyword::Semicolon)
+                Block {
+                    pos: 13..3,
+                    token: Keyword(Let)
+                },
+                Block {
+                    pos: 4..1,
+                    token: Identifier(String::from("a"))
+                },
+                Block {
+                    pos: 2..1,
+                    token: Keyword(Equals)
+                },
+                Block {
+                    pos: 2..1,
+                    token: Literal(super::Literal::Int(5))
+                },
+                Block {
+                    pos: 1..1,
+                    token: Keyword(Semicolon)
+                },
+                Block {
+                    pos: 14..3,
+                    token: Keyword(Let)
+                },
+                Block {
+                    pos: 8..1,
+                    token: Identifier(String::from("b"))
+                },
+                Block {
+                    pos: 1..1,
+                    token: Keyword(Equals)
+                },
+                Block {
+                    pos: 1..5,
+                    token: Literal(super::Literal::String(String::from("abc")))
+                },
+                Block {
+                    pos: 6..1,
+                    token: Keyword(Semicolon)
+                },
+                Block {
+                    pos: 11..11,
+                    token: EOF
+                }
             ])
         );
     }

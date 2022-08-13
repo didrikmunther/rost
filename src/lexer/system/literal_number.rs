@@ -29,7 +29,7 @@ impl LiteralNumberLexer {
 }
 
 impl Lexer for LiteralNumberLexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, &'a [Letter])>, LexerError> {
+    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, usize)>, LexerError> {
         let mut buf = Vec::<char>::new();
 
         for (i, &(_pos, cur, eof)) in chars.into_iter().enumerate() {
@@ -45,7 +45,7 @@ impl Lexer for LiteralNumberLexer {
                 }
 
                 if let Some(literal) = get_literal(&word) {
-                    return Ok(Some((Token::Literal(literal), &chars[i..])));
+                    return Ok(Some((Token::Literal(literal), i)));
                 } else {
                     return Ok(None);
                 }
@@ -61,7 +61,7 @@ impl Lexer for LiteralNumberLexer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::lexer::letter::{get_letters, EOF};
+    use crate::lexer::letter::get_letters;
 
     #[test]
     fn is_number_works() {
@@ -75,8 +75,7 @@ mod tests {
     fn literal_number_works() {
         let letters = &get_letters("5");
         let lexed = LiteralNumberLexer::new().lex(letters);
-        let rest: &[Letter] = &[EOF];
 
-        assert_eq!(lexed, Ok(Some((Token::Literal(Literal::Int(5)), rest))));
+        assert_eq!(lexed, Ok(Some((Token::Literal(Literal::Int(5)), 1))));
     }
 }

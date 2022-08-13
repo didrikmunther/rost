@@ -18,11 +18,11 @@ impl KeywordLexer {
 }
 
 impl Lexer for KeywordLexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, &'a [Letter])>, LexerError> {
+    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, usize)>, LexerError> {
         match self.identifier_lexer.lex(chars) {
-            Ok(Some((Token::Identifier(identifier), new_chars))) => {
+            Ok(Some((Token::Identifier(identifier), pos))) => {
                 Ok(if let Some(keyword) = KEYWORDS.get(&identifier) {
-                    Some((Token::Keyword(*keyword), new_chars))
+                    Some((Token::Keyword(*keyword), pos))
                 } else {
                     None
                 })
@@ -35,14 +35,13 @@ impl Lexer for KeywordLexer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::lexer::letter::{get_letters, EOF};
+    use crate::lexer::letter::get_letters;
 
     #[test]
     fn keyword_works() {
         let letters = &get_letters("let");
         let lexed = KeywordLexer::new().lex(letters);
-        let rest: &[Letter] = &[EOF];
 
-        assert_eq!(lexed, Ok(Some((Token::Keyword(Keyword::Let), rest))));
+        assert_eq!(lexed, Ok(Some((Token::Keyword(Keyword::Let), 3))));
     }
 }

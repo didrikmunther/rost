@@ -9,7 +9,7 @@ impl StringLexer {
 }
 
 impl Lexer for StringLexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, &'a [Letter])>, LexerError> {
+    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, usize)>, LexerError> {
         let mut buf = Vec::<char>::new();
         let mut is_string = false;
         let mut start = 0;
@@ -34,7 +34,7 @@ impl Lexer for StringLexer {
             if is_string && cur == '"' {
                 return Ok(Some((
                     Token::Literal(Literal::String(buf.iter().collect())),
-                    &chars[i + 1..],
+                    i + 1,
                 )));
             }
 
@@ -55,19 +55,18 @@ impl Lexer for StringLexer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::lexer::letter::{get_letters, EOF};
+    use crate::lexer::letter::get_letters;
 
     #[test]
     fn string_works() {
         let letters = &get_letters("\"hej\"");
         let lexed = StringLexer::new().lex(letters);
-        let rest: &[Letter] = &[EOF];
 
         assert_eq!(
             lexed,
             Ok(Some((
                 Token::Literal(Literal::String(String::from("hej"))),
-                rest
+                5
             )))
         );
     }
