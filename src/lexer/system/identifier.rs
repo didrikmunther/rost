@@ -45,6 +45,16 @@ mod tests {
     use crate::lexer::letter::{get_letters, EOF};
 
     #[test]
+    fn is_identifier_works() {
+        assert!(is_identifier("a"));
+        assert!(is_identifier("abc"));
+        assert!(is_identifier("abc1"));
+        assert!(!is_identifier("1abc"));
+        assert!(!is_identifier("+abc"));
+        assert!(!is_identifier(""));
+    }
+
+    #[test]
     fn identifier_works() {
         let letters = &get_letters("abc");
         let lexed = IdentifierLexer::new().lex(letters);
