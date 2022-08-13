@@ -77,7 +77,7 @@ mod tests {
         assert_eq!(
             lexed,
             Err(LexerError {
-                pos: 0..3,
+                pos: 0..1,
                 message: String::from("Unterminated quote")
             })
         );

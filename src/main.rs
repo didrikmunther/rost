@@ -11,7 +11,7 @@ fn run(text: &str) -> Result<(), ()> {
     };
     println!("\n{:?}", document);
 
-    let parsed = parser::parse(document, text);
+    let parsed = parser::parse(&document, text);
     println!("\n{:?}", parsed);
 
     return Ok(())

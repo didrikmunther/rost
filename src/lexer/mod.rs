@@ -22,6 +22,12 @@ pub enum Keyword {
     Plus,
     Minus,
     Arrow,
+
+    // Abstract keywords
+    EOF,
+    Identifier,
+    Literal,
+    Comment,
 }
 
 #[derive(Debug, PartialEq)]
@@ -42,8 +48,9 @@ pub enum Token {
 
 #[derive(Debug, PartialEq)]
 pub struct Block {
-    pos: Range<usize>,
-    token: Token,
+    pub pos: Range<usize>,
+    pub token: Token,
+    pub kind: Keyword,
 }
 
 pub fn lex(text: &str) -> Result<Vec<Block>, LexerError> {
@@ -75,9 +82,18 @@ pub fn lex(text: &str) -> Result<Vec<Block>, LexerError> {
 
         for lexer in &lexers {
             if let Some((token, new_pos)) = lexer.lex(chars)? {
+                let kind = match token {
+                    Token::Identifier(_) => Keyword::Identifier,
+                    Token::Keyword(keyword) => keyword,
+                    Token::EOF => Keyword::EOF,
+                    Token::Literal(_) => Keyword::Literal,
+                    Token::Comment(_) => Keyword::Comment,
+                };
+
                 res.push(Block {
                     pos: pos..pos + new_pos,
                     token,
+                    kind,
                 });
 
                 chars = &chars[new_pos..];
@@ -95,6 +111,7 @@ pub fn lex(text: &str) -> Result<Vec<Block>, LexerError> {
     res.push(Block {
         pos: pos..pos,
         token: Token::EOF,
+        kind: Keyword::EOF,
     });
 
     Ok(res)
@@ -102,7 +119,6 @@ pub fn lex(text: &str) -> Result<Vec<Block>, LexerError> {
 
 #[cfg(test)]
 mod tests {
-    use super::Keyword::*;
     use super::*;
     use Token::*;
 
@@ -118,47 +134,58 @@ mod tests {
             Ok(vec![
                 Block {
                     pos: 13..16,
-                    token: Keyword(Let)
+                    token: Keyword(super::Keyword::Let),
+                    kind: super::Keyword::Let,
                 },
                 Block {
                     pos: 17..18,
-                    token: Identifier(String::from("a"))
+                    token: Identifier(String::from("a")),
+                    kind: super::Keyword::Identifier,
                 },
                 Block {
                     pos: 19..20,
-                    token: Keyword(Equals)
+                    token: Keyword(super::Keyword::Equals),
+                    kind: super::Keyword::Equals,
                 },
                 Block {
                     pos: 21..22,
-                    token: Literal(super::Literal::Int(5))
+                    token: Literal(super::Literal::Int(5)),
+                    kind: super::Keyword::Literal,
                 },
                 Block {
                     pos: 22..23,
-                    token: Keyword(Semicolon)
+                    token: Keyword(super::Keyword::Semicolon),
+                    kind: super::Keyword::Semicolon,
                 },
                 Block {
                     pos: 36..39,
-                    token: Keyword(Let)
+                    token: Keyword(super::Keyword::Let),
+                    kind: super::Keyword::Let,
                 },
                 Block {
                     pos: 44..45,
-                    token: Identifier(String::from("b"))
+                    token: Identifier(String::from("b")),
+                    kind: super::Keyword::Identifier,
                 },
                 Block {
                     pos: 45..46,
-                    token: Keyword(Equals)
+                    token: Keyword(super::Keyword::Equals),
+                    kind: super::Keyword::Equals,
                 },
                 Block {
                     pos: 46..51,
-                    token: Literal(super::Literal::String(String::from("abc")))
+                    token: Literal(super::Literal::String(String::from("abc"))),
+                    kind: super::Keyword::Literal,
                 },
                 Block {
                     pos: 52..53,
-                    token: Keyword(Semicolon)
+                    token: Keyword(super::Keyword::Semicolon),
+                    kind: super::Keyword::Semicolon,
                 },
                 Block {
                     pos: 63..63,
-                    token: EOF
+                    token: EOF,
+                    kind: super::Keyword::EOF,
                 }
             ])
         );

@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use crate::lexer::{Literal, Token, Block};
+use crate::lexer::{Block, Keyword, Literal, Token};
 
 #[derive(Debug)]
 pub struct ParserError;
@@ -56,13 +56,13 @@ pub enum Primary {
     Identifier(String),
 }
 
-struct Parser {
+struct Parser<'a> {
     index: usize,
-    document: Vec<Block>,
+    document: &'a Vec<Block>,
 }
 
-impl Parser {
-    pub fn new(document: Vec<Block>) -> Self {
+impl<'a> Parser<'a> {
+    pub fn new(document: &'a Vec<Block>) -> Self {
         Self { index: 0, document }
     }
 
@@ -72,48 +72,47 @@ impl Parser {
         return Ok(program);
     }
 
-	// fn get_at(&self, index: usize) -> Option<&'a Block> {
-    //     self.document.get(index)
-    //         .map(|v| *v)
-    // }
- 
-    // fn peek(&self) -> Option<&'a Block> {
-    //     self.get_at(self.index + 1)
-    // }
+    fn get_at(&self, index: usize) -> Option<&'a Block> {
+        self.document.get(index)
+    }
 
-    // fn reverse(&mut self, index: usize) {
-    //     self.index = index;
-    // }
+    fn peek(&self) -> Option<&'a Block> {
+        self.get_at(self.index + 1)
+    }
 
-    // fn is_end(&self) -> bool {
-    //     self.check(Token::EOF).is_some()
-    // }
+    fn set_index(&mut self, index: usize) {
+        self.index = index;
+    }
 
-	// fn check(&self, token: Token) -> Option<&'a Block> {
-    //     if token != Token::EOF && self.is_end() {
-    //         None
-    //     } else {
-    //         self.peek()
-    //             .and_then(|v| if v.token == token {
-    //                 Some(v)
-    //             } else {
-    //                 None
-    //             })
-    //     }
-    // }
+    fn is_end(&self) -> bool {
+        self.check(Keyword::EOF).is_some()
+    }
 
-	// fn get(&mut self, tokens: &'static [Token]) -> Option<Token> {
-    //     for token in tokens {
-    //         if let Some(block) = self.check(*token) {
-    //             self.advance();
-    //             return Some(block);
-    //         }
-    //     }
+    fn check(&self, token: Keyword) -> Option<&'a Block> {
+        if token != Keyword::EOF && self.is_end() {
+            None
+        } else {
+            self.peek()
+                .and_then(|v| if v.kind == token { Some(v) } else { None })
+        }
+    }
 
-    //     return None;
-    // }
+    fn advance(&mut self) {
+        self.index += 1;
+    }
+
+    fn get(&mut self, tokens: &'static [Keyword]) -> Option<&'a Block> {
+        for token in tokens {
+            if let Some(block) = self.check(*token) {
+                self.advance();
+                return Some(block);
+            }
+        }
+
+        return None;
+    }
 }
 
-pub fn parse<'a>(document: Vec<Block>, _text: &'a str) -> Result<Program, ParserError> {
+pub fn parse<'a>(document: &'a Vec<Block>, _text: &'a str) -> Result<Program, ParserError> {
     Parser::new(document).parse()
 }
