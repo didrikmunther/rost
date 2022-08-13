@@ -91,7 +91,7 @@ mod tests {
     fn lexer_works() {
         let lexed = lex("
             let a = 5;
-            let     b=1 ;
+            let     b=\"abc\" ;
         ");
 
         assert_eq!(
@@ -105,7 +105,7 @@ mod tests {
                 Token::Keyword(Keyword::Let),
                 Token::Identifier(String::from("b")),
                 Token::Keyword(Keyword::Equals),
-                Token::Literal(Literal::Int(1)),
+                Token::Literal(Literal::String(String::from("abc"))),
                 Token::Keyword(Keyword::Semicolon)
             ])
         );
