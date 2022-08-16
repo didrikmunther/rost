@@ -2,6 +2,7 @@ use ::std::io::{Write};
 
 mod lexer;
 mod parser;
+mod compiler;
 
 fn flush() {
     std::io::stdout().flush().expect("Flush failed.");
