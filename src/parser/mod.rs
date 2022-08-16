@@ -6,7 +6,7 @@ use self::error::{ParserError, ParserErrorKind};
 
 mod error;
 
-pub type Program = Vec<Declaration>;
+pub type AST = Vec<Declaration>;
 
 #[derive(Debug)]
 pub struct Declaration {
@@ -72,7 +72,7 @@ impl<'a> Parser<'a> {
         Self { index: 0, document }
     }
 
-    pub fn parse(&mut self) -> Result<Program, ParserError> {
+    pub fn parse(&mut self) -> Result<AST, ParserError> {
         let mut program = vec![];
 
         while !self.is_end() {
@@ -212,6 +212,6 @@ impl<'a> Parser<'a> {
     }
 }
 
-pub fn parse<'a>(document: &'a Vec<Block>) -> Result<Program, ParserError> {
+pub fn parse<'a>(document: &'a Vec<Block>) -> Result<AST, ParserError> {
     Parser::new(document).parse()
 }
