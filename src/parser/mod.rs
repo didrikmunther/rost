@@ -2,8 +2,9 @@ use std::ops::Range;
 
 use crate::lexer::{Block, Keyword, Literal, Token};
 
-#[derive(Debug)]
-pub struct ParserError;
+use self::error::{ParserError, ParserErrorKind};
+
+mod error;
 
 pub type Program = Vec<Declaration>;
 
@@ -131,7 +132,10 @@ impl<'a> Parser<'a> {
 
             loop {
                 if self.is_end() {
-                    return Err(ParserError);
+                    return Err(ParserError::new(
+                        open.pos.clone(),
+                        ParserErrorKind::UnterminatedParenthesis,
+                    ));
                 }
 
                 if let Some(close) = self.get(&[Keyword::ParRight]) {
@@ -158,12 +162,17 @@ impl<'a> Parser<'a> {
                 kind: ExpressionKind::Primary(match &block.token {
                     Token::Identifier(identifier) => Primary::Identifier(identifier.clone()),
                     Token::Literal(literal) => Primary::Literal(literal.clone()),
-                    _ => return Err(ParserError),
+                    _ => {
+                        return Err(ParserError::new(
+                            block.pos.clone(),
+                            ParserErrorKind::Unknown,
+                        ))
+                    }
                 }),
             });
         }
 
-        return Err(ParserError);
+        Err(ParserError::new(0..0, ParserErrorKind::Unknown))
     }
 
     fn get_at(&self, index: usize) -> Option<&'a Block> {

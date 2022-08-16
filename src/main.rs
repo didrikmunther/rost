@@ -49,7 +49,7 @@ fn shell(shell_level: ShellLevel) {
                 let parsed = document.and_then(|document| match parser::parse(&document) {
                     Ok(program) => Some(program),
                     Err(err) => {
-                        println!("{:?}", err);
+                        print_error(err.into());
                         None
                     }
                 });
