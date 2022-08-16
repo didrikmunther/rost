@@ -1,7 +1,10 @@
 use ::std::io::Write;
 use std::{env, fs, process::exit};
 
+use crate::error::RostError;
+
 mod compiler;
+mod error;
 mod lexer;
 mod parser;
 
@@ -20,17 +23,20 @@ fn shell(shell_level: ShellLevel) {
         std::io::stdin()
             .read_line(&mut buf)
             .expect("Could not read user input.");
-        let text = buf.as_ref();
 
         code.push_str(&buf);
+
+        let print_error = |mut err: RostError| {
+            println!("{}", err.with_code(Some(buf.clone())));
+        };
 
         match buf.as_ref() {
             "quit\n" => break,
             _ => {
-                let document = match lexer::lex(text) {
+                let document = match lexer::lex(&buf) {
                     Ok(lexed) => Some(lexed),
                     Err(err) => {
-                        println!("{}", err.get_error(text));
+                        print_error(err.into());
                         None
                     }
                 };
@@ -40,7 +46,7 @@ fn shell(shell_level: ShellLevel) {
                     continue;
                 }
 
-                let parsed = document.and_then(|document| match parser::parse(&document, text) {
+                let parsed = document.and_then(|document| match parser::parse(&document) {
                     Ok(program) => Some(program),
                     Err(err) => {
                         println!("{:?}", err);
@@ -53,7 +59,7 @@ fn shell(shell_level: ShellLevel) {
                     continue;
                 }
 
-                let compiled = parsed.and_then(|parsed| match compiler::compile(&parsed, text) {
+                let compiled = parsed.and_then(|parsed| match compiler::compile(&parsed) {
                     Ok(code) => Some(code),
                     Err(err) => {
                         println!("{:?}", err);
@@ -71,16 +77,26 @@ fn shell(shell_level: ShellLevel) {
 }
 
 #[allow(dead_code)]
-fn run(text: &str) -> i32 {
+fn run(file: &str) -> i32 {
+    let text = &fs::read_to_string(file).expect("Unable to read file");
+
+    let print_error = |mut err: RostError| {
+        println!(
+            "{}",
+            err.with_code(Some(text.to_string()))
+                .with_file(Some(file.to_string()))
+        );
+    };
+
     let document = match lexer::lex(text) {
         Ok(lexed) => Some(lexed),
         Err(err) => {
-            println!("{}", err.get_error(text));
+            print_error(err.into());
             None
         }
     };
 
-    let parsed = document.and_then(|document| match parser::parse(&document, text) {
+    let parsed = document.and_then(|document| match parser::parse(&document) {
         Ok(program) => Some(program),
         Err(err) => {
             println!("{:?}", err);
@@ -88,7 +104,7 @@ fn run(text: &str) -> i32 {
         }
     });
 
-    let compiled = parsed.and_then(|parsed| match compiler::compile(&parsed, text) {
+    let compiled = parsed.and_then(|parsed| match compiler::compile(&parsed) {
         Ok(code) => Some(code),
         Err(err) => {
             println!("{:?}", err);
@@ -162,8 +178,7 @@ fn main() {
     if run_shell {
         shell(shell_level)
     } else if let Some(file) = input_file {
-        let text = fs::read_to_string(file).expect("Unable to read file");
-        exit(run(&text));
+        exit(run(&file));
     } else {
         println!("No input file provided");
         exit(-1);

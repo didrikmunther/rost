@@ -1,58 +1,30 @@
 use std::ops::Range;
 
+use crate::error::RostError;
+
+#[derive(Debug, PartialEq)]
+pub enum LexerErrorKind {
+    UnexpectedToken(char),
+    UnterminatedQuote,
+}
+
 #[derive(Debug, PartialEq)]
 pub struct LexerError {
     pub pos: Range<usize>,
-    pub message: String,
+    pub kind: LexerErrorKind,
 }
 
 impl LexerError {
-    pub fn get_error(&self, text: &str) -> String {
-        let text = String::from(text);
+    fn get_message(&self) -> String {
+        match self.kind {
+            LexerErrorKind::UnexpectedToken(c) => format!("Unexpected token {}", c),
+            LexerErrorKind::UnterminatedQuote => "Unterminated quote".to_string(),
+        }
+    }
+}
 
-        let newlines = text
-            .chars()
-            .enumerate()
-            .take(self.pos.start)
-            .filter(|&(_, v)| v == '\n')
-            .map(|(i, _)| i);
-
-        let line = newlines.clone().count();
-        let line_pos = newlines
-            .clone()
-            .last()
-            .and_then(|i| Some(self.pos.start - i))
-            .unwrap_or(self.pos.start);
-
-        let margin: usize = 1;
-
-        let caret = format!(
-            "{}{}",
-            String::from(" ").repeat(line_pos),
-            String::from("^").repeat(self.pos.end - self.pos.start),
-        );
-
-        let msg = format!(
-            "{}└─ {}",
-            String::from(" ").repeat(line_pos),
-            self.message
-        );
-
-        let lines: String = text
-            .lines()
-            .enumerate()
-            .skip(std::cmp::max(line as i32 - margin as i32, 0) as usize)
-            .take(1 + margin * 2)
-            .fold(String::new(), |acc, (i, v)| {
-                if i == line {
-                    format!("{}{} | {}\n  | {}\n  | {}\n", acc, i + 1, v, caret, msg)
-                } else {
-                    format!("{}{} | {}\n", acc, i + 1, v)
-                }
-            });
-
-        let header = format!("  --> [main]:{}:{}", line + 1, line_pos + 1);
-
-        format!("{}\n{}", header, lines)
+impl Into<RostError> for LexerError {
+    fn into(self) -> RostError {
+        RostError::new(self.get_message(), self.pos)
     }
 }

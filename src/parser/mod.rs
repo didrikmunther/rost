@@ -203,6 +203,6 @@ impl<'a> Parser<'a> {
     }
 }
 
-pub fn parse<'a>(document: &'a Vec<Block>, _text: &'a str) -> Result<Program, ParserError> {
+pub fn parse<'a>(document: &'a Vec<Block>) -> Result<Program, ParserError> {
     Parser::new(document).parse()
 }

@@ -1,4 +1,4 @@
-pub use super::{Keyword, Letter, LexerError, Literal, Token};
+pub use super::{Keyword, Letter, LexerError, LexerErrorKind, Literal, Token};
 
 pub mod comment;
 pub mod identifier;

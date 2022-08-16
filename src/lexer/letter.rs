@@ -1,4 +1,4 @@
-use super::LexerError;
+use super::{LexerError, error::LexerErrorKind};
 
 use std::iter;
 
@@ -23,7 +23,7 @@ impl UnexpectedToken for Letter {
     fn unexpected_token(&self) -> LexerError {
         LexerError {
             pos: self.0..self.0+1,
-            message: format!("Unexpected token: {:?}", self.1)
+            kind: LexerErrorKind::UnexpectedToken(self.1)
         }
     }
 }

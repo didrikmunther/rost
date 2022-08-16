@@ -4,7 +4,7 @@ mod error;
 mod letter;
 mod system;
 
-pub use error::LexerError;
+pub use error::{LexerError, LexerErrorKind};
 
 use system::{
     CommentLexer, IdentifierLexer, KeywordLexer, Lexer, LiteralNumberLexer, StringLexer,
@@ -121,6 +121,8 @@ pub fn lex(text: &str) -> Result<Vec<Block>, LexerError> {
 
 #[cfg(test)]
 mod tests {
+    use crate::lexer::error::LexerErrorKind;
+
     use super::*;
     use Token::*;
 
@@ -203,7 +205,7 @@ mod tests {
             lexed,
             Err(LexerError {
                 pos: 17..18,
-                message: String::from("Unexpected token: '¢'")
+                kind: LexerErrorKind::UnexpectedToken('¢')
             })
         );
     }

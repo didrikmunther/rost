@@ -108,7 +108,6 @@ impl Compiler {
     pub fn compile(
         &mut self,
         parsed: &Vec<Declaration>,
-        _text: &str,
     ) -> Result<Code, CompilerError> {
         self.add_header()
             .add_with_comment(
@@ -148,6 +147,6 @@ impl Compiler {
     }
 }
 
-pub fn compile(parsed: &Vec<Declaration>, _text: &str) -> Result<Code, CompilerError> {
-    Compiler::new().compile(parsed, _text)
+pub fn compile(parsed: &Vec<Declaration>) -> Result<Code, CompilerError> {
+    Compiler::new().compile(parsed)
 }
