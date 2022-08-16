@@ -45,15 +45,15 @@ pub enum ExpressionKind {
 
 #[derive(Debug)]
 pub struct FunctionCall {
-    identifier: Box<Expression>,
-    args: Vec<Box<Expression>>,
+    pub identifier: Box<Expression>,
+    pub args: Vec<Box<Expression>>,
 }
 
 #[derive(Debug)]
 pub struct Binary {
-    left: Box<Expression>,
-    right: Box<Expression>,
-    operator: Keyword,
+    pub left: Box<Expression>,
+    pub right: Box<Expression>,
+    pub operator: Keyword,
 }
 
 #[derive(Debug)]
