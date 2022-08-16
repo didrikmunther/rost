@@ -5,8 +5,9 @@ use std::{
 
 use crate::parser::Declaration;
 
-#[derive(Debug)]
-pub struct CompilerError;
+use self::error::CompilerError;
+
+mod error;
 
 #[derive(Debug)]
 pub struct CodeRow {

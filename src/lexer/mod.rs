@@ -203,10 +203,10 @@ mod tests {
 
         assert_eq!(
             lexed,
-            Err(LexerError {
-                pos: 17..18,
-                kind: LexerErrorKind::UnexpectedToken('¢')
-            })
+            Err(LexerError::new(
+                17..18,
+                LexerErrorKind::UnexpectedToken('¢')
+            ))
         );
     }
 }

@@ -15,6 +15,10 @@ pub struct LexerError {
 }
 
 impl LexerError {
+    pub fn new(pos: Range<usize>, kind: LexerErrorKind) -> Self {
+        Self { pos, kind }
+    }
+
     fn get_message(&self) -> String {
         match self.kind {
             LexerErrorKind::UnexpectedToken(c) => format!("Unexpected token {}", c),

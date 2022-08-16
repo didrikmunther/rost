@@ -62,7 +62,7 @@ fn shell(shell_level: ShellLevel) {
                 let compiled = parsed.and_then(|parsed| match compiler::compile(&parsed) {
                     Ok(code) => Some(code),
                     Err(err) => {
-                        println!("{:?}", err);
+                        print_error(err.into());
                         None
                     }
                 });
@@ -99,7 +99,7 @@ fn run(file: &str) -> i32 {
     let parsed = document.and_then(|document| match parser::parse(&document) {
         Ok(program) => Some(program),
         Err(err) => {
-            println!("{:?}", err);
+            print_error(err.into());
             None
         }
     });
@@ -107,7 +107,7 @@ fn run(file: &str) -> i32 {
     let compiled = parsed.and_then(|parsed| match compiler::compile(&parsed) {
         Ok(code) => Some(code),
         Err(err) => {
-            println!("{:?}", err);
+            print_error(err.into());
             None
         }
     });

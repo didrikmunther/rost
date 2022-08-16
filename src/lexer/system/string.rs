@@ -1,4 +1,4 @@
-use super::{Letter, Lexer, LexerError, Literal, Token, LexerErrorKind};
+use super::{Letter, Lexer, LexerError, LexerErrorKind, Literal, Token};
 
 pub struct StringLexer;
 
@@ -24,10 +24,10 @@ impl Lexer for StringLexer {
             }
 
             if is_string && eof {
-                return Err(LexerError {
-                    pos: start..start + 1,
-                    kind: LexerErrorKind::UnterminatedQuote
-                });
+                return Err(LexerError::new(
+                    start..start + 1,
+                    LexerErrorKind::UnterminatedQuote,
+                ));
             }
 
             if is_string && cur == '"' {
@@ -53,7 +53,7 @@ impl Lexer for StringLexer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::lexer::{letter::get_letters, error::LexerErrorKind};
+    use crate::lexer::{error::LexerErrorKind, letter::get_letters};
 
     #[test]
     fn string_works() {
@@ -76,11 +76,7 @@ mod tests {
 
         assert_eq!(
             lexed,
-            Err(LexerError {
-                pos: 0..1,
-                kind: LexerErrorKind::UnterminatedQuote
-                // message: String::from("Unterminated quote")
-            })
+            Err(LexerError::new(0..1, LexerErrorKind::UnterminatedQuote))
         );
     }
 }

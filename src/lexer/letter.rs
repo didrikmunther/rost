@@ -21,9 +21,6 @@ pub trait UnexpectedToken {
 
 impl UnexpectedToken for Letter {
     fn unexpected_token(&self) -> LexerError {
-        LexerError {
-            pos: self.0..self.0+1,
-            kind: LexerErrorKind::UnexpectedToken(self.1)
-        }
+        LexerError::new(self.0..self.0+1, LexerErrorKind::UnexpectedToken(self.1))
     }
 }
