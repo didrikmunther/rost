@@ -5,7 +5,7 @@ RUN apt install -y nasm binutils
 
 WORKDIR /app
 COPY . .
-RUN nasm -felf64 hello.asm
-RUN ld hello.o
+RUN nasm -felf64 out.asm
+RUN ld out.o
 
 CMD ./a.out
