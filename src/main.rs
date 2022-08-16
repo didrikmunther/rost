@@ -9,7 +9,7 @@ fn flush() {
     std::io::stdout().flush().expect("Flush failed.");
 }
 
-fn shell() {
+fn shell(shell_level: ShellLevel) {
     let mut code = String::new();
 
     loop {
@@ -35,6 +35,11 @@ fn shell() {
                     }
                 };
 
+                if shell_level == ShellLevel::Lexed {
+                    println!("{:#?}", document);
+                    continue;
+                }
+
                 let parsed = document.and_then(|document| match parser::parse(&document, text) {
                     Ok(program) => Some(program),
                     Err(err) => {
@@ -42,6 +47,11 @@ fn shell() {
                         None
                     }
                 });
+
+                if shell_level == ShellLevel::Parsed {
+                    println!("{:#?}", parsed);
+                    continue;
+                }
 
                 let compiled = parsed.and_then(|parsed| match compiler::compile(&parsed, text) {
                     Ok(code) => Some(code),
@@ -51,8 +61,9 @@ fn shell() {
                     }
                 });
 
-                if let Some(compiled) = compiled {
-                    println!("{}", compiled);
+                if shell_level == ShellLevel::Compiled {
+                    println!("{:#?}", compiled);
+                    continue;
                 }
             }
         };
@@ -93,15 +104,45 @@ fn run(text: &str) -> i32 {
     return -1;
 }
 
+#[derive(PartialEq)]
+enum ShellLevel {
+    Lexed,
+    Parsed,
+    Compiled,
+}
+
 fn main() {
-    let args = env::args().skip(1);
+    let args = env::args().skip(1).collect::<Vec<_>>();
 
     let mut run_shell = false;
+    let mut shell_level = ShellLevel::Compiled;
     let mut input_file: Option<String> = None;
 
-    for arg in args {
+    let mut i = 0;
+    while let Some(arg) = args.get(i) {
+        i += 1;
+
         match arg.as_str() {
-            "-shell" => run_shell = true,
+            "-s" => run_shell = true,
+            "-sl" => {
+                if let Some(level) = &args
+                    .get(i)
+                    .and_then(|v| v.parse::<usize>().ok())
+                    .filter(|&v| v <= 3)
+                {
+                    shell_level = match *level {
+                        0 => ShellLevel::Lexed,
+                        1 => ShellLevel::Parsed,
+                        3 => ShellLevel::Compiled,
+                        _ => unreachable!(),
+                    };
+
+                    i += 1;
+                } else {
+                    println!("-sl requires positive numeric level below 3");
+                    exit(-1);
+                }
+            }
             arg => {
                 if arg.starts_with("-") {
                     println!("Unknown argument: {}", arg);
@@ -119,7 +160,7 @@ fn main() {
     }
 
     if run_shell {
-        shell()
+        shell(shell_level)
     } else if let Some(file) = input_file {
         let text = fs::read_to_string(file).expect("Unable to read file");
         exit(run(&text));

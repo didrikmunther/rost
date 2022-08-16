@@ -38,12 +38,18 @@ pub struct Expression {
 #[derive(Debug)]
 pub enum ExpressionKind {
     Primary(Primary),
-    Binary(BinaryExpression),
+    Binary(Binary),
+    FunctionCall(FunctionCall),
 }
 
 #[derive(Debug)]
-pub struct BinaryExpression {
-    pos: Range<usize>,
+pub struct FunctionCall {
+    identifier: Box<Expression>,
+    args: Vec<Box<Expression>>,
+}
+
+#[derive(Debug)]
+pub struct Binary {
     left: Box<Expression>,
     right: Box<Expression>,
     operator: Keyword,
@@ -98,20 +104,47 @@ impl<'a> Parser<'a> {
     }
 
     fn addition(&mut self) -> Result<Expression, ParserError> {
-        let mut expr = self.primary()?;
+        let mut expr = self.function_call()?;
 
         while let Some(block) = self.get(&[Keyword::Plus, Keyword::Minus]) {
             let right = self.primary()?;
             let pos = expr.pos.start..right.pos.end;
-            
+
             expr = Expression {
                 pos: pos.clone(),
-                kind: ExpressionKind::Binary(BinaryExpression {
-                    pos,
+                kind: ExpressionKind::Binary(Binary {
                     left: Box::new(expr),
                     right: Box::new(right),
-                    operator: block.kind
+                    operator: block.kind,
                 }),
+            }
+        }
+
+        Ok(expr)
+    }
+
+    fn function_call(&mut self) -> Result<Expression, ParserError> {
+        let expr = self.primary()?;
+
+        if let Some(open) = self.get(&[Keyword::ParLeft]) {
+            let mut args = vec![];
+
+            loop {
+                if self.is_end() {
+                    return Err(ParserError);
+                }
+
+                if let Some(close) = self.get(&[Keyword::ParRight]) {
+                    return Ok(Expression {
+                        pos: open.pos.start..close.pos.start,
+                        kind: ExpressionKind::FunctionCall(FunctionCall {
+                            identifier: Box::new(expr),
+                            args,
+                        }),
+                    });
+                }
+
+                args.push(Box::new(self.expression()?));
             }
         }
 
