@@ -22,8 +22,18 @@ pub struct Statement {
 }
 
 #[derive(Debug)]
+pub struct Assignment {
+    pub is_new: bool,
+    pub identifier: String,
+    pub identifier_pos: Range<usize>,
+    pub value: Box<Expression>,
+    pub value_pos: Range<usize>,
+}
+
+#[derive(Debug)]
 pub enum StatementKind {
     Expression(Expression),
+    Assignment(Assignment)
 }
 
 #[derive(Debug)]

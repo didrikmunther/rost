@@ -1,7 +1,7 @@
 use crate::lexer::{Block, Keyword};
 
 use super::{
-    definition::{Declaration, DeclarationKind, Expression, Statement, StatementKind},
+    definition::{Declaration, DeclarationKind, Expression, Statement},
     error::ParserError,
     AST,
 };
@@ -36,12 +36,7 @@ impl<'a> Parser<'a> {
     }
 
     fn statement(&mut self) -> Result<Statement, ParserError> {
-        let expression = self.expression()?;
-
-        Ok(Statement {
-            pos: expression.pos.clone(),
-            kind: StatementKind::Expression(expression),
-        })
+        self.assignment()
     }
 
     pub fn expression(&mut self) -> Result<Expression, ParserError> {

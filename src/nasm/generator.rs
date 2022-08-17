@@ -1,4 +1,7 @@
-use crate::compiler::program::{Procedure, ProcedureKind, Program, RegisterValue};
+use crate::compiler::{
+    definition::{Procedure, ProcedureKind, RegisterValue},
+    program::Program,
+};
 
 use super::{
     code::Code,
@@ -47,7 +50,7 @@ impl<'a> Generator<'a> {
             self.code.add(Row::Move("rdi".into(), value));
         } else {
             return Err(NasmError::new(
-                procedure.pos.end..procedure.pos.end+1,
+                procedure.pos.end..procedure.pos.end + 1,
                 NasmErrorKind::InvalidArgumentType("void".into()),
             )); // todo: type system
         }
@@ -61,7 +64,7 @@ impl<'a> Generator<'a> {
             self.code.add(Row::Move("rsi".into(), value));
         } else {
             return Err(NasmError::new(
-                procedure.pos.end..procedure.pos.end+1,
+                procedure.pos.end..procedure.pos.end + 1,
                 NasmErrorKind::InvalidArgumentType("void".into()),
             ));
         }
@@ -117,9 +120,6 @@ impl<'a> Generator<'a> {
     fn add_exit(&mut self) -> &mut Code {
         self.code
             .add(Row::Comment("[exit]".into()))
-            .add_with_comment(
-                Row::Ret,
-                "[exit program]".into(),
-            )
+            .add_with_comment(Row::Ret, "[exit program]".into())
     }
 }

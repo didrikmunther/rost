@@ -80,7 +80,7 @@ impl Display for RostError {
 
         let default_file = "?".to_string();
         let file = self.file.as_ref().unwrap_or(&default_file);
-        let header = format!("  --> [{}]:{}:{} = {}", file, line + 1, line_pos + 1, self.kind);
+        let header = format!("  --> [{}]:{}:{} => {}", file, line + 1, line_pos + 1, self.kind);
 
         fmt.write_fmt(format_args!("{}\n{}", header, lines))
     }

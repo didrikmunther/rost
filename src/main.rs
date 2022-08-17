@@ -102,7 +102,7 @@ fn shell(shell_level: ShellLevel) {
 }
 
 #[allow(dead_code)]
-fn run(file: &str) -> i32 {
+fn run(file: &str, shell_level: ShellLevel) -> i32 {
     let text = &fs::read_to_string(file).expect("Unable to read file");
 
     let print_error = |mut err: RostError| {
@@ -121,6 +121,11 @@ fn run(file: &str) -> i32 {
         }
     };
 
+    if shell_level == ShellLevel::Lexed {
+        println!("{:#?}", document);
+        return 0;
+    }
+
     let parsed = document.and_then(|document| match parser::parse(&document) {
         Ok(program) => Some(program),
         Err(err) => {
@@ -128,6 +133,11 @@ fn run(file: &str) -> i32 {
             None
         }
     });
+
+    if shell_level == ShellLevel::Parsed {
+        println!("{:#?}", parsed);
+        return 0;
+    }
 
     let compiled = parsed.and_then(|parsed| match compiler::compile(&parsed) {
         Ok(code) => Some(code),
@@ -137,6 +147,11 @@ fn run(file: &str) -> i32 {
         }
     });
 
+    if shell_level == ShellLevel::Compiled {
+        println!("{:#?}", compiled);
+        return 0;
+    }
+
     let nasm = compiled.and_then(|compiled| match nasm::generate(&compiled) {
         Ok(code) => Some(code),
         Err(err) => {
@@ -144,6 +159,11 @@ fn run(file: &str) -> i32 {
             None
         }
     });
+
+    if shell_level == ShellLevel::Nasm {
+        println!("{:#?}", nasm);
+        return 0;
+    }
 
     if let Some(nasm) = nasm {
         fs::write("out.asm", format!("{}", nasm)).expect("Unable to write file");
@@ -205,7 +225,7 @@ fn main() {
     if run_shell {
         shell(shell_level)
     } else if let Some(file) = input_file {
-        exit(run(&file));
+        exit(run(&file, shell_level));
     } else {
         println!("No input file provided");
         exit(-1);
