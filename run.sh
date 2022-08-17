@@ -1,4 +1,3 @@
 #!/bin/bash
 
-docker build -t rost .
-docker run rost
+docker build -t rost . && docker run rost

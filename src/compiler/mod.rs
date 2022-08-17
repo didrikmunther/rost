@@ -1,14 +1,10 @@
 use crate::parser::Declaration;
 
-use self::{code::Code, program::Program, error::CompilerError};
+use self::{error::CompilerError, program::Program};
 
-mod asm;
-mod code;
-mod program;
 mod error;
-mod row;
-mod system_call;
+pub mod program;
 
-pub fn compile(parsed: &Vec<Declaration>) -> Result<Code, CompilerError> {
-    Program::new().compile(parsed)?.asm().generate_code()
+pub fn compile(parsed: &Vec<Declaration>) -> Result<Program, CompilerError> {
+    Program::new().compile(parsed)
 }

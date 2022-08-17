@@ -6,7 +6,19 @@ use crate::error::RostError;
 mod compiler;
 mod error;
 mod lexer;
+mod nasm;
 mod parser;
+
+#[derive(PartialEq)]
+enum ShellLevel {
+    Lexed = 0,
+    Parsed = 1,
+    Compiled = 2,
+    Nasm = 3,
+
+    // Not used
+    End = 4,
+}
 
 fn flush() {
     std::io::stdout().flush().expect("Flush failed.");
@@ -71,6 +83,19 @@ fn shell(shell_level: ShellLevel) {
                     println!("{:#?}", compiled);
                     continue;
                 }
+
+                let nasm = compiled.and_then(|compiled| match nasm::generate(&compiled) {
+                    Ok(code) => Some(code),
+                    Err(err) => {
+                        print_error(err.into());
+                        None
+                    }
+                });
+
+                if shell_level == ShellLevel::Nasm {
+                    println!("{:#?}", nasm);
+                    continue;
+                }
             }
         };
     }
@@ -112,19 +137,20 @@ fn run(file: &str) -> i32 {
         }
     });
 
-    if let Some(compiled) = compiled {
-        fs::write("out.asm", format!("{}", compiled)).expect("Unable to write file");
+    let nasm = compiled.and_then(|compiled| match nasm::generate(&compiled) {
+        Ok(code) => Some(code),
+        Err(err) => {
+            print_error(err.into());
+            None
+        }
+    });
+
+    if let Some(nasm) = nasm {
+        fs::write("out.asm", format!("{}", nasm)).expect("Unable to write file");
         return 0;
     }
 
     return -1;
-}
-
-#[derive(PartialEq)]
-enum ShellLevel {
-    Lexed,
-    Parsed,
-    Compiled,
 }
 
 fn main() {
@@ -144,12 +170,13 @@ fn main() {
                 if let Some(level) = &args
                     .get(i)
                     .and_then(|v| v.parse::<usize>().ok())
-                    .filter(|&v| v <= 3)
+                    .filter(|&v| v < ShellLevel::End as usize)
                 {
                     shell_level = match *level {
                         0 => ShellLevel::Lexed,
                         1 => ShellLevel::Parsed,
-                        3 => ShellLevel::Compiled,
+                        2 => ShellLevel::Compiled,
+                        3 => ShellLevel::Nasm,
                         _ => unreachable!(),
                     };
 

@@ -5,7 +5,6 @@ use crate::error::RostError;
 #[derive(Debug, PartialEq)]
 pub enum CompilerErrorKind {
     Unknown,
-    UnknownSystemCall(String),
 }
 
 #[derive(Debug, PartialEq)]
@@ -22,7 +21,6 @@ impl CompilerError {
     fn get_message(&self) -> String {
         match self.kind {
             CompilerErrorKind::Unknown => "Unknown".to_string(),
-            CompilerErrorKind::UnknownSystemCall(ref s) => format!("Unknown system call: \"{}\"", s),
         }
     }
 }

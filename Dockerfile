@@ -1,11 +1,10 @@
-FROM ubuntu:20.04
+FROM rust:latest
 
 RUN apt update
 RUN apt install -y nasm binutils
 
 WORKDIR /app
 COPY . .
-RUN nasm -felf64 out.asm
-RUN ld out.o
+RUN nasm -felf64 fib.asm && gcc -no-pie -fno-pie fib.o
 
 CMD ./a.out

@@ -8,26 +8,31 @@ use crate::{
     },
 };
 
-use super::{asm::ASMGenererator, error::CompilerError};
+use super::error::CompilerError;
 
+#[derive(Debug)]
 pub struct Procedure {
     pub pos: Range<usize>,
     pub kind: ProcedureKind,
 }
 
+#[derive(Debug)]
+pub enum ProcedureKind {
+    SystemCall(SystemCall),
+}
+
+#[derive(Debug)]
 pub struct SystemCall {
     pub identifier: String,
     pub args: Vec<usize>, // todo: this is just id for data labels, args can come from registers as well.
 }
 
-pub enum ProcedureKind {
-    SystemCall(SystemCall),
-}
-
+#[derive(Debug)]
 pub struct GlobalData {
     pub content: String, // todo: can be all sorts of bytes
 }
 
+#[derive(Debug)]
 pub struct Program {
     pub global_data: Vec<GlobalData>,
     pub procedures: Vec<Procedure>,
@@ -99,9 +104,5 @@ impl Program {
         }
 
         Ok(self)
-    }
-
-    pub fn asm(&self) -> ASMGenererator {
-        ASMGenererator::new(self)
     }
 }

@@ -1,19 +1,20 @@
 use std::mem::swap;
 
+use crate::compiler::program::{ProcedureKind, Program};
+
 use super::{
     code::Code,
-    error::{CompilerError, CompilerErrorKind},
-    program::{Procedure, ProcedureKind, Program},
+    error::{NasmError, NasmErrorKind},
     row::Row,
     system_call::SYSTEM_CALLS,
 };
 
-pub struct ASMGenererator<'a> {
+pub struct Generator<'a> {
     code: Code,
     program: &'a Program,
 }
 
-impl<'a> ASMGenererator<'a> {
+impl<'a> Generator<'a> {
     pub fn new(program: &'a Program) -> Self {
         Self {
             code: Code::new(),
@@ -21,19 +22,7 @@ impl<'a> ASMGenererator<'a> {
         }
     }
 
-    pub fn generate_code(&mut self) -> Result<Code, CompilerError> {
-        // Hello world
-        // self.code
-        //     .add_with_comment(
-        //         Row::Move("rax".into(), "1".into()),
-        //         "system call for write".into(),
-        //     )
-        //     .add(Row::Move("rdi".into(), "1".into()))
-        //     .add(Row::Move("rsi".into(), "message".into()))
-        //     .add(Row::Move("rdx".into(), "13".into()))
-        //     .add(Row::Syscall);
-
-        // Exit code
+    pub fn generate_code(&mut self) -> Result<Code, NasmError> {
         self.add_header();
         self.add_program()?;
         self.add_exit();
@@ -56,7 +45,7 @@ impl<'a> ASMGenererator<'a> {
             .add(Row::Syscall)
     }
 
-    fn add_program(&mut self) -> Result<&mut Code, CompilerError> {
+    fn add_program(&mut self) -> Result<&mut Code, NasmError> {
         for (i, procedure) in self.program.procedures.iter().enumerate() {
             self.code.add(Row::Comment(format!("[procedure {}]", i)));
 
@@ -68,9 +57,9 @@ impl<'a> ASMGenererator<'a> {
                             Self::get_data_name(*system_call.args.get(0).unwrap()),
                         );
                     } else {
-                        return Err(CompilerError::new(
+                        return Err(NasmError::new(
                             procedure.pos.clone(),
-                            CompilerErrorKind::UnknownSystemCall(system_call.identifier.clone()),
+                            NasmErrorKind::UnknownSystemCall(system_call.identifier.clone()),
                         ));
                     }
                 }
