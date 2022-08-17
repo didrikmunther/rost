@@ -8,11 +8,20 @@ impl StringLexer {
     }
 }
 
+fn get_escaped(c: char) -> char {
+    match c {
+        'n' => '\n',
+        't' => '\t',
+        _ => ' ',
+    }
+}
+
 impl Lexer for StringLexer {
     fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, usize)>, LexerError> {
         let mut buf = Vec::<char>::new();
         let mut is_string = false;
         let mut start = 0;
+        let mut escaped = false;
 
         for (i, &(pos, cur, eof)) in chars.into_iter().enumerate() {
             if buf.is_empty() && cur.is_whitespace() {
@@ -43,7 +52,15 @@ impl Lexer for StringLexer {
                 continue;
             }
 
-            buf.push(cur);
+            if escaped {
+                buf.push(get_escaped(cur));
+                escaped = false;
+            } else {
+                escaped = cur == '\\';
+                if !escaped {
+                    buf.push(cur);
+                }
+            }
         }
 
         Ok(None)

@@ -39,6 +39,14 @@ pub enum Row {
     Ret,
 }
 
+fn get_bytes(s: &String) -> String {
+    s.as_bytes()
+        .iter()
+        .map(|v| v.to_string())
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
 impl Display for Row {
     fn fmt(&self, fmt: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
         let mut w = |args: Arguments| fmt.write_fmt(args);
@@ -52,7 +60,7 @@ impl Display for Row {
             Row::Label(label) => w(format_args!("{}:", label)),
             Row::Global(global) => w(format_args!("\tglobal {}", global)),
             Row::Call(function) => w(format_args!("\tcall {}", function)),
-            Row::DeclareStaticString(s) => w(format_args!("\tdb \"{}\", 10, 0", s)),
+            Row::DeclareStaticString(s) => w(format_args!("\tdb {}, 0", get_bytes(s))),
             Row::Ret => w(format_args!("\tet")),
         }
     }
