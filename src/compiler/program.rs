@@ -2,7 +2,7 @@ use std::ops::Range;
 
 use crate::{
     lexer::Literal,
-    parser::{
+    parser::definition::{
         Declaration, DeclarationKind, Expression, ExpressionKind, FunctionCall, Primary,
         StatementKind,
     },
@@ -60,9 +60,7 @@ impl Program {
                 ExpressionKind::Primary(primary) => match primary {
                     Primary::Literal(literal) => match literal {
                         Literal::String(s) => {
-                            self.global_data.push(GlobalData {
-                                content: s.clone(),
-                            });
+                            self.global_data.push(GlobalData { content: s.clone() });
 
                             // push latest index
                             args.push(RegisterValue::ByteLocation(self.global_data.len() - 1));

@@ -1,4 +1,4 @@
-use crate::parser::Declaration;
+use crate::parser::definition::Declaration;
 
 use self::{error::CompilerError, program::Program};
 
