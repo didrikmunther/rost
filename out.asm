@@ -1,28 +1,20 @@
 	; [header]
-	global _start
+	global main
+	extern printf
 
 	section .text
-_start:
+main:
 	; [procedure 0]
-	mov rax, 1	; system call for write
-	mov rdi, 1
-	mov rsi, _data_0
-	mov rdx, 13
-	syscall
-	; [procedure 1]
-	mov rax, 1	; system call for write
-	mov rdi, 1
+	mov rdi, _data_0
 	mov rsi, _data_1
-	mov rdx, 13
-	syscall
+	xor rax, rax
+	call printf
 	; [exit]
-	mov rax, 60	; system call for exit
-	xor rdi, rdi
-	syscall
+	et	; [exit program]
 	; [data]
 
 	section .data
 _data_0:
-	db "Hello World 1\n", 15
+	db "%s", 10, 0
 _data_1:
-	db "Hello World 2", 13
+	db "Hello World 1\n", 10, 0

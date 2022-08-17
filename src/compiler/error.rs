@@ -27,6 +27,6 @@ impl CompilerError {
 
 impl Into<RostError> for CompilerError {
     fn into(self) -> RostError {
-        RostError::new(self.get_message(), self.pos)
+        RostError::new("CompilerError".into(), self.get_message(), self.pos)
     }
 }

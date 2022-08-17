@@ -138,14 +138,16 @@ impl<'a> Parser<'a> {
                     ));
                 }
 
-                if let Some(close) = self.get(&[Keyword::ParRight]) {
-                    return Ok(Expression {
-                        pos: open.pos.start..close.pos.start,
-                        kind: ExpressionKind::FunctionCall(FunctionCall {
-                            identifier: Box::new(expr),
-                            args,
-                        }),
-                    });
+                if let None = self.get(&[Keyword::Comma]) {
+                    if let Some(close) = self.get(&[Keyword::ParRight]) {
+                        return Ok(Expression {
+                            pos: open.pos.start..close.pos.start,
+                            kind: ExpressionKind::FunctionCall(FunctionCall {
+                                identifier: Box::new(expr),
+                                args,
+                            }),
+                        });
+                    }   
                 }
 
                 args.push(Box::new(self.expression()?));
@@ -172,7 +174,19 @@ impl<'a> Parser<'a> {
             });
         }
 
-        Err(ParserError::new(0..0, ParserErrorKind::Unknown))
+        if let Some(block) = self.peek() {
+            Err(ParserError::new(
+                block.pos.clone(),
+                ParserErrorKind::UnexpectedToken(format!("{:?}", block.token)),
+            ))
+        } else {
+            return Err(ParserError::new(
+                self.get_at(self.index - 1)
+                    .map(|v| v.pos.clone())
+                    .unwrap_or(0..0),
+                ParserErrorKind::UnexpectedEOF,
+            ));
+        }
     }
 
     fn get_at(&self, index: usize) -> Option<&'a Block> {

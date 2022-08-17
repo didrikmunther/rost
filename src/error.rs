@@ -6,15 +6,17 @@ use std::{
 pub struct RostError {
     pos: Range<usize>,
     message: String,
+    kind: String,
     file: Option<String>,
     code: Option<String>,
 }
 
 impl RostError {
-    pub fn new(message: String, pos: Range<usize>) -> Self {
+    pub fn new(kind: String, message: String, pos: Range<usize>) -> Self {
         Self {
             pos,
             message,
+            kind,
             file: None,
             code: None,
         }
@@ -51,7 +53,7 @@ impl Display for RostError {
             .clone()
             .last()
             .and_then(|i| Some(self.pos.start - i))
-            .unwrap_or(self.pos.start) - 1;
+            .unwrap_or(self.pos.start);
 
         let margin: usize = 1;
 
@@ -78,7 +80,7 @@ impl Display for RostError {
 
         let default_file = "?".to_string();
         let file = self.file.as_ref().unwrap_or(&default_file);
-        let header = format!("  --> [{}]:{}:{}", file, line + 1, line_pos + 1);
+        let header = format!("  --> [{}]:{}:{} = {}", file, line + 1, line_pos + 1, self.kind);
 
         fmt.write_fmt(format_args!("{}\n{}", header, lines))
     }

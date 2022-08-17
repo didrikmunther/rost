@@ -24,7 +24,7 @@ pub enum ProcedureKind {
 #[derive(Debug)]
 pub struct SystemCall {
     pub identifier: String,
-    pub args: Vec<usize>, // todo: this is just id for data labels, args can come from registers as well.
+    pub args: Vec<RegisterValue>,
 }
 
 #[derive(Debug)]
@@ -38,6 +38,12 @@ pub struct Program {
     pub procedures: Vec<Procedure>,
 }
 
+#[derive(Debug)]
+pub enum RegisterValue {
+    ByteLocation(usize),
+    Int(i32),
+}
+
 impl Program {
     pub fn new() -> Self {
         Self {
@@ -47,22 +53,24 @@ impl Program {
     }
 
     fn handle_fcall(&mut self, fcall: &FunctionCall) -> Result<SystemCall, CompilerError> {
-        let mut args: Vec<usize> = Vec::new();
+        let mut args: Vec<RegisterValue> = Vec::new();
 
         for arg in &fcall.args {
             match &arg.kind {
                 ExpressionKind::Primary(primary) => match primary {
                     Primary::Literal(literal) => match literal {
                         Literal::String(s) => {
-                            self.global_data.push(GlobalData { content: s.clone() });
-                            args.push(self.global_data.len() - 1); // push latest index
+                            self.global_data.push(GlobalData {
+                                content: s.clone(),
+                            });
+
+                            // push latest index
+                            args.push(RegisterValue::ByteLocation(self.global_data.len() - 1));
                         }
-                        _ => {
-                            return Err(CompilerError::new(
-                                arg.pos.clone(),
-                                CompilerErrorKind::Unimplemented,
-                            ))
+                        Literal::Int(i) => {
+                            args.push(RegisterValue::Int(*i));
                         }
+                        _ => {}
                     },
                     _ => {
                         return Err(CompilerError::new(

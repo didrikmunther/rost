@@ -4,7 +4,7 @@ use crate::error::RostError;
 
 #[derive(Debug, PartialEq)]
 pub enum NasmErrorKind {
-    UnknownSystemCall(String),
+    InvalidArgumentType(String),
 }
 
 #[derive(Debug, PartialEq)]
@@ -20,13 +20,15 @@ impl NasmError {
 
     fn get_message(&self) -> String {
         match self.kind {
-            NasmErrorKind::UnknownSystemCall(ref s) => format!("Unknown system call: \"{}\"", s),
+            NasmErrorKind::InvalidArgumentType(ref s) => {
+                format!("Invalid argument type: \"{}\"", s)
+            }
         }
     }
 }
 
 impl Into<RostError> for NasmError {
     fn into(self) -> RostError {
-        RostError::new(self.get_message(), self.pos)
+        RostError::new("NasmError".into(), self.get_message(), self.pos)
     }
 }

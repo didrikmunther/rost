@@ -5,6 +5,8 @@ use crate::error::RostError;
 #[derive(Debug, PartialEq)]
 pub enum ParserErrorKind {
     Unknown,
+    UnexpectedToken(String),
+    UnexpectedEOF,
     UnterminatedParenthesis,
 }
 
@@ -20,8 +22,10 @@ impl ParserError {
     }
 
     fn get_message(&self) -> String {
-        match self.kind {
+        match &self.kind {
             ParserErrorKind::UnterminatedParenthesis => "Unterminated parenthesis".to_string(),
+            ParserErrorKind::UnexpectedEOF => "Unexpected EOF".to_string(),
+            ParserErrorKind::UnexpectedToken(s) => format!("Unknown token: {}", s),
             ParserErrorKind::Unknown => "Unknown".to_string(),
         }
     }
@@ -29,6 +33,6 @@ impl ParserError {
 
 impl Into<RostError> for ParserError {
     fn into(self) -> RostError {
-        RostError::new(self.get_message(), self.pos)
+        RostError::new("ParserError".into(), self.get_message(), self.pos)
     }
 }

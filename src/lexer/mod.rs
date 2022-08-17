@@ -24,6 +24,7 @@ pub enum Keyword {
     Arrow,
     ParLeft,
     ParRight,
+    Comma,
 
     // Abstract keywords
     EOF,

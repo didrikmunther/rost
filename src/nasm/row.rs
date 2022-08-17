@@ -27,14 +27,16 @@ impl Display for CodeRow {
 #[derive(Debug)]
 pub enum Row {
     Comment(String),
+    Extern(String),
     Move(String, String), // todo: types for numbers, registers, or labels
     Xor(String, String),
     Section(String),
     Label(String),
     Global(String),
+    Call(String),
     // DeclareByte(String), // todo: allow for all allowed values: https://www.nasm.us/doc/nasmdoc3.html 3.2.1
     DeclareStaticString(String), // Declare byte abstraction, completes it with the string length
-    Syscall,
+    Ret,
 }
 
 impl Display for Row {
@@ -43,13 +45,15 @@ impl Display for Row {
 
         match self {
             Row::Comment(comment) => w(format_args!("\t; {}", *comment)),
+            Row::Extern(ext) => w(format_args!("\textern {}", ext)),
             Row::Move(to, from) => w(format_args!("\tmov {}, {}", to, from)),
             Row::Xor(to, from) => w(format_args!("\txor {}, {}", to, from)),
             Row::Section(section) => w(format_args!("\n\tsection .{}", section)),
             Row::Label(label) => w(format_args!("{}:", label)),
             Row::Global(global) => w(format_args!("\tglobal {}", global)),
-            Row::DeclareStaticString(s) => w(format_args!("\tdb \"{}\", {}", s, s.len())),
-            Row::Syscall => w(format_args!("\tsyscall")),
+            Row::Call(function) => w(format_args!("\tcall {}", function)),
+            Row::DeclareStaticString(s) => w(format_args!("\tdb \"{}\", 10, 0", s)),
+            Row::Ret => w(format_args!("\tet")),
         }
     }
 }

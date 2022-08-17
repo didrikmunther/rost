@@ -10,6 +10,7 @@ static SYMBOLS: phf::Map<&'static str, Keyword> = phf_map! {
     "-" => Keyword::Minus,
     "(" => Keyword::ParLeft,
     ")" => Keyword::ParRight,
+    "," => Keyword::Comma,
 };
 
 pub struct SymbolLexer;

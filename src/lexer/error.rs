@@ -29,6 +29,6 @@ impl LexerError {
 
 impl Into<RostError> for LexerError {
     fn into(self) -> RostError {
-        RostError::new(self.get_message(), self.pos)
+        RostError::new("LexerError".into(), self.get_message(), self.pos)
     }
 }

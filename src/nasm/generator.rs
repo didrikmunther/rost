@@ -1,12 +1,11 @@
 use std::mem::swap;
 
-use crate::compiler::program::{ProcedureKind, Program};
+use crate::compiler::program::{Procedure, ProcedureKind, Program, RegisterValue};
 
 use super::{
     code::Code,
     error::{NasmError, NasmErrorKind},
     row::Row,
-    system_call::SYSTEM_CALLS,
 };
 
 pub struct Generator<'a> {
@@ -33,16 +32,49 @@ impl<'a> Generator<'a> {
         Ok(code)
     }
 
-    fn get_system_call(&mut self, id: usize, arg: String) -> &mut Code {
+    fn system_call(
+        &mut self,
+        procedure: &Procedure,
+        args: &Vec<RegisterValue>,
+    ) -> Result<(), NasmError> {
+        if let Some(format) = args.get(0) {
+            let value = match format {
+                RegisterValue::ByteLocation(i) => Self::get_data_name(*i),
+                RegisterValue::Int(_) => {
+                    return Err(NasmError::new(
+                        procedure.pos.clone(),
+                        NasmErrorKind::InvalidArgumentType("int".into()),
+                    ))
+                }
+            };
+
+            self.code.add(Row::Move("rdi".into(), value));
+        } else {
+            return Err(NasmError::new(
+                procedure.pos.end..procedure.pos.end+1,
+                NasmErrorKind::InvalidArgumentType("void".into()),
+            )); // todo: type system
+        }
+
+        if let Some(value) = args.get(1) {
+            let value = match value {
+                RegisterValue::ByteLocation(i) => Self::get_data_name(*i),
+                RegisterValue::Int(i) => i.to_string(),
+            };
+
+            self.code.add(Row::Move("rsi".into(), value));
+        } else {
+            return Err(NasmError::new(
+                procedure.pos.end..procedure.pos.end+1,
+                NasmErrorKind::InvalidArgumentType("void".into()),
+            ));
+        }
+
         self.code
-            .add_with_comment(
-                Row::Move("rax".into(), format!("{}", id)),
-                "system call for write".into(),
-            )
-            .add(Row::Move("rdi".into(), "1".into()))
-            .add(Row::Move("rsi".into(), arg))
-            .add(Row::Move("rdx".into(), "13".into()))
-            .add(Row::Syscall)
+            .add(Row::Xor("rax".into(), "rax".into()))
+            .add(Row::Call("printf".into()));
+
+        Ok(())
     }
 
     fn add_program(&mut self) -> Result<&mut Code, NasmError> {
@@ -51,17 +83,7 @@ impl<'a> Generator<'a> {
 
             match &procedure.kind {
                 ProcedureKind::SystemCall(system_call) => {
-                    if let Some(&system_call_id) = SYSTEM_CALLS.get(&system_call.identifier) {
-                        self.get_system_call(
-                            system_call_id,
-                            Self::get_data_name(*system_call.args.get(0).unwrap()),
-                        );
-                    } else {
-                        return Err(NasmError::new(
-                            procedure.pos.clone(),
-                            NasmErrorKind::UnknownSystemCall(system_call.identifier.clone()),
-                        ));
-                    }
+                    self.system_call(procedure, &system_call.args)?;
                 }
             }
         }
@@ -76,9 +98,10 @@ impl<'a> Generator<'a> {
     fn add_header(&mut self) -> &mut Code {
         self.code
             .add(Row::Comment("[header]".into()))
-            .add(Row::Global("_start".into()))
+            .add(Row::Global("main".into()))
+            .add(Row::Extern("printf".into()))
             .add(Row::Section("text".into()))
-            .add(Row::Label("_start".into()))
+            .add(Row::Label("main".into()))
     }
 
     fn add_data(&mut self) -> &mut Code {
@@ -99,10 +122,8 @@ impl<'a> Generator<'a> {
         self.code
             .add(Row::Comment("[exit]".into()))
             .add_with_comment(
-                Row::Move("rax".into(), "60".into()),
-                "system call for exit".into(),
+                Row::Ret,
+                "[exit program]".into(),
             )
-            .add(Row::Xor("rdi".into(), "rdi".into()))
-            .add(Row::Syscall)
     }
 }

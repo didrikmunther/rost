@@ -1,5 +1,1 @@
-print("Hello World 1\n")
-
-print("Hello World 2")
-
-5 + 5
+printf("%s", "Hello World 1\n")
