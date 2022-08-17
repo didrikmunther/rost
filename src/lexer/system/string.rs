@@ -8,12 +8,13 @@ impl StringLexer {
     }
 }
 
-fn get_escaped(c: char) -> char {
-    match c {
+fn get_escaped(c: char) -> Result<char, LexerErrorKind> {
+    Ok(match c {
         'n' => '\n',
         't' => '\t',
-        _ => ' ',
-    }
+        '\\' => '\\',
+        _ => return Err(LexerErrorKind::UnknownEscapeSequence(c)),
+    })
 }
 
 impl Lexer for StringLexer {
@@ -53,7 +54,10 @@ impl Lexer for StringLexer {
             }
 
             if escaped {
-                buf.push(get_escaped(cur));
+                buf.push(match get_escaped(cur) {
+                    Ok(c) => c,
+                    Err(err) => return Err(LexerError::new(start + i - 1..start + i + 1, err)),
+                });
                 escaped = false;
             } else {
                 escaped = cur == '\\';

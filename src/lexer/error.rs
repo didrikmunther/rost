@@ -5,6 +5,7 @@ use crate::error::RostError;
 #[derive(Debug, PartialEq)]
 pub enum LexerErrorKind {
     UnexpectedToken(char),
+    UnknownEscapeSequence(char),
     UnterminatedQuote,
 }
 
@@ -22,6 +23,7 @@ impl LexerError {
     fn get_message(&self) -> String {
         match self.kind {
             LexerErrorKind::UnexpectedToken(c) => format!("Unexpected token {}", c),
+            LexerErrorKind::UnknownEscapeSequence(c) => format!("Unknown escape sequence '\\{}'", c),
             LexerErrorKind::UnterminatedQuote => "Unterminated quote".to_string(),
         }
     }

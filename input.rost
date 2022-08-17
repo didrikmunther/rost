@@ -1,1 +1,5 @@
-printf("%s", "Hello\tWorld 1\n")
+printf("%s", "Hello World:\t")
+
+printf("%i", 5)
+
+printf("%s", "\n")
