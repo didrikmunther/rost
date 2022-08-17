@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t rost . && docker run rost
+cargo build && ./target/debug/rost "$@" && ./run_docker.sh

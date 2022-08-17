@@ -4,7 +4,9 @@ RUN apt update
 RUN apt install -y nasm binutils
 
 WORKDIR /app
-COPY . .
-RUN nasm -felf64 out.asm && gcc -no-pie -fno-pie out.o
 
-CMD ./a.out
+CMD nasm -felf64 out.asm && \
+	gcc -no-pie -fno-pie out.o && \
+	rm ./out.o && \
+	./a.out && \
+	rm ./a.out

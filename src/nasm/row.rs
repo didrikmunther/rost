@@ -61,7 +61,7 @@ impl Display for Row {
             Row::Global(global) => w(format_args!("\tglobal {}", global)),
             Row::Call(function) => w(format_args!("\tcall {}", function)),
             Row::DeclareStaticString(s) => w(format_args!("\tdb {}, 0", get_bytes(s))),
-            Row::Ret => w(format_args!("\tet")),
+            Row::Ret => w(format_args!("\tret")),
         }
     }
 }

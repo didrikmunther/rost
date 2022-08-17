@@ -159,7 +159,7 @@ fn main() {
     let mut run_shell = false;
     let mut shell_level = ShellLevel::Compiled;
     let mut input_file: Option<String> = None;
-
+    
     let mut i = 0;
     while let Some(arg) = args.get(i) {
         i += 1;

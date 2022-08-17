@@ -1,5 +1,3 @@
-use std::mem::swap;
-
 use crate::compiler::program::{Procedure, ProcedureKind, Program, RegisterValue};
 
 use super::{
@@ -21,15 +19,13 @@ impl<'a> Generator<'a> {
         }
     }
 
-    pub fn generate_code(&mut self) -> Result<Code, NasmError> {
+    pub fn generate_code(mut self) -> Result<Code, NasmError> {
         self.add_header();
         self.add_program()?;
         self.add_exit();
         self.add_data();
 
-        let mut code = Code::new();
-        swap(&mut code, &mut self.code);
-        Ok(code)
+        Ok(self.code)
     }
 
     fn system_call(

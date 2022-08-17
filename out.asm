@@ -20,7 +20,7 @@ main:
 	xor rax, rax
 	call printf
 	; [exit]
-	et	; [exit program]
+	ret	; [exit program]
 	; [data]
 
 	section .data
