@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cargo build && ./target/debug/rost "$@" && ./run_docker.sh
+cargo build && ./target/debug/rost "$@" && (docker run -v $(PWD):/app rost || rm ./a.out)
