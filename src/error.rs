@@ -51,7 +51,7 @@ impl Display for RostError {
             .clone()
             .last()
             .and_then(|i| Some(self.pos.start - i))
-            .unwrap_or(self.pos.start);
+            .unwrap_or(self.pos.start) - 1;
 
         let margin: usize = 1;
 

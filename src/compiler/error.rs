@@ -4,7 +4,7 @@ use crate::error::RostError;
 
 #[derive(Debug, PartialEq)]
 pub enum CompilerErrorKind {
-    Unknown,
+    Unimplemented,
 }
 
 #[derive(Debug, PartialEq)]
@@ -20,7 +20,7 @@ impl CompilerError {
 
     fn get_message(&self) -> String {
         match self.kind {
-            CompilerErrorKind::Unknown => "Unknown".to_string(),
+            CompilerErrorKind::Unimplemented => "Unimplemented".to_string(),
         }
     }
 }

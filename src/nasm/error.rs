@@ -4,7 +4,6 @@ use crate::error::RostError;
 
 #[derive(Debug, PartialEq)]
 pub enum NasmErrorKind {
-    Unknown,
     UnknownSystemCall(String),
 }
 
@@ -21,7 +20,6 @@ impl NasmError {
 
     fn get_message(&self) -> String {
         match self.kind {
-            NasmErrorKind::Unknown => "Unknown".to_string(),
             NasmErrorKind::UnknownSystemCall(ref s) => format!("Unknown system call: \"{}\"", s),
         }
     }

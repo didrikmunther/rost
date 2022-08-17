@@ -8,7 +8,7 @@ use crate::{
     },
 };
 
-use super::error::CompilerError;
+use super::error::{CompilerError, CompilerErrorKind};
 
 #[derive(Debug)]
 pub struct Procedure {
@@ -57,20 +57,45 @@ impl Program {
                             self.global_data.push(GlobalData { content: s.clone() });
                             args.push(self.global_data.len() - 1); // push latest index
                         }
-                        _ => unimplemented!(),
+                        _ => {
+                            return Err(CompilerError::new(
+                                arg.pos.clone(),
+                                CompilerErrorKind::Unimplemented,
+                            ))
+                        }
                     },
-                    _ => unimplemented!(),
+                    _ => {
+                        return Err(CompilerError::new(
+                            arg.pos.clone(),
+                            CompilerErrorKind::Unimplemented,
+                        ))
+                    }
                 },
-                _ => unimplemented!(),
+                _ => {
+                    return Err(CompilerError::new(
+                        arg.pos.clone(),
+                        CompilerErrorKind::Unimplemented,
+                    ))
+                }
             }
         }
 
         let identifier = match &fcall.identifier.kind {
             ExpressionKind::Primary(primary) => match primary {
                 Primary::Identifier(s) => s.clone(),
-                _ => unimplemented!(),
+                _ => {
+                    return Err(CompilerError::new(
+                        fcall.identifier.pos.clone(),
+                        CompilerErrorKind::Unimplemented,
+                    ))
+                }
             },
-            _ => unimplemented!(),
+            _ => {
+                return Err(CompilerError::new(
+                    fcall.identifier.pos.clone(),
+                    CompilerErrorKind::Unimplemented,
+                ))
+            }
         };
 
         Ok(SystemCall { identifier, args })
@@ -82,7 +107,12 @@ impl Program {
                 pos: expression.pos.clone(),
                 kind: ProcedureKind::SystemCall(self.handle_fcall(fcall)?),
             }),
-            _ => unimplemented!(),
+            _ => {
+                return Err(CompilerError::new(
+                    expression.pos.clone(),
+                    CompilerErrorKind::Unimplemented,
+                ))
+            }
         }
     }
 

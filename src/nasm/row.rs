@@ -50,7 +50,6 @@ impl Display for Row {
             Row::Global(global) => w(format_args!("\tglobal {}", global)),
             Row::DeclareStaticString(s) => w(format_args!("\tdb \"{}\", {}", s, s.len())),
             Row::Syscall => w(format_args!("\tsyscall")),
-            _ => w(format_args!("; UNKNOWN")),
         }
     }
 }
