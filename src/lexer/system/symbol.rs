@@ -8,6 +8,8 @@ static SYMBOLS: phf::Map<&'static str, Keyword> = phf_map! {
     "=>" => Keyword::Arrow,
     "+" => Keyword::Plus,
     "-" => Keyword::Minus,
+    "*" => Keyword::Asterix,
+    "/" => Keyword::Slash,
     "(" => Keyword::ParLeft,
     ")" => Keyword::ParRight,
     "," => Keyword::Comma,

@@ -25,7 +25,7 @@ impl<'a> Parser<'a> {
                     if let None = self.get(&[Keyword::Comma]) {
                         if let Some(close) = self.get(&[Keyword::ParRight]) {
                             return Ok(Expression {
-                                pos: open.pos.start..close.pos.start,
+                                pos: open.pos.start..close.pos.end,
                                 kind: ExpressionKind::FunctionCall(FunctionCall {
                                     identifier,
                                     args,

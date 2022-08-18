@@ -21,6 +21,8 @@ pub enum Keyword {
     Semicolon,
     Plus,
     Minus,
+    Asterix,
+    Slash,
     Arrow,
     ParLeft,
     ParRight,

@@ -7,6 +7,7 @@ mod assignment;
 pub mod definition;
 mod error;
 mod function_call;
+mod multiplication;
 mod parser;
 mod primary;
 mod unexpected;

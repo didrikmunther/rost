@@ -21,7 +21,9 @@ pub enum ProcedureKind {
 
 #[derive(Debug)]
 pub enum Arithmetic {
-    Add
+    Add,
+    Subtract,
+    Multiply,
 }
 
 #[derive(Debug)]

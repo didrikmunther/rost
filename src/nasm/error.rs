@@ -4,7 +4,7 @@ use crate::error::RostError;
 
 #[derive(Debug, PartialEq)]
 pub enum NasmErrorKind {
-    InvalidArgumentType(String),
+    TooManyArguments(usize),
 }
 
 #[derive(Debug, PartialEq)]
@@ -20,9 +20,10 @@ impl NasmError {
 
     fn get_message(&self) -> String {
         match self.kind {
-            NasmErrorKind::InvalidArgumentType(ref s) => {
-                format!("Invalid argument type: \"{}\"", s)
-            }
+            NasmErrorKind::TooManyArguments(a) => format!(
+                "Too many arguments ({}) to function (no more than 6 supported)",
+                a
+            ),
         }
     }
 }

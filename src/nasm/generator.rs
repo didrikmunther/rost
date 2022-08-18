@@ -29,7 +29,10 @@ impl<'a> Generator<'a> {
 
     fn add_program(&mut self) -> Result<&mut Code, NasmError> {
         for (i, procedure) in self.program.procedures.iter().enumerate() {
-            self.code.add(Row::Comment(format!("[procedure {}]: {:?}", i, procedure.kind)));
+            self.code.add(Row::Comment(format!(
+                "[procedure {}]: {:?}",
+                i, procedure.kind
+            )));
 
             match &procedure.kind {
                 ProcedureKind::SystemCall(system_call) => {
@@ -46,6 +49,8 @@ impl<'a> Generator<'a> {
     fn handle_arithmetic(&mut self, arithmetic: &Arithmetic) -> Result<(), NasmError> {
         let operation = match arithmetic {
             Arithmetic::Add => Row::Add("rax".into(), "rbx".into()),
+            Arithmetic::Subtract => Row::Subtract("rax".into(), "rbx".into()),
+            Arithmetic::Multiply => Row::Multiply("rbx".into()),
         };
 
         self.code

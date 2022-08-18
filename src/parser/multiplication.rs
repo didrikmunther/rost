@@ -7,11 +7,11 @@ use super::{
 };
 
 impl<'a> Parser<'a> {
-    pub fn addition(&mut self) -> Result<Expression, ParserError> {
-        let mut expr = self.multiplication()?;
+    pub fn multiplication(&mut self) -> Result<Expression, ParserError> {
+        let mut expr = self.function_call()?;
 
-        while let Some(block) = self.get(&[Keyword::Plus, Keyword::Minus]) {
-            let right = self.multiplication()?;
+        while let Some(block) = self.get(&[Keyword::Asterix]) {
+            let right = self.primary()?;
             let pos = expr.pos.start..right.pos.end;
 
             expr = Expression {
