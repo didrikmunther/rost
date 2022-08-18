@@ -1,18 +1,16 @@
 use crate::parser::definition::{Declaration, DeclarationKind, StatementKind};
 
-use super::{definition::Procedure, error::CompilerError, program::Program};
+use super::{builder::Builder, error::CompilerError, program::Program};
 
 impl Program {
     pub fn handle_declaration(
         &mut self,
         declaration: &Declaration,
-    ) -> Result<Procedure, CompilerError> {
+    ) -> Result<Builder, CompilerError> {
         match &declaration.kind {
             DeclarationKind::Statement(statement) => match &statement.kind {
-                StatementKind::Assignment(assignment) => {
-                    self.handle_assignment(statement, assignment)
-                }
                 StatementKind::Expression(expression) => self.handle_expression(expression),
+                _ => todo!(),
             },
         }
     }

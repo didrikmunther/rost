@@ -1,30 +1,11 @@
-use crate::lexer::{Block, Keyword, Literal, Token};
+use crate::lexer::{Keyword, Literal};
 
 use super::{
     definition::{Assignment, Expression, ExpressionKind, Primary, Statement, StatementKind},
     error::{ParserError, ParserErrorKind},
     parser::Parser,
+    util::{get_block_identifier, get_expr_identifier},
 };
-
-fn get_expr_identifier(expr: &Expression) -> Result<String, ParserError> {
-    match expr.kind {
-        ExpressionKind::Primary(ref primary) => match primary {
-            Primary::Identifier(identifier) => Ok(identifier.clone()),
-            _ => todo!(),
-        },
-        _ => todo!(),
-    }
-}
-
-fn get_block_identifier(block: &Block) -> Result<String, ParserError> {
-    match &block.token {
-        Token::Identifier(identifier) => Ok(identifier.clone()),
-        _ => Err(ParserError::new(
-            block.pos.clone(),
-            ParserErrorKind::Expected(&[Keyword::Identifier]),
-        )),
-    }
-}
 
 fn infer_type(expr: &Expression) -> Option<Keyword> {
     match &expr.kind {
@@ -72,12 +53,22 @@ impl<'a> Parser<'a> {
                 }
 
                 if let Some(typ) = assignment_type {
+                    let identifier = match get_block_identifier(&left) {
+                        Some(identifier) => identifier,
+                        _ => {
+                            return Err(ParserError::new(
+                                left.pos.clone(),
+                                ParserErrorKind::Expected(&[Keyword::Identifier]),
+                            ))
+                        }
+                    };
+
                     return Ok(Statement {
                         pos: left.pos.start..right.pos.end,
                         kind: StatementKind::Assignment(Assignment {
                             is_new: true,
                             typ: Some(typ),
-                            identifier: get_block_identifier(&left)?,
+                            identifier,
                             identifier_pos: left.pos.clone(),
                             value_pos: right.pos.clone(),
                             value: Box::new(right),
@@ -110,12 +101,17 @@ impl<'a> Parser<'a> {
 
         let left = self.expression()?;
         if let Some(right) = self.parse_assignment_value()? {
+            let identifier = match get_expr_identifier(&left) {
+                Some(identifier) => identifier,
+                _ => todo!(),
+            };
+
             return Ok(Statement {
                 pos: left.pos.start..right.pos.end,
                 kind: StatementKind::Assignment(Assignment {
                     is_new: false,
                     typ: None,
-                    identifier: get_expr_identifier(&left)?,
+                    identifier,
                     identifier_pos: left.pos.clone(),
                     value_pos: right.pos.clone(),
                     value: Box::new(right),

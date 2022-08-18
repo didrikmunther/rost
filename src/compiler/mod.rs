@@ -2,7 +2,7 @@ use crate::parser::definition::Declaration;
 
 use self::{error::CompilerError, program::Program};
 
-mod assignment;
+mod builder;
 mod declaration;
 pub mod definition;
 mod error;

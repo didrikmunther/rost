@@ -1,5 +1,2 @@
-let a: int = 5
-let b: int = a + 2 // 7
-let c: int = a + b + 1 // 13
-
-printf("%i",   b)
+printf("%i: %i\n", 5, 2)
+//printf("%i %i", 1 + 2 + 3, 4 + 5 + 6)

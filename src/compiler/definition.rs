@@ -6,22 +6,27 @@ pub struct Procedure {
     pub kind: ProcedureKind,
 }
 
+impl Procedure {
+    pub fn new(pos: Range<usize>, kind: ProcedureKind) -> Self {
+        Self { pos, kind }
+    }
+}
+
 #[derive(Debug)]
 pub enum ProcedureKind {
-    Assignment(Assignment),
+    Push(OperandValue),
     SystemCall(SystemCall),
 }
 
 #[derive(Debug)]
 pub struct SystemCall {
     pub identifier: String,
-    pub args: Vec<OperandValue>,
+    pub nargs: usize,
 }
 
 #[derive(Debug)]
 pub struct Assignment {
     pub identifier: String,
-    
 }
 
 #[derive(Debug)]

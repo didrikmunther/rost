@@ -1,4 +1,7 @@
-use crate::compiler::{definition::ProcedureKind, program::Program};
+use crate::compiler::{
+    definition::{OperandValue, ProcedureKind},
+    program::Program,
+};
 
 use super::{code::Code, error::NasmError, row::Row};
 
@@ -30,16 +33,23 @@ impl<'a> Generator<'a> {
 
             match &procedure.kind {
                 ProcedureKind::SystemCall(system_call) => {
-                    self.system_call(procedure, &system_call.args)?;
+                    self.system_call(procedure, system_call)?
                 }
-                ProcedureKind::Assignment(assignment) => {
-                    self.assignment(procedure, assignment)?;
-                }
-                _ => todo!(),
+                ProcedureKind::Push(operand) => self.handle_push(operand)?,
             }
         }
 
         return Ok(&mut self.code);
+    }
+
+    fn handle_push(&mut self, operand: &OperandValue) -> Result<(), NasmError> {
+        match operand {
+            OperandValue::ByteLocation(loc) => self.code.add(Row::Push(Self::get_data_name(*loc))),
+            OperandValue::Int(i) => self.code.add(Row::Push(format!("{}", *i))),
+            _ => todo!(),
+        };
+
+        Ok(())
     }
 
     pub fn get_data_name(i: usize) -> String {
@@ -56,9 +66,7 @@ impl<'a> Generator<'a> {
     }
 
     fn add_data(&mut self) -> &mut Code {
-        self.code
-            .add(Row::Comment("[data]".into()))
-            .add(Row::Section("data".into()));
+        self.code.add(Row::Section("data".into()));
 
         for (i, data) in self.program.global_data.iter().enumerate() {
             self.code
@@ -71,7 +79,7 @@ impl<'a> Generator<'a> {
 
     fn add_exit(&mut self) -> &mut Code {
         self.code
-            .add(Row::Comment("[exit]".into()))
-            .add_with_comment(Row::Ret, "[exit program]".into())
+            .add(Row::Comment("[exit program]".into()))
+            .add(Row::Ret)
     }
 }

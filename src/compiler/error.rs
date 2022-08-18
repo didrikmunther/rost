@@ -4,7 +4,7 @@ use crate::error::RostError;
 
 #[derive(Debug, PartialEq)]
 pub enum CompilerErrorKind {
-    Unimplemented,
+    Unimplemented(String),
     UndefinedVariable(String),
 }
 
@@ -21,7 +21,7 @@ impl CompilerError {
 
     fn get_message(&self) -> String {
         match &self.kind {
-            CompilerErrorKind::Unimplemented => "Unimplemented".to_string(),
+            CompilerErrorKind::Unimplemented(s) => format!("Unimplemented: {}", s),
             CompilerErrorKind::UndefinedVariable(identifier) => {
                 format!("Undefined variable: {}", identifier)
             }

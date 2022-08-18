@@ -36,6 +36,8 @@ pub enum Row {
     Call(String),
     // DeclareByte(String), // todo: allow for all allowed values: https://www.nasm.us/doc/nasmdoc3.html 3.2.1
     DeclareStaticString(String), // Declare byte abstraction, completes it with the string length
+    Push(String),
+    Pop(String),
     Ret,
 }
 
@@ -58,6 +60,8 @@ impl Display for Row {
             Row::Xor(to, from) => w(format_args!("\txor {}, {}", to, from)),
             Row::Section(section) => w(format_args!("\n\tsection .{}", section)),
             Row::Label(label) => w(format_args!("{}:", label)),
+            Row::Push(operand) => w(format_args!("\tpush {}", operand)),
+            Row::Pop(operand) => w(format_args!("\tpop {}", operand)),
             Row::Global(global) => w(format_args!("\tglobal {}", global)),
             Row::Call(function) => w(format_args!("\tcall {}", function)),
             Row::DeclareStaticString(s) => w(format_args!("\tdb {}, 0", get_bytes(s))),

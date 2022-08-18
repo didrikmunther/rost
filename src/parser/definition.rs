@@ -52,7 +52,7 @@ pub enum ExpressionKind {
 
 #[derive(Debug)]
 pub struct FunctionCall {
-    pub identifier: Box<Expression>,
+    pub identifier: String,
     pub args: Vec<Box<Expression>>,
 }
 

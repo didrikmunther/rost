@@ -1,80 +1,33 @@
-use crate::{
-    lexer::Literal,
-    parser::definition::{ExpressionKind, FunctionCall, Primary},
-};
+use crate::parser::definition::{Expression, FunctionCall};
 
 use super::{
-    definition::{GlobalData, OperandValue, SystemCall},
-    error::{CompilerError, CompilerErrorKind},
+    builder::Builder,
+    definition::{Procedure, ProcedureKind, SystemCall},
+    error::CompilerError,
     program::Program,
 };
 
 impl Program {
     pub fn handle_function_call(
         &mut self,
+        expression: &Expression,
         fcall: &FunctionCall,
-    ) -> Result<SystemCall, CompilerError> {
-        let mut args: Vec<OperandValue> = Vec::new();
+    ) -> Result<Builder, CompilerError> {
+        let mut builder = Builder::new();
 
         for arg in &fcall.args {
-            match &arg.kind {
-                ExpressionKind::Primary(primary) => match primary {
-                    Primary::Literal(literal) => match literal {
-                        Literal::String(s) => {
-                            self.global_data.push(GlobalData { content: s.clone() });
-
-                            // push latest index
-                            args.push(OperandValue::ByteLocation(self.global_data.len() - 1));
-                        }
-                        Literal::Int(i) => {
-                            args.push(OperandValue::Int(*i));
-                        }
-                        _ => {}
-                    },
-                    Primary::Identifier(identifier) => {
-                        if let Some(location) = self.variables.get(identifier) {
-                            args.push(OperandValue::StackLocation(*location));
-                        } else {
-                            return Err(CompilerError::new(
-                                arg.pos.clone(),
-                                CompilerErrorKind::UndefinedVariable(identifier.clone()),
-                            ));
-                        }
-                    }
-                    // _ => {
-                    //     return Err(CompilerError::new(
-                    //         arg.pos.clone(),
-                    //         CompilerErrorKind::Unimplemented,
-                    //     ))
-                    // }
-                },
-                _ => {
-                    return Err(CompilerError::new(
-                        arg.pos.clone(),
-                        CompilerErrorKind::Unimplemented,
-                    ))
-                }
-            }
+            let expr = self.handle_expression(arg)?;
+            builder = builder.append(expr);
         }
 
-        let identifier = match &fcall.identifier.kind {
-            ExpressionKind::Primary(primary) => match primary {
-                Primary::Identifier(s) => s.clone(),
-                _ => {
-                    return Err(CompilerError::new(
-                        fcall.identifier.pos.clone(),
-                        CompilerErrorKind::Unimplemented,
-                    ))
-                }
-            },
-            _ => {
-                return Err(CompilerError::new(
-                    fcall.identifier.pos.clone(),
-                    CompilerErrorKind::Unimplemented,
-                ))
-            }
-        };
+        builder = builder.push(Procedure::new(
+            expression.pos.clone(),
+            ProcedureKind::SystemCall(SystemCall {
+                nargs: fcall.args.len(),
+                identifier: fcall.identifier.clone(),
+            }),
+        ));
 
-        Ok(SystemCall { identifier, args })
+        Ok(builder)
     }
 }

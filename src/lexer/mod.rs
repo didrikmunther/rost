@@ -99,11 +99,14 @@ pub fn lex(text: &str) -> Result<Vec<Block>, LexerError> {
                     Token::Comment(_) => Keyword::Comment,
                 };
 
-                res.push(Block {
-                    pos: pos..pos + new_pos,
-                    token,
-                    kind,
-                });
+                // Don't add comments to token list, might change in future
+                if kind != Keyword::Comment {
+                    res.push(Block {
+                        pos: pos..pos + new_pos,
+                        token,
+                        kind,
+                    });
+                }
 
                 chars = &chars[new_pos..];
                 pos += new_pos;
