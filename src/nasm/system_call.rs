@@ -1,7 +1,7 @@
-use crate::compiler::definition::{OperandValue, Procedure, SystemCall};
+use crate::compiler::definition::{Procedure, SystemCall};
 
 use super::{
-    error::{NasmError, NasmErrorKind},
+    error::{NasmError},
     generator::Generator,
     row::Row,
 };
