@@ -4,7 +4,7 @@ use crate::{
 };
 
 use super::{
-    definition::{GlobalData, RegisterValue, SystemCall},
+    definition::{GlobalData, OperandValue, SystemCall},
     error::{CompilerError, CompilerErrorKind},
     program::Program,
 };
@@ -14,7 +14,7 @@ impl Program {
         &mut self,
         fcall: &FunctionCall,
     ) -> Result<SystemCall, CompilerError> {
-        let mut args: Vec<RegisterValue> = Vec::new();
+        let mut args: Vec<OperandValue> = Vec::new();
 
         for arg in &fcall.args {
             match &arg.kind {
@@ -24,19 +24,29 @@ impl Program {
                             self.global_data.push(GlobalData { content: s.clone() });
 
                             // push latest index
-                            args.push(RegisterValue::ByteLocation(self.global_data.len() - 1));
+                            args.push(OperandValue::ByteLocation(self.global_data.len() - 1));
                         }
                         Literal::Int(i) => {
-                            args.push(RegisterValue::Int(*i));
+                            args.push(OperandValue::Int(*i));
                         }
                         _ => {}
                     },
-                    _ => {
-                        return Err(CompilerError::new(
-                            arg.pos.clone(),
-                            CompilerErrorKind::Unimplemented,
-                        ))
+                    Primary::Identifier(identifier) => {
+                        if let Some(location) = self.variables.get(identifier) {
+                            args.push(OperandValue::StackLocation(*location));
+                        } else {
+                            return Err(CompilerError::new(
+                                arg.pos.clone(),
+                                CompilerErrorKind::UndefinedVariable(identifier.clone()),
+                            ));
+                        }
                     }
+                    // _ => {
+                    //     return Err(CompilerError::new(
+                    //         arg.pos.clone(),
+                    //         CompilerErrorKind::Unimplemented,
+                    //     ))
+                    // }
                 },
                 _ => {
                     return Err(CompilerError::new(

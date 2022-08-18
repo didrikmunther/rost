@@ -25,6 +25,12 @@ pub enum Keyword {
     ParLeft,
     ParRight,
     Comma,
+    Colon,
+
+    // Types
+    Int,
+    Bool,
+    String,
 
     // Abstract keywords
     EOF,
@@ -40,7 +46,7 @@ pub enum Literal {
     Bool(bool),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     Keyword(Keyword),
     Identifier(String),

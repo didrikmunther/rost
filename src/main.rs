@@ -1,6 +1,8 @@
 use ::std::io::Write;
 use std::{env, fs, process::exit};
 
+use nasm::code::Code;
+
 use crate::error::RostError;
 
 mod compiler;
@@ -102,7 +104,7 @@ fn shell(shell_level: ShellLevel) {
 }
 
 #[allow(dead_code)]
-fn run(file: &str, shell_level: ShellLevel) -> i32 {
+fn run(file: &str, shell_level: ShellLevel) -> Option<Code> {
     let text = &fs::read_to_string(file).expect("Unable to read file");
 
     let print_error = |mut err: RostError| {
@@ -123,7 +125,7 @@ fn run(file: &str, shell_level: ShellLevel) -> i32 {
 
     if shell_level == ShellLevel::Lexed {
         println!("{:#?}", document);
-        return 0;
+        return None;
     }
 
     let parsed = document.and_then(|document| match parser::parse(&document) {
@@ -136,7 +138,7 @@ fn run(file: &str, shell_level: ShellLevel) -> i32 {
 
     if shell_level == ShellLevel::Parsed {
         println!("{:#?}", parsed);
-        return 0;
+        return None;
     }
 
     let compiled = parsed.and_then(|parsed| match compiler::compile(&parsed) {
@@ -149,7 +151,7 @@ fn run(file: &str, shell_level: ShellLevel) -> i32 {
 
     if shell_level == ShellLevel::Compiled {
         println!("{:#?}", compiled);
-        return 0;
+        return None;
     }
 
     let nasm = compiled.and_then(|compiled| match nasm::generate(&compiled) {
@@ -162,22 +164,17 @@ fn run(file: &str, shell_level: ShellLevel) -> i32 {
 
     if shell_level == ShellLevel::Nasm {
         println!("{:#?}", nasm);
-        return 0;
+        return None;
     }
 
-    if let Some(nasm) = nasm {
-        fs::write("out.asm", format!("{}", nasm)).expect("Unable to write file");
-        return 0;
-    }
-
-    return -1;
+    return nasm;
 }
 
 fn main() {
     let args = env::args().skip(1).collect::<Vec<_>>();
 
     let mut run_shell = false;
-    let mut shell_level = ShellLevel::Compiled;
+    let mut shell_level = ShellLevel::End;
     let mut input_file: Option<String> = None;
     
     let mut i = 0;
@@ -190,13 +187,14 @@ fn main() {
                 if let Some(level) = &args
                     .get(i)
                     .and_then(|v| v.parse::<usize>().ok())
-                    .filter(|&v| v < ShellLevel::End as usize)
+                    .filter(|&v| v <= ShellLevel::End as usize)
                 {
                     shell_level = match *level {
                         0 => ShellLevel::Lexed,
                         1 => ShellLevel::Parsed,
                         2 => ShellLevel::Compiled,
                         3 => ShellLevel::Nasm,
+                        4 => ShellLevel::End,
                         _ => unreachable!(),
                     };
 
@@ -223,17 +221,17 @@ fn main() {
     }
 
     if run_shell {
-        shell(shell_level)
+        shell(shell_level);
     } else if let Some(file) = input_file {
-        exit(run(&file, shell_level));
+        let asm = run(&file, shell_level);
+        if let Some(asm) = asm {
+            fs::write("out.asm", format!("{}", asm)).expect("Unable to write file");
+            exit(0);
+        }
+
+        exit(1);
     } else {
         println!("No input file provided");
         exit(-1);
     }
-
-    // if args.next().map(|arg| arg.eq("shell")).unwrap_or_else(false) {
-    //     shell()
-    // } else {
-    //     run(text)
-    // }
 }

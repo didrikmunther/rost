@@ -3,6 +3,7 @@ use phf::phf_map;
 
 static KEYWORDS: phf::Map<&'static str, Keyword> = phf_map! {
     "let" => Keyword::Let,
+    "int" => Keyword::Int
 };
 
 pub struct KeywordLexer {

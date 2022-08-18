@@ -1,3 +1,5 @@
+use std::{collections::HashMap};
+
 use crate::parser::definition::Declaration;
 
 use super::{
@@ -9,6 +11,9 @@ use super::{
 pub struct Program {
     pub global_data: Vec<GlobalData>,
     pub procedures: Vec<Procedure>,
+
+    pub stack_pos: usize,
+    pub variables: HashMap<String, usize>, // stack position
 }
 
 impl Program {
@@ -16,6 +21,9 @@ impl Program {
         Self {
             global_data: Vec::new(),
             procedures: Vec::new(),
+
+            stack_pos: 0,
+            variables: HashMap::new(),
         }
     }
 

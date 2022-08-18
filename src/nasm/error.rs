@@ -5,6 +5,7 @@ use crate::error::RostError;
 #[derive(Debug, PartialEq)]
 pub enum NasmErrorKind {
     InvalidArgumentType(String),
+    Unimplemented,
 }
 
 #[derive(Debug, PartialEq)]
@@ -23,6 +24,7 @@ impl NasmError {
             NasmErrorKind::InvalidArgumentType(ref s) => {
                 format!("Invalid argument type: \"{}\"", s)
             }
+            NasmErrorKind::Unimplemented => "Unimplemented".into(),
         }
     }
 }

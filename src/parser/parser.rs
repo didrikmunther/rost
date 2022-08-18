@@ -2,7 +2,7 @@ use crate::lexer::{Block, Keyword};
 
 use super::{
     definition::{Declaration, DeclarationKind, Expression, Statement},
-    error::ParserError,
+    error::{ParserError, ParserErrorKind},
     AST,
 };
 
@@ -49,6 +49,16 @@ impl<'a> Parser<'a> {
 
     pub fn peek(&self) -> Option<&'a Block> {
         self.get_at(self.index)
+    }
+
+    pub fn peek_or_eof(&self) -> Result<&'a Block, ParserError> {
+        match self.peek() {
+            Some(block) => Ok(block),
+            None => Err(ParserError::new(
+                self.document.last().unwrap().pos.clone(),
+                ParserErrorKind::UnexpectedEOF,
+            )),
+        }
     }
 
     pub fn is_end(&self) -> bool {

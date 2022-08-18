@@ -24,18 +24,6 @@ impl<'a> Parser<'a> {
             });
         }
 
-        if let Some(block) = self.peek() {
-            Err(ParserError::new(
-                block.pos.clone(),
-                ParserErrorKind::UnexpectedToken(format!("{:?}", block.token)),
-            ))
-        } else {
-            return Err(ParserError::new(
-                self.get_at(self.index - 1)
-                    .map(|v| v.pos.clone())
-                    .unwrap_or(0..0),
-                ParserErrorKind::UnexpectedEOF,
-            ));
-        }
+        self.unexpected()
     }
 }

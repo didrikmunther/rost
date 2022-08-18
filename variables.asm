@@ -4,27 +4,23 @@
 
 	section .text
 main:
-	mov rax, 5
-	push rax ; let a = 5
+	mov rax, 1
+	push rax
 
-	mov rax, [rsp] 	;	 a
-	add rax, 2		; + 2
+	mov rax, 10
+	push rax
 
-	push rax 		; let b = ...
-
-	mov rax, [rsp+8] 	; b
-	add rax, [rsp]		; + a
-	add rax, 1			; + 1
-	push rax			; let c = ...
+	mov rax, [rsp+8]
+	mov rbx, [rsp]
+	add rax, rbx
 
 	; [procedure 0]
 	mov rdi, _data_0
-	mov rsi, [rsp] 		; c
+	mov rsi, rax
 	xor rax, rax
 	call printf
 	; [exit]
 
-	pop rbx
 	pop rbx
 	pop rbx
 

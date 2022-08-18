@@ -1,10 +1,6 @@
 use crate::parser::definition::{Declaration, DeclarationKind, StatementKind};
 
-use super::{
-    definition::{Procedure},
-    error::{CompilerError},
-    program::Program,
-};
+use super::{definition::Procedure, error::CompilerError, program::Program};
 
 impl Program {
     pub fn handle_declaration(
@@ -13,7 +9,9 @@ impl Program {
     ) -> Result<Procedure, CompilerError> {
         match &declaration.kind {
             DeclarationKind::Statement(statement) => match &statement.kind {
-                StatementKind::Assignment(assignment) => self.handle_assignment(assignment),
+                StatementKind::Assignment(assignment) => {
+                    self.handle_assignment(statement, assignment)
+                }
                 StatementKind::Expression(expression) => self.handle_expression(expression),
             },
         }

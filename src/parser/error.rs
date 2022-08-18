@@ -1,11 +1,16 @@
 use std::ops::Range;
 
-use crate::error::RostError;
+use crate::{
+    error::RostError,
+    lexer::{Keyword, Token},
+};
 
 #[derive(Debug, PartialEq)]
 pub enum ParserErrorKind {
     Unknown,
-    UnexpectedToken(String),
+    UnexpectedToken(Token),
+    Expected(&'static [Keyword]),
+    CannotInferType,
     UnexpectedEOF,
     UnterminatedParenthesis,
 }
@@ -25,7 +30,9 @@ impl ParserError {
         match &self.kind {
             ParserErrorKind::UnterminatedParenthesis => "Unterminated parenthesis".to_string(),
             ParserErrorKind::UnexpectedEOF => "Unexpected EOF".to_string(),
-            ParserErrorKind::UnexpectedToken(s) => format!("Unknown token: {}", s),
+            ParserErrorKind::UnexpectedToken(t) => format!("Unexpected token: {:?}", t),
+            ParserErrorKind::Expected(k) => format!("Expected: {:?}", k),
+            ParserErrorKind::CannotInferType => "Cannot infer assignment type".to_string(),
             ParserErrorKind::Unknown => "Unknown".to_string(),
         }
     }

@@ -1,17 +1,10 @@
-use crate::compiler::{
-    definition::{Procedure, ProcedureKind, RegisterValue},
-    program::Program,
-};
+use crate::compiler::{definition::ProcedureKind, program::Program};
 
-use super::{
-    code::Code,
-    error::{NasmError, NasmErrorKind},
-    row::Row,
-};
+use super::{code::Code, error::NasmError, row::Row};
 
 pub struct Generator<'a> {
-    code: Code,
-    program: &'a Program,
+    pub code: Code,
+    pub program: &'a Program,
 }
 
 impl<'a> Generator<'a> {
@@ -31,51 +24,6 @@ impl<'a> Generator<'a> {
         Ok(self.code)
     }
 
-    fn system_call(
-        &mut self,
-        procedure: &Procedure,
-        args: &Vec<RegisterValue>,
-    ) -> Result<(), NasmError> {
-        if let Some(format) = args.get(0) {
-            let value = match format {
-                RegisterValue::ByteLocation(i) => Self::get_data_name(*i),
-                RegisterValue::Int(_) => {
-                    return Err(NasmError::new(
-                        procedure.pos.clone(),
-                        NasmErrorKind::InvalidArgumentType("int".into()),
-                    ))
-                }
-            };
-
-            self.code.add(Row::Move("rdi".into(), value));
-        } else {
-            return Err(NasmError::new(
-                procedure.pos.end..procedure.pos.end + 1,
-                NasmErrorKind::InvalidArgumentType("void".into()),
-            )); // todo: type system
-        }
-
-        if let Some(value) = args.get(1) {
-            let value = match value {
-                RegisterValue::ByteLocation(i) => Self::get_data_name(*i),
-                RegisterValue::Int(i) => i.to_string(),
-            };
-
-            self.code.add(Row::Move("rsi".into(), value));
-        } else {
-            return Err(NasmError::new(
-                procedure.pos.end..procedure.pos.end + 1,
-                NasmErrorKind::InvalidArgumentType("void".into()),
-            ));
-        }
-
-        self.code
-            .add(Row::Xor("rax".into(), "rax".into()))
-            .add(Row::Call("printf".into()));
-
-        Ok(())
-    }
-
     fn add_program(&mut self) -> Result<&mut Code, NasmError> {
         for (i, procedure) in self.program.procedures.iter().enumerate() {
             self.code.add(Row::Comment(format!("[procedure {}]", i)));
@@ -84,13 +32,17 @@ impl<'a> Generator<'a> {
                 ProcedureKind::SystemCall(system_call) => {
                     self.system_call(procedure, &system_call.args)?;
                 }
+                ProcedureKind::Assignment(assignment) => {
+                    self.assignment(procedure, assignment)?;
+                }
+                _ => todo!(),
             }
         }
 
         return Ok(&mut self.code);
     }
 
-    fn get_data_name(i: usize) -> String {
+    pub fn get_data_name(i: usize) -> String {
         format!("_data_{}", i)
     }
 

@@ -52,7 +52,7 @@ impl Display for RostError {
         let line_pos = newlines
             .clone()
             .last()
-            .and_then(|i| Some(self.pos.start - i))
+            .and_then(|i| Some(self.pos.start - i - 1))
             .unwrap_or(self.pos.start);
 
         let margin: usize = 1;

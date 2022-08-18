@@ -11,6 +11,7 @@ static SYMBOLS: phf::Map<&'static str, Keyword> = phf_map! {
     "(" => Keyword::ParLeft,
     ")" => Keyword::ParRight,
     "," => Keyword::Comma,
+    ":" => Keyword::Colon
 };
 
 pub struct SymbolLexer;

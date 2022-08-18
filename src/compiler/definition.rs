@@ -8,13 +8,20 @@ pub struct Procedure {
 
 #[derive(Debug)]
 pub enum ProcedureKind {
+    Assignment(Assignment),
     SystemCall(SystemCall),
 }
 
 #[derive(Debug)]
 pub struct SystemCall {
     pub identifier: String,
-    pub args: Vec<RegisterValue>,
+    pub args: Vec<OperandValue>,
+}
+
+#[derive(Debug)]
+pub struct Assignment {
+    pub identifier: String,
+    
 }
 
 #[derive(Debug)]
@@ -23,7 +30,8 @@ pub struct GlobalData {
 }
 
 #[derive(Debug)]
-pub enum RegisterValue {
+pub enum OperandValue {
+    StackLocation(usize), // usize relative to stack
     ByteLocation(usize),
     Int(i32),
 }
