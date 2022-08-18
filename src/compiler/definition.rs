@@ -15,7 +15,13 @@ impl Procedure {
 #[derive(Debug)]
 pub enum ProcedureKind {
     Push(OperandValue),
+    Arithmetic(Arithmetic),
     SystemCall(SystemCall),
+}
+
+#[derive(Debug)]
+pub enum Arithmetic {
+    Add
 }
 
 #[derive(Debug)]

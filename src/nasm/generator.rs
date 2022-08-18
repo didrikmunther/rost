@@ -1,5 +1,5 @@
 use crate::compiler::{
-    definition::{OperandValue, ProcedureKind},
+    definition::{Arithmetic, OperandValue, ProcedureKind},
     program::Program,
 };
 
@@ -29,17 +29,32 @@ impl<'a> Generator<'a> {
 
     fn add_program(&mut self) -> Result<&mut Code, NasmError> {
         for (i, procedure) in self.program.procedures.iter().enumerate() {
-            self.code.add(Row::Comment(format!("[procedure {}]", i)));
+            self.code.add(Row::Comment(format!("[procedure {}]: {:?}", i, procedure.kind)));
 
             match &procedure.kind {
                 ProcedureKind::SystemCall(system_call) => {
                     self.system_call(procedure, system_call)?
                 }
                 ProcedureKind::Push(operand) => self.handle_push(operand)?,
+                ProcedureKind::Arithmetic(arithmetic) => self.handle_arithmetic(arithmetic)?,
             }
         }
 
         return Ok(&mut self.code);
+    }
+
+    fn handle_arithmetic(&mut self, arithmetic: &Arithmetic) -> Result<(), NasmError> {
+        let operation = match arithmetic {
+            Arithmetic::Add => Row::Add("rax".into(), "rbx".into()),
+        };
+
+        self.code
+            .add(Row::Pop("rax".into()))
+            .add(Row::Pop("rbx".into()))
+            .add(operation)
+            .add(Row::Push("rax".into()));
+
+        Ok(())
     }
 
     fn handle_push(&mut self, operand: &OperandValue) -> Result<(), NasmError> {
