@@ -1,0 +1,6 @@
+let a = 100
+let b = 10
+let c: int = a + b
+let d = 5
+
+printf("%i %i", c + 1 + d + c, c, c, c)

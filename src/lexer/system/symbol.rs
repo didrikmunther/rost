@@ -12,6 +12,8 @@ static SYMBOLS: phf::Map<&'static str, Keyword> = phf_map! {
     "/" => Keyword::Slash,
     "(" => Keyword::ParLeft,
     ")" => Keyword::ParRight,
+    "{" => Keyword::BracketLeft,
+    "}" => Keyword::BracketRight,
     "," => Keyword::Comma,
     ":" => Keyword::Colon
 };
@@ -63,7 +65,7 @@ impl Lexer for SymbolLexer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::lexer::letter::{get_letters};
+    use crate::lexer::letter::get_letters;
 
     #[test]
     fn symbol_works() {

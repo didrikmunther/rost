@@ -1,7 +1,7 @@
 use crate::lexer::{Block, Keyword};
 
 use super::{
-    definition::{Declaration, DeclarationKind, Expression, Statement},
+    definition::{Declaration, Expression, Statement},
     error::{ParserError, ParserErrorKind},
     AST,
 };
@@ -26,17 +26,12 @@ impl<'a> Parser<'a> {
         return Ok(program);
     }
 
-    fn declaration(&mut self) -> Result<Declaration, ParserError> {
-        let statement = self.statement()?;
-
-        Ok(Declaration {
-            pos: statement.pos.clone(),
-            kind: DeclarationKind::Statement(statement),
-        })
+    pub fn declaration(&mut self) -> Result<Declaration, ParserError> {
+        self.function_declaration()
     }
 
-    fn statement(&mut self) -> Result<Statement, ParserError> {
-        self.assignment()
+    pub fn statement(&mut self) -> Result<Statement, ParserError> {
+        self.return_statement()
     }
 
     pub fn expression(&mut self) -> Result<Expression, ParserError> {
@@ -87,5 +82,19 @@ impl<'a> Parser<'a> {
         }
 
         return None;
+    }
+
+    pub fn expect(&mut self, tokens: &'static [Keyword]) -> Result<&'a Block, ParserError> {
+        for token in tokens {
+            if let Some(block) = self.check(*token) {
+                self.advance();
+                return Ok(block);
+            }
+        }
+
+        return Err(ParserError::new(
+            self.peek_or_eof()?.pos.clone(),
+            ParserErrorKind::Expected(tokens),
+        ));
     }
 }

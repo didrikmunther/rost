@@ -3,4 +3,8 @@ let b = 10
 let c: int = a + b
 let d = 5
 
-printf("%i", c + 1)
+printf("%i %i\n", c + 1 + d + c, c, c, c)
+
+a = 5
+
+printf("%i", a)

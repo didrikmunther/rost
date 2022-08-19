@@ -1,0 +1,83 @@
+use crate::lexer::Keyword;
+
+use super::{
+    definition::{Declaration, DeclarationKind, FunctionDeclaration, FunctionDeclarationParameter},
+    error::{ParserError, ParserErrorKind},
+    parser::Parser,
+    util::get_block_identifier,
+};
+
+impl<'a> Parser<'a> {
+    pub fn function_declaration(&mut self) -> Result<Declaration, ParserError> {
+        if let Some(_) = self.get(&[Keyword::Fn]) {
+            let fn_identifier = self.expect(&[Keyword::Identifier])?;
+            let identifier = match get_block_identifier(&fn_identifier) {
+                Some(identifier) => identifier,
+                _ => {
+                    return Err(ParserError::new(
+                        fn_identifier.pos.clone(),
+                        ParserErrorKind::Expected(&[Keyword::Identifier]),
+                    ))
+                }
+            };
+
+            let par_open = self.expect(&[Keyword::ParLeft])?;
+            let mut parameters = Vec::new();
+
+            loop {
+                if self.is_end() {
+                    return Err(ParserError::new(
+                        par_open.pos.clone(),
+                        ParserErrorKind::UnterminatedParenthesis,
+                    ));
+                }
+
+                if let None = self.get(&[Keyword::Comma]) {
+                    if let Some(close) = self.get(&[Keyword::ParRight]) {
+                        self.expect(&[Keyword::BracketLeft])?;
+                        let mut content: Vec<Declaration> = Vec::new();
+
+                        while let None = self.get(&[Keyword::BracketRight]) {
+                            content.push(self.declaration()?);
+                        }
+
+                        return Ok(Declaration {
+                            pos: fn_identifier.pos.start..close.pos.end,
+                            kind: DeclarationKind::FunctionDeclaration(FunctionDeclaration {
+                                identifier,
+                                parameters,
+                                content,
+                            }),
+                        });
+                    }
+                }
+
+                let par_identifier =
+                    match get_block_identifier(self.expect(&[Keyword::Identifier])?) {
+                        Some(identifier) => identifier,
+                        _ => {
+                            return Err(ParserError::new(
+                                fn_identifier.pos.clone(),
+                                ParserErrorKind::Expected(&[Keyword::Identifier]),
+                            ))
+                        }
+                    };
+
+                self.expect(&[Keyword::Colon])?;
+                let par_type = self.expect(&[Keyword::Int])?.kind;
+
+                parameters.push(FunctionDeclarationParameter {
+                    identifier: par_identifier,
+                    typ: par_type,
+                });
+            }
+        }
+
+        let statement = self.statement()?;
+
+        Ok(Declaration {
+            pos: statement.pos.clone(),
+            kind: DeclarationKind::Statement(statement),
+        })
+    }
+}

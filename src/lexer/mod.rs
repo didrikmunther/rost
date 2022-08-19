@@ -17,6 +17,8 @@ use letter::{get_letters, UnexpectedToken};
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Keyword {
     Let,
+    Fn,
+    Return,
     Equals,
     Semicolon,
     Plus,
@@ -26,6 +28,8 @@ pub enum Keyword {
     Arrow,
     ParLeft,
     ParRight,
+    BracketLeft,
+    BracketRight,
     Comma,
     Colon,
 

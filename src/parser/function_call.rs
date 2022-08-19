@@ -12,7 +12,7 @@ impl<'a> Parser<'a> {
 
         if let Some(identifier) = get_expr_identifier(&expr) {
             if let Some(open) = self.get(&[Keyword::ParLeft]) {
-                let mut args = vec![];
+                let mut args = Vec::new();
     
                 loop {
                     if self.is_end() {

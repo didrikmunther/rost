@@ -13,6 +13,20 @@ pub struct Declaration {
 #[derive(Debug)]
 pub enum DeclarationKind {
     Statement(Statement),
+    FunctionDeclaration(FunctionDeclaration),
+}
+
+#[derive(Debug)]
+pub struct FunctionDeclarationParameter {
+    pub identifier: String,
+    pub typ: Keyword,
+}
+
+#[derive(Debug)]
+pub struct FunctionDeclaration {
+    pub identifier: String,
+    pub parameters: Vec<FunctionDeclarationParameter>,
+    pub content: Vec<Declaration>,
 }
 
 #[derive(Debug)]
@@ -35,6 +49,12 @@ pub struct Assignment {
 pub enum StatementKind {
     Expression(Expression),
     Assignment(Assignment),
+    Return(Return),
+}
+
+#[derive(Debug)]
+pub struct Return {
+    pub value: Box<Expression>,
 }
 
 #[derive(Debug)]
