@@ -10,7 +10,7 @@ impl Program {
         match &declaration.kind {
             DeclarationKind::Statement(statement) => match &statement.kind {
                 StatementKind::Expression(expression) => self.handle_expression(expression),
-                _ => todo!(),
+                StatementKind::Assignment(assignment) => self.handle_assignment(assignment),
             },
         }
     }

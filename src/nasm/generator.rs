@@ -35,12 +35,15 @@ impl<'a> Generator<'a> {
             )));
 
             match &procedure.kind {
+                ProcedureKind::Comment(comment) => {
+                    self.code.add(Row::Comment(comment.clone()));
+                }
                 ProcedureKind::SystemCall(system_call) => {
                     self.system_call(procedure, system_call)?
                 }
                 ProcedureKind::Push(operand) => self.handle_push(operand)?,
                 ProcedureKind::Arithmetic(arithmetic) => self.handle_arithmetic(arithmetic)?,
-            }
+            };
         }
 
         return Ok(&mut self.code);
@@ -66,6 +69,15 @@ impl<'a> Generator<'a> {
         match operand {
             OperandValue::ByteLocation(loc) => self.code.add(Row::Push(Self::get_data_name(*loc))),
             OperandValue::Int(i) => self.code.add(Row::Push(format!("{}", *i))),
+            OperandValue::StackLocation(loc) => self
+                .code
+                .add_with_stack(|stack_pos| {
+                    Row::Move(
+                        "rcx".into(),
+                        format!("[rsp+{}]", (stack_pos - *loc - 1) * 8),
+                    )
+                })
+                .add(Row::Push("rcx".into())),
             _ => todo!(),
         };
 
@@ -98,6 +110,11 @@ impl<'a> Generator<'a> {
     }
 
     fn add_exit(&mut self) -> &mut Code {
+        for i in 0..self.code.stack_pos {
+            self.code
+                .add_with_comment(Row::Pop("rax".into()), format!("Cleaning stack: {}", i));
+        }
+
         self.code
             .add(Row::Comment("[exit program]".into()))
             .add(Row::Ret)

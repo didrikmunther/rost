@@ -1,8 +1,14 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::Range};
 
 use crate::parser::definition::Declaration;
 
 use super::{builder::Builder, definition::GlobalData, error::CompilerError};
+
+#[derive(Debug)]
+pub struct Variable {
+    pub pos: Range<usize>,
+    pub stack_pos: usize,
+}
 
 #[derive(Debug)]
 pub struct Program {
@@ -10,7 +16,7 @@ pub struct Program {
     pub procedures: Builder,
 
     pub stack_pos: usize,
-    pub variables: HashMap<String, usize>, // stack position
+    pub variables: HashMap<String, Variable>, // stack position
 }
 
 impl Program {

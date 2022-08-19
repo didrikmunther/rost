@@ -4,16 +4,22 @@ use std::ops::Range;
 pub struct Procedure {
     pub pos: Range<usize>,
     pub kind: ProcedureKind,
+    pub comment: Option<String>,
 }
 
 impl Procedure {
     pub fn new(pos: Range<usize>, kind: ProcedureKind) -> Self {
-        Self { pos, kind }
+        Self {
+            pos,
+            kind,
+            comment: None,
+        }
     }
 }
 
 #[derive(Debug)]
 pub enum ProcedureKind {
+    Comment(String),
     Push(OperandValue),
     Arithmetic(Arithmetic),
     SystemCall(SystemCall),
