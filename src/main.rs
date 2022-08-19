@@ -26,7 +26,7 @@ fn flush() {
     std::io::stdout().flush().expect("Flush failed.");
 }
 
-fn shell(shell_level: ShellLevel) {
+fn shell(settings: Settings) {
     let mut code = String::new();
 
     loop {
@@ -55,7 +55,7 @@ fn shell(shell_level: ShellLevel) {
                     }
                 };
 
-                if shell_level == ShellLevel::Lexed {
+                if settings.shell_level == ShellLevel::Lexed {
                     println!("{:#?}", document);
                     continue;
                 }
@@ -68,7 +68,7 @@ fn shell(shell_level: ShellLevel) {
                     }
                 });
 
-                if shell_level == ShellLevel::Parsed {
+                if settings.shell_level == ShellLevel::Parsed {
                     println!("{:#?}", parsed);
                     continue;
                 }
@@ -81,20 +81,22 @@ fn shell(shell_level: ShellLevel) {
                     }
                 });
 
-                if shell_level == ShellLevel::Compiled {
+                if settings.shell_level == ShellLevel::Compiled {
                     println!("{:#?}", compiled);
                     continue;
                 }
 
-                let nasm = compiled.and_then(|compiled| match nasm::generate(&compiled) {
-                    Ok(code) => Some(code),
-                    Err(err) => {
-                        print_error(err.into());
-                        None
+                let nasm = compiled.and_then(|compiled| {
+                    match nasm::generate(&compiled, !settings.remove_comments, settings.optimize) {
+                        Ok(code) => Some(code),
+                        Err(err) => {
+                            print_error(err.into());
+                            None
+                        }
                     }
                 });
 
-                if shell_level == ShellLevel::Nasm {
+                if settings.shell_level == ShellLevel::Nasm {
                     println!("{:#?}", nasm);
                     continue;
                 }
@@ -104,8 +106,15 @@ fn shell(shell_level: ShellLevel) {
 }
 
 #[allow(dead_code)]
-fn run(file: &str, shell_level: ShellLevel) -> Option<Code> {
-    let text = &fs::read_to_string(file).expect("Unable to read file");
+fn run(settings: Settings) -> Option<Code> {
+    let file = if let Some(file) = settings.file {
+        file
+    } else {
+        println!("No input file provided");
+        exit(-1);
+    };
+
+    let text = &fs::read_to_string(&file).expect("Unable to read file");
 
     let print_error = |mut err: RostError| {
         println!(
@@ -123,7 +132,7 @@ fn run(file: &str, shell_level: ShellLevel) -> Option<Code> {
         }
     };
 
-    if shell_level == ShellLevel::Lexed {
+    if settings.shell_level == ShellLevel::Lexed {
         println!("{:#?}", document);
         return None;
     }
@@ -136,7 +145,7 @@ fn run(file: &str, shell_level: ShellLevel) -> Option<Code> {
         }
     });
 
-    if shell_level == ShellLevel::Parsed {
+    if settings.shell_level == ShellLevel::Parsed {
         println!("{:#?}", parsed);
         return None;
     }
@@ -149,20 +158,22 @@ fn run(file: &str, shell_level: ShellLevel) -> Option<Code> {
         }
     });
 
-    if shell_level == ShellLevel::Compiled {
+    if settings.shell_level == ShellLevel::Compiled {
         println!("{:#?}", compiled);
         return None;
     }
 
-    let nasm = compiled.and_then(|compiled| match nasm::generate(&compiled) {
-        Ok(code) => Some(code),
-        Err(err) => {
-            print_error(err.into());
-            None
+    let nasm = compiled.and_then(|compiled| {
+        match nasm::generate(&compiled, !settings.remove_comments, settings.optimize) {
+            Ok(code) => Some(code),
+            Err(err) => {
+                print_error(err.into());
+                None
+            }
         }
     });
 
-    if shell_level == ShellLevel::Nasm {
+    if settings.shell_level == ShellLevel::Nasm {
         println!("{:#?}", nasm);
         return None;
     }
@@ -170,26 +181,45 @@ fn run(file: &str, shell_level: ShellLevel) -> Option<Code> {
     return nasm;
 }
 
+struct Settings {
+    pub optimize: bool,
+    pub remove_comments: bool,
+    pub file: Option<String>,
+    pub shell_level: ShellLevel,
+    pub run_shell: bool,
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            optimize: true,
+            remove_comments: false,
+            file: None,
+            shell_level: ShellLevel::End,
+            run_shell: false,
+        }
+    }
+}
+
 fn main() {
     let args = env::args().skip(1).collect::<Vec<_>>();
+    let mut settings = Settings::default();
 
-    let mut run_shell = false;
-    let mut shell_level = ShellLevel::End;
-    let mut input_file: Option<String> = None;
-    
     let mut i = 0;
     while let Some(arg) = args.get(i) {
         i += 1;
 
         match arg.as_str() {
-            "-s" => run_shell = true,
+            "-no-comments" => settings.remove_comments = true,
+            "-no-optimize" => settings.optimize = false,
+            "-s" => settings.run_shell = true,
             "-sl" => {
                 if let Some(level) = &args
                     .get(i)
                     .and_then(|v| v.parse::<usize>().ok())
                     .filter(|&v| v <= ShellLevel::End as usize)
                 {
-                    shell_level = match *level {
+                    settings.shell_level = match *level {
                         0 => ShellLevel::Lexed,
                         1 => ShellLevel::Parsed,
                         2 => ShellLevel::Compiled,
@@ -209,29 +239,26 @@ fn main() {
                     println!("Unknown argument: {}", arg);
                     exit(-1);
                 } else {
-                    input_file = Some(arg.to_string());
+                    settings.file = Some(arg.to_string());
                 }
             }
         }
     }
 
-    if run_shell && input_file.is_some() {
+    if settings.run_shell && settings.file.is_some() {
         println!("Cannot use input file while running shell");
         exit(-1);
     }
 
-    if run_shell {
-        shell(shell_level);
-    } else if let Some(file) = input_file {
-        let asm = run(&file, shell_level);
+    if settings.run_shell {
+        shell(settings);
+    } else {
+        let asm = run(settings);
         if let Some(asm) = asm {
             fs::write("out.asm", format!("{}", asm)).expect("Unable to write file");
             exit(0);
         }
 
         exit(1);
-    } else {
-        println!("No input file provided");
-        exit(-1);
     }
 }

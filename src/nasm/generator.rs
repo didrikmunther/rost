@@ -8,6 +8,8 @@ use super::{code::Code, error::NasmError, row::Row};
 pub struct Generator<'a> {
     pub code: Code,
     pub program: &'a Program,
+    pub output_comments: bool,
+    pub optimize: bool,
 }
 
 impl<'a> Generator<'a> {
@@ -15,7 +17,19 @@ impl<'a> Generator<'a> {
         Self {
             code: Code::new(),
             program,
+            output_comments: false,
+            optimize: false,
         }
+    }
+
+    pub fn with_comments(mut self, output_comments: bool) -> Self {
+        self.output_comments = output_comments;
+        self
+    }
+
+    pub fn with_optimization(mut self, with_optimization: bool) -> Self {
+        self.optimize = with_optimization;
+        self
     }
 
     pub fn generate_code(mut self) -> Result<Code, NasmError> {
@@ -23,6 +37,17 @@ impl<'a> Generator<'a> {
         self.add_program()?;
         self.add_exit();
         self.add_data();
+
+        if self.optimize {
+            let (code, removed) = self.code.optimized();
+            self.code = code;
+
+            println!("[NASM Optimizer]: Removed {} lines", removed);
+        }
+
+        if !self.output_comments {
+            self.code = self.code.strip_comments();
+        }
 
         Ok(self.code)
     }
@@ -123,8 +148,18 @@ impl<'a> Generator<'a> {
 
     fn add_exit(&mut self) -> &mut Code {
         for i in 0..self.code.stack_pos {
-            self.code
-                .add_with_comment(Row::Pop("rax".into()), format!("Cleaning stack: {}", i));
+            self.code.add_with_comment(
+                Row::Pop("rax".into()),
+                format!(
+                    "Cleaning stack variable: {}",
+                    self.program
+                        .variables
+                        .iter()
+                        .find(|(_, v)| v.stack_pos == i)
+                        .map(|(k, _)| k)
+                        .unwrap_or(&String::from("unknown variable"))
+                ),
+            );
         }
 
         self.code

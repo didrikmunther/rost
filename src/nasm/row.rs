@@ -1,8 +1,8 @@
 use std::fmt::{Arguments, Display, Formatter};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CodeRow {
-    row: Row,
+    pub row: Row,
     newline: bool,
 }
 
@@ -24,7 +24,7 @@ impl Display for CodeRow {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Row {
     Comment(String),
     Extern(String),

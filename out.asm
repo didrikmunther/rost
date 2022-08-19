@@ -3,59 +3,78 @@
 	extern printf
 
 	section .text
+	; [procedure 0]: Push(Int(1))
 main:
-	; [procedure 0]: Push(Int(123))
-	push 123
-	; [procedure 1]: Comment("Assignment: b, stack: 0")
-	; Assignment: b, stack: 0
-	; [procedure 2]: Push(Int(2))
-	push 2
+	; [procedure 1]: Comment("Assignment: a, stack: 0")
+	; Assignment: a, stack: 0
+	; [procedure 2]: Push(Int(3))
+	push 1
 	; [procedure 3]: Push(StackLocation(0))
+	push 3
 	mov rcx, [rsp+8]
-	push rcx
 	; [procedure 4]: Arithmetic(Add)
-	pop rax
+	; Optimized: removed push / pop, added mov
+	mov rax, rcx
 	pop rbx
 	add rax, rbx
+	; [procedure 5]: Comment("Assignment: b, stack: 1")
+	; Assignment: b, stack: 1
+	; [procedure 6]: Push(Int(2))
 	push rax
-	; [procedure 5]: Comment("Assignment: a, stack: 1")
-	; Assignment: a, stack: 1
-	; [procedure 6]: Push(StackLocation(1))
-	mov rcx, [rsp+0]
-	push rcx
-	; [procedure 7]: Push(Int(2))
-	push 2
+	; [procedure 7]: Reassign(0)
+	; Optimized: removed push / pop, added mov
+	mov rax, 2
 	; [procedure 8]: Push(StackLocation(1))
-	mov rcx, [rsp+16]
+	mov [rsp+8], rax
+	mov rcx, [rsp+0]
+	; [procedure 9]: Push(Int(1))
 	push rcx
-	; [procedure 9]: Arithmetic(Add)
-	pop rax
+	; [procedure 10]: Push(Int(3))
+	push 1
+	; [procedure 11]: Arithmetic(Add)
+	; Optimized: removed push / pop, added mov
+	mov rax, 3
 	pop rbx
 	add rax, rbx
-	push rax
-	; [procedure 10]: Arithmetic(Add)
-	pop rax
+	; [procedure 12]: Arithmetic(Add)
+	; Optimized: removed push / pop
 	pop rbx
 	add rax, rbx
-	push rax
-	; [procedure 11]: Reassign(1)
-	pop rax
-	mov [rsp+0], rax
-	; [procedure 12]: Push(ByteLocation(0))
+	; [procedure 13]: Reassign(0)
+	; Optimized: removed push / pop
+	; [procedure 14]: Push(ByteLocation(0))
+	mov [rsp+8], rax
+	; [procedure 15]: Comment("Assignment: c, stack: 2")
+	; Assignment: c, stack: 2
+	; [procedure 16]: Push(ByteLocation(1))
 	push _data_0
-	; [procedure 13]: Push(StackLocation(1))
-	mov rcx, [rsp+8]
+	; [procedure 17]: Push(StackLocation(0))
+	push _data_1
+	mov rcx, [rsp+24]
+	; [procedure 18]: Push(StackLocation(1))
 	push rcx
-	; [procedure 14]: SystemCall(SystemCall { identifier: "printf", nargs: 2 })
+	mov rcx, [rsp+24]
+	; [procedure 19]: Push(StackLocation(2))
+	push rcx
+	mov rcx, [rsp+24]
+	; [procedure 20]: SystemCall(SystemCall { identifier: "printf", nargs: 4 })
+	; Optimized: removed push / pop
+	pop rdx
 	pop rsi
 	pop rdi
 	xor rax, rax
 	call printf
-	pop rax	; Cleaning stack: 0
-	pop rax	; Cleaning stack: 1
+	; Cleaning stack variable: a
+	pop rax
+	; Cleaning stack variable: b
+	pop rax
+	; Cleaning stack variable: c
 	; [exit program]
+	pop rax
 	ret
 
 	section .data
 _data_0:
-	db 37, 105, 10, 0
+	db 97, 98, 99, 0
+_data_1:
+	db 37, 105, 58, 32, 37, 105, 58, 32, 37, 115, 10, 0

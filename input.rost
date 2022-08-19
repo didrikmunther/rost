@@ -1,5 +1,7 @@
-let b = 123
-let a = b + "a"
-a = a + 2 + a
+let a = 1
+let b: int = a + 3
+a = 2
+a = 3 + 1 + b
+let c = "abc"
 
-printf("%i\n", a)
+printf("%i: %i: %s\n", a, b, c)
