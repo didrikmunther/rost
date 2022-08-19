@@ -41,12 +41,25 @@ impl<'a> Generator<'a> {
                 ProcedureKind::SystemCall(system_call) => {
                     self.system_call(procedure, system_call)?
                 }
+                ProcedureKind::Reassign(reassign) => {
+                    self.reassign(*reassign)?;
+                }
                 ProcedureKind::Push(operand) => self.handle_push(operand)?,
                 ProcedureKind::Arithmetic(arithmetic) => self.handle_arithmetic(arithmetic)?,
             };
         }
 
         return Ok(&mut self.code);
+    }
+
+    fn reassign(&mut self, loc: usize) -> Result<(), NasmError> {
+        self.code
+            .add(Row::Pop("rax".into()))
+            .add_with_stack(|stack_pos| {
+                Row::Move(format!("[rsp+{}]", (stack_pos - loc - 1) * 8), "rax".into())
+            });
+
+        Ok(())
     }
 
     fn handle_arithmetic(&mut self, arithmetic: &Arithmetic) -> Result<(), NasmError> {

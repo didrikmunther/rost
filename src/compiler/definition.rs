@@ -21,6 +21,7 @@ impl Procedure {
 pub enum ProcedureKind {
     Comment(String),
     Push(OperandValue),
+    Reassign(usize), // stack location
     Arithmetic(Arithmetic),
     SystemCall(SystemCall),
 }
