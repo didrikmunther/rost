@@ -1,12 +1,13 @@
 use std::{collections::HashMap, ops::Range};
 
-use crate::parser::definition::Declaration;
+use crate::{lexer::Keyword, parser::definition::Declaration};
 
 use super::{builder::Builder, definition::GlobalData, error::CompilerError};
 
 #[derive(Debug)]
 pub struct Variable {
     pub pos: Range<usize>,
+    pub typ: Keyword,
     pub stack_pos: usize,
 }
 

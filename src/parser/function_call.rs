@@ -3,7 +3,8 @@ use crate::lexer::Keyword;
 use super::{
     definition::{Expression, ExpressionKind, FunctionCall},
     error::{ParserError, ParserErrorKind},
-    parser::Parser, util::get_expr_identifier,
+    parser::Parser,
+    util::get_expr_identifier,
 };
 
 impl<'a> Parser<'a> {
@@ -13,7 +14,7 @@ impl<'a> Parser<'a> {
         if let Some(identifier) = get_expr_identifier(&expr) {
             if let Some(open) = self.get(&[Keyword::ParLeft]) {
                 let mut args = Vec::new();
-    
+
                 loop {
                     if self.is_end() {
                         return Err(ParserError::new(
@@ -21,10 +22,11 @@ impl<'a> Parser<'a> {
                             ParserErrorKind::UnterminatedParenthesis,
                         ));
                     }
-    
+
                     if let None = self.get(&[Keyword::Comma]) {
                         if let Some(close) = self.get(&[Keyword::ParRight]) {
                             return Ok(Expression {
+                                typ: Keyword::Null, // todo: type system for functions
                                 pos: open.pos.start..close.pos.end,
                                 kind: ExpressionKind::FunctionCall(FunctionCall {
                                     identifier,
@@ -33,7 +35,7 @@ impl<'a> Parser<'a> {
                             });
                         }
                     }
-    
+
                     args.push(Box::new(self.expression()?));
                 }
             }

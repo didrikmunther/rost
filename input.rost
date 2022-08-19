@@ -1,3 +1,4 @@
-let a: int = 5 + "a"
+let a: int = 5
+a = a + 2 + a
 
-printf("%i", a)
+printf("%i\n", a)

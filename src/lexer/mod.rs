@@ -33,6 +33,10 @@ pub enum Keyword {
     Comma,
     Colon,
 
+    // Temp
+    Null,
+    Binary,
+
     // Types
     Int,
     Bool,

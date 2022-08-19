@@ -3,6 +3,7 @@ use std::ops::Range;
 use crate::lexer::{Keyword, Literal};
 
 pub type AST = Vec<Declaration>;
+pub type Type = Keyword; // todo: this can also be custom made types
 
 #[derive(Debug)]
 pub struct Declaration {
@@ -38,7 +39,7 @@ pub struct Statement {
 #[derive(Debug)]
 pub struct Assignment {
     pub is_new: bool,
-    pub typ: Option<Keyword>,
+    pub typ: Option<Type>,
     pub identifier: String,
     pub identifier_pos: Range<usize>,
     pub value: Box<Expression>,
@@ -59,6 +60,7 @@ pub struct Return {
 
 #[derive(Debug)]
 pub struct Expression {
+    pub typ: Type,
     pub pos: Range<usize>,
     pub kind: ExpressionKind,
 }

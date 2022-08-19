@@ -15,6 +15,7 @@ impl<'a> Parser<'a> {
             let pos = expr.pos.start..right.pos.end;
 
             expr = Expression {
+                typ: Keyword::Binary,
                 pos: pos.clone(),
                 kind: ExpressionKind::Binary(Binary {
                     left: Box::new(expr),

@@ -12,7 +12,7 @@ mod multiplication;
 mod parser;
 mod primary;
 mod unexpected;
-mod util;
+pub mod util;
 mod return_statement;
 
 pub fn parse<'a>(document: &'a Vec<Block>) -> Result<AST, ParserError> {
