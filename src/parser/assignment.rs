@@ -1,25 +1,11 @@
-use crate::lexer::{Keyword, Literal};
+use crate::lexer::{Block, Keyword};
 
 use super::{
-    definition::{Assignment, Expression, ExpressionKind, Primary, Statement, StatementKind},
+    definition::{Assignment, Expression, Statement, StatementKind},
     error::{ParserError, ParserErrorKind},
     parser::Parser,
-    util::{get_block_identifier, get_expr_identifier},
+    util::{get_block_identifier, get_expr_identifier, infer_type},
 };
-
-fn infer_type(expr: &Expression) -> Option<Keyword> {
-    match &expr.kind {
-        ExpressionKind::Primary(primary) => match primary {
-            Primary::Literal(literal) => match literal {
-                Literal::Int(_) => Some(Keyword::Int),
-                Literal::Bool(_) => Some(Keyword::Bool),
-                Literal::String(_) => Some(Keyword::String),
-            },
-            _ => None,
-        },
-        _ => None,
-    }
-}
 
 static ALLOWED_TYPES: &[Keyword] = &[Keyword::Int];
 
@@ -34,11 +20,11 @@ impl<'a> Parser<'a> {
 
     fn new_assignment(&mut self) -> Result<Statement, ParserError> {
         if let Some(left) = self.get(&[Keyword::Identifier]) {
-            let mut assignment_type: Option<Keyword> = None;
+            let mut assignment_type: Option<&Block> = None;
 
             if let Some(_) = self.get(&[Keyword::Colon]) {
                 if let Some(typ) = self.get(ALLOWED_TYPES) {
-                    assignment_type = Some(typ.kind);
+                    assignment_type = Some(typ);
                 } else {
                     return Err(ParserError::new(
                         self.peek_or_eof()?.pos.clone(),
@@ -48,11 +34,21 @@ impl<'a> Parser<'a> {
             }
 
             if let Some(right) = self.parse_assignment_value()? {
-                if let None = assignment_type {
-                    assignment_type = infer_type(&right);
+                let inferred = infer_type(&right);
+                let mut assignment_kind = assignment_type.map(|v| v.kind);
+
+                if let Some(assignment_type) = assignment_type {
+                    if Some(assignment_type.kind) != inferred {
+                        return Err(ParserError::new(
+                            assignment_type.pos.clone(),
+                            ParserErrorKind::WrongType(assignment_type.kind),
+                        ));
+                    }
+                } else {
+                    assignment_kind = inferred;
                 }
 
-                if let Some(typ) = assignment_type {
+                if let Some(typ) = assignment_kind {
                     let identifier = match get_block_identifier(&left) {
                         Some(identifier) => identifier,
                         _ => {

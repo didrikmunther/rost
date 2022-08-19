@@ -11,6 +11,7 @@ pub enum ParserErrorKind {
     UnexpectedToken(Token),
     Expected(&'static [Keyword]),
     CannotInferType,
+    WrongType(Keyword),
     UnexpectedEOF,
     UnterminatedParenthesis,
 }
@@ -32,6 +33,7 @@ impl ParserError {
             ParserErrorKind::UnexpectedEOF => "Unexpected EOF".to_string(),
             ParserErrorKind::UnexpectedToken(t) => format!("Unexpected token: {:?}", t),
             ParserErrorKind::Expected(k) => format!("Expected: {:?}", k),
+            ParserErrorKind::WrongType(k) => format!("Wrong type: {:?}", k),
             ParserErrorKind::CannotInferType => "Cannot infer assignment type".to_string(),
             ParserErrorKind::Unknown => "Unknown".to_string(),
         }
