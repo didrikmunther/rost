@@ -14,6 +14,8 @@ use system::{
 pub use letter::Letter;
 use letter::{get_letters, UnexpectedToken};
 
+use self::system::LiteralBoolLexer;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Keyword {
     Let,
@@ -78,12 +80,13 @@ pub fn lex(text: &str) -> Result<Vec<Block>, LexerError> {
     let mut pos = 0;
 
     let lexers: Vec<Box<dyn Lexer>> = vec![
-        Box::new(CommentLexer::new()),
-        Box::new(StringLexer::new()),
+        Box::new(CommentLexer),
+        Box::new(StringLexer),
         Box::new(KeywordLexer::new()),
-        Box::new(LiteralNumberLexer::new()),
-        Box::new(IdentifierLexer::new()),
-        Box::new(SymbolLexer::new()),
+        Box::new(LiteralNumberLexer),
+        Box::new(LiteralBoolLexer),
+        Box::new(IdentifierLexer),
+        Box::new(SymbolLexer),
     ];
 
     loop {

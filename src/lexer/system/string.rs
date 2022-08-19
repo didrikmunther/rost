@@ -2,12 +2,6 @@ use super::{Letter, Lexer, LexerError, LexerErrorKind, Literal, Token};
 
 pub struct StringLexer;
 
-impl StringLexer {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
-
 fn get_escaped(c: char) -> Result<char, LexerErrorKind> {
     Ok(match c {
         'n' => '\n',
@@ -79,7 +73,7 @@ mod tests {
     #[test]
     fn string_works() {
         let letters = &get_letters("\"hej\"");
-        let lexed = StringLexer::new().lex(letters);
+        let lexed = StringLexer.lex(letters);
 
         assert_eq!(
             lexed,
@@ -93,7 +87,7 @@ mod tests {
     #[test]
     fn eof_err_works() {
         let letters = &get_letters("\"hej");
-        let lexed = StringLexer::new().lex(letters);
+        let lexed = StringLexer.lex(letters);
 
         assert_eq!(
             lexed,

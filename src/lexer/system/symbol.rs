@@ -20,12 +20,6 @@ static SYMBOLS: phf::Map<&'static str, Keyword> = phf_map! {
 
 pub struct SymbolLexer;
 
-impl SymbolLexer {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
-
 impl Lexer for SymbolLexer {
     fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, usize)>, LexerError> {
         let mut buf = Vec::<char>::new();
@@ -70,7 +64,7 @@ mod tests {
     #[test]
     fn symbol_works() {
         let letters = &get_letters("=>");
-        let lexed = SymbolLexer::new().lex(letters);
+        let lexed = SymbolLexer.lex(letters);
 
         assert_eq!(lexed, Ok(Some((Token::Keyword(Keyword::Arrow), 2))));
     }

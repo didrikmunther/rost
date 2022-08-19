@@ -2,12 +2,6 @@ use super::{Letter, Lexer, LexerError, Token};
 
 pub struct CommentLexer;
 
-impl CommentLexer {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
-
 impl Lexer for CommentLexer {
     fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, usize)>, LexerError> {
         let mut buf = Vec::<char>::new();
@@ -47,7 +41,7 @@ mod tests {
     #[test]
     fn comment_works() {
         let letters = &get_letters("// hej");
-        let lexed = CommentLexer::new().lex(letters);
+        let lexed = CommentLexer.lex(letters);
 
         assert_eq!(lexed, Ok(Some((Token::Comment(String::from("hej")), 6))));
     }
