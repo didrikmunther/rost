@@ -1,7 +1,4 @@
-use crate::compiler::{
-    definition::{Arithmetic, OperandValue, ProcedureKind},
-    program::Program,
-};
+use crate::compiler::{definition::ProcedureKind, program::Program};
 
 use super::{code::Code, error::NasmError, row::Row};
 
@@ -64,10 +61,10 @@ impl<'a> Generator<'a> {
                     self.code.add(Row::Comment(comment.clone()));
                 }
                 ProcedureKind::SystemCall(system_call) => {
-                    self.system_call(procedure, system_call)?
+                    self.handle_system_call(procedure, system_call)?
                 }
                 ProcedureKind::Reassign(reassign) => {
-                    self.reassign(*reassign)?;
+                    self.handle_reassign(*reassign)?;
                 }
                 ProcedureKind::Push(operand) => self.handle_push(operand)?,
                 ProcedureKind::Arithmetic(arithmetic) => self.handle_arithmetic(arithmetic)?,
@@ -75,50 +72,6 @@ impl<'a> Generator<'a> {
         }
 
         return Ok(&mut self.code);
-    }
-
-    fn reassign(&mut self, loc: usize) -> Result<(), NasmError> {
-        self.code
-            .add(Row::Pop("rax".into()))
-            .add_with_stack(|stack_pos| {
-                Row::Move(format!("[rsp+{}]", (stack_pos - loc - 1) * 8), "rax".into())
-            });
-
-        Ok(())
-    }
-
-    fn handle_arithmetic(&mut self, arithmetic: &Arithmetic) -> Result<(), NasmError> {
-        let operation = match arithmetic {
-            Arithmetic::Add => Row::Add("rax".into(), "rbx".into()),
-            Arithmetic::Subtract => Row::Subtract("rax".into(), "rbx".into()),
-            Arithmetic::Multiply => Row::Multiply("rbx".into()),
-        };
-
-        self.code
-            .add(Row::Pop("rax".into()))
-            .add(Row::Pop("rbx".into()))
-            .add(operation)
-            .add(Row::Push("rax".into()));
-
-        Ok(())
-    }
-
-    fn handle_push(&mut self, operand: &OperandValue) -> Result<(), NasmError> {
-        match operand {
-            OperandValue::ByteLocation(loc) => self.code.add(Row::Push(Self::get_data_name(*loc))),
-            OperandValue::Int(i) => self.code.add(Row::Push(format!("{}", *i))),
-            OperandValue::StackLocation(loc) => self
-                .code
-                .add_with_stack(|stack_pos| {
-                    Row::Move(
-                        "rcx".into(),
-                        format!("[rsp+{}]", (stack_pos - *loc - 1) * 8),
-                    )
-                })
-                .add(Row::Push("rcx".into())),
-        };
-
-        Ok(())
     }
 
     pub fn get_data_name(i: usize) -> String {
@@ -132,18 +85,6 @@ impl<'a> Generator<'a> {
             .add(Row::Extern("printf".into()))
             .add(Row::Section("text".into()))
             .add(Row::Label("main".into()))
-    }
-
-    fn add_data(&mut self) -> &mut Code {
-        self.code.add(Row::Section("data".into()));
-
-        for (i, data) in self.program.global_data.iter().enumerate() {
-            self.code
-                .add(Row::Label(Self::get_data_name(i)))
-                .add(Row::DeclareStaticString(data.content.clone()));
-        }
-
-        &mut self.code
     }
 
     fn add_exit(&mut self) -> &mut Code {

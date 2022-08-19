@@ -9,7 +9,7 @@ use super::{
 static ARG_REG: &[&'static str] = &["rdi", "rsi", "rdx", "rcx", "r8", "r9"];
 
 impl<'a> Generator<'a> {
-    pub fn system_call(
+    pub fn handle_system_call(
         &mut self,
         procedure: &Procedure,
         system_call: &SystemCall,
