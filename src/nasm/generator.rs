@@ -78,7 +78,6 @@ impl<'a> Generator<'a> {
                     )
                 })
                 .add(Row::Push("rcx".into())),
-            _ => todo!(),
         };
 
         Ok(())
