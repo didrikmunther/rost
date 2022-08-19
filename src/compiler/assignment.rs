@@ -93,18 +93,27 @@ impl Program {
         }
 
         if assignment.is_new {
+            let infered = self.infer_identifier_type(&assignment.value)?;
             if let Some(typ) = assignment.typ {
-                self.variables.insert(
-                    assignment.identifier.clone(),
-                    Variable {
-                        pos: assignment.identifier_pos.clone(),
-                        typ,
-                        stack_pos: self.stack_pos,
-                    },
-                );
-            } else {
-                unreachable!()
+                if typ != infered {
+                    return Err(CompilerError::new(
+                        assignment.value_pos.clone(),
+                        CompilerErrorKind::WrongType {
+                            got: infered,
+                            expected: typ,
+                        },
+                    ));
+                }
             }
+
+            self.variables.insert(
+                assignment.identifier.clone(),
+                Variable {
+                    pos: assignment.identifier_pos.clone(),
+                    typ: infered,
+                    stack_pos: self.stack_pos,
+                },
+            );
         }
 
         builder = builder.push(Procedure::new(

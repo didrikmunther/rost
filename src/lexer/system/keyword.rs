@@ -4,6 +4,8 @@ use phf::phf_map;
 static KEYWORDS: phf::Map<&'static str, Keyword> = phf_map! {
     "let" => Keyword::Let,
     "int" => Keyword::Int,
+    "string" => Keyword::String,
+    "bool" => Keyword::Bool,
     "fn" => Keyword::Fn,
     "return" => Keyword::Return,
 };

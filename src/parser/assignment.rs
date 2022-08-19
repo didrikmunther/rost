@@ -4,10 +4,10 @@ use super::{
     definition::{Assignment, Expression, Statement, StatementKind},
     error::{ParserError, ParserErrorKind},
     parser::Parser,
-    util::{get_block_identifier, get_expr_identifier, infer_type},
+    util::{get_block_identifier, get_expr_identifier},
 };
 
-static ALLOWED_TYPES: &[Keyword] = &[Keyword::Int];
+static ALLOWED_TYPES: &[Keyword] = &[Keyword::Int, Keyword::Bool, Keyword::String];
 
 impl<'a> Parser<'a> {
     fn parse_assignment_value(&mut self) -> Result<Option<Expression>, ParserError> {
@@ -34,48 +34,27 @@ impl<'a> Parser<'a> {
             }
 
             if let Some(right) = self.parse_assignment_value()? {
-                let inferred = infer_type(&right);
-                let mut assignment_kind = assignment_type.map(|v| v.kind);
-
-                if let Some(assignment_type) = assignment_type {
-                    if Some(assignment_type.kind) != inferred {
+                let identifier = match get_block_identifier(&left) {
+                    Some(identifier) => identifier,
+                    _ => {
                         return Err(ParserError::new(
-                            assignment_type.pos.clone(),
-                            ParserErrorKind::WrongType(assignment_type.kind),
-                        ));
+                            left.pos.clone(),
+                            ParserErrorKind::Expected(&[Keyword::Identifier]),
+                        ))
                     }
-                } else {
-                    assignment_kind = inferred;
-                }
+                };
 
-                if let Some(typ) = assignment_kind {
-                    let identifier = match get_block_identifier(&left) {
-                        Some(identifier) => identifier,
-                        _ => {
-                            return Err(ParserError::new(
-                                left.pos.clone(),
-                                ParserErrorKind::Expected(&[Keyword::Identifier]),
-                            ))
-                        }
-                    };
-
-                    return Ok(Statement {
-                        pos: left.pos.start..right.pos.end,
-                        kind: StatementKind::Assignment(Assignment {
-                            is_new: true,
-                            typ: Some(typ),
-                            identifier,
-                            identifier_pos: left.pos.clone(),
-                            value_pos: right.pos.clone(),
-                            value: Box::new(right),
-                        }),
-                    });
-                } else {
-                    return Err(ParserError::new(
-                        left.pos.clone(),
-                        ParserErrorKind::CannotInferType,
-                    ));
-                }
+                return Ok(Statement {
+                    pos: left.pos.start..right.pos.end,
+                    kind: StatementKind::Assignment(Assignment {
+                        is_new: true,
+                        typ: assignment_type.map(|v| v.kind),
+                        identifier,
+                        identifier_pos: left.pos.clone(),
+                        value_pos: right.pos.clone(),
+                        value: Box::new(right),
+                    }),
+                });
             } else {
                 Err(ParserError::new(
                     self.peek_or_eof()?.pos.clone(),
