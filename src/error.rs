@@ -171,17 +171,18 @@ impl Display for RostError {
 
                     let mut positions = messages
                         .into_iter()
-                        .map(|(_, line_pos, _, _)| line_pos)
+                        .map(|(_, line_pos, width, _)| (line_pos, width))
                         .collect::<Vec<_>>();
 
-                    positions.sort();
+                    positions.sort_by(|(_, a), (_, b)| a.cmp(b));
                     let mut acc = 0;
-                    for &position in positions.iter() {
+                    for &(line_pos, width) in positions.iter() {
                         fmt.write_fmt(format_args!(
-                            "{}^",
-                            String::from(" ").repeat(position - acc)
+                            "{}{}",
+                            String::from(" ").repeat(*line_pos - acc),
+                            String::from("^").repeat(*width)
                         ))?;
-                        acc += position + 1;
+                        acc += *line_pos + 1;
                     }
 
                     fmt.write_str("\n")?;
@@ -190,7 +191,7 @@ impl Display for RostError {
                         fmt.write_str("  | ")?;
 
                         let mut pipes = 0;
-                        for &position in positions.iter().rev().skip(i + 1) {
+                        for &(position, _) in positions.iter().rev().skip(i + 1) {
                             pipes += 1 + *position;
                             fmt.write_fmt(format_args!(
                                 "{}│",
