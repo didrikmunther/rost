@@ -39,6 +39,8 @@ pub enum Row {
     Multiply(String),
     Compare(String, String),
     JumpIfEquals(String),
+    JumpIfLessThan(String),
+    JumpIfGreaterThan(String),
     // DeclareByte(String), // todo: allow for all allowed values: https://www.nasm.us/doc/nasmdoc3.html 3.2.1
     DeclareStaticString(String), // Declare byte abstraction, completes it with the string length
     Push(String),
@@ -70,6 +72,8 @@ impl Display for Row {
             Row::Add(to, from) => w(format_args!("\tadd {}, {}", to, from)),
             Row::Compare(to, from) => w(format_args!("\tcmp {}, {}", to, from)),
             Row::JumpIfEquals(label) => w(format_args!("\tje {}", label)),
+            Row::JumpIfLessThan(label) => w(format_args!("\tjl {}", label)),
+            Row::JumpIfGreaterThan(label) => w(format_args!("\tjg {}", label)),
             Row::Subtract(to, from) => w(format_args!("\tsub {}, {}", to, from)),
             Row::Multiply(to) => w(format_args!("\tmul {}", to)),
             Row::Global(global) => w(format_args!("\tglobal {}", global)),
