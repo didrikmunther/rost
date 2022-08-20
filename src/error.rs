@@ -107,7 +107,10 @@ impl Display for RostError {
         let text = self.code.as_ref().unwrap();
         let messages = self.get_messages();
         fmt.write_str(&self.get_header(messages.clone()))?;
-        let text_lines = text.lines().collect::<Vec<&str>>();
+        let text_lines = text
+            .lines()
+            .chain(std::iter::once("")) // lines() ignores a potential last whitespace line, add it manually
+            .collect::<Vec<&str>>();
 
         let mut grouped_messages = messages
             .clone()
@@ -139,8 +142,6 @@ impl Display for RostError {
             .map(|v| v.1.into_iter().map(|(_, v)| v).collect())
             .collect::<Vec<Vec<usize>>>();
 
-        println!("{:?}", wanted_row_groups);
-
         for (i, row_group) in wanted_row_groups.into_iter().enumerate() {
             if i != 0 {
                 fmt.write_str("    ...\n")?;
@@ -152,47 +153,47 @@ impl Display for RostError {
                 fmt.write_str(code_row.as_str())?;
 
                 if let Some(messages) = grouped_messages_lookup.get(&row_index) {
-                    let &(_, line_pos, width, message) = messages.get(0).unwrap();
+                    fmt.write_str("  | ")?;
 
-                    let caret = format!(
-                        "{}{}",
-                        String::from(" ").repeat(line_pos),
-                        String::from("^").repeat(width),
-                    );
+                    let mut positions = messages
+                        .into_iter()
+                        .map(|(_, line_pos, _, _)| line_pos)
+                        .collect::<Vec<_>>();
 
-                    let msg = format!("{}└─ {}", String::from(" ").repeat(line_pos), message);
+                    positions.sort();
+                    let mut acc = 0;
+                    for &position in positions.iter() {
+                        fmt.write_fmt(format_args!(
+                            "{}^",
+                            String::from(" ").repeat(position - acc)
+                        ))?;
+                        acc += position + 1;
+                    }
 
-                    fmt.write_fmt(format_args!("  | {}\n  | {}\n", caret, msg))?;
+                    fmt.write_str("\n")?;
+
+                    for (i, &(_, line_pos, _, message)) in messages.into_iter().rev().enumerate() {
+                        fmt.write_str("  | ")?;
+
+                        let mut pipes = 0;
+                        for &position in positions.iter().rev().skip(i + 1) {
+                            pipes += 1 + *position;
+                            fmt.write_fmt(format_args!(
+                                "{}│",
+                                String::from(" ").repeat(*position)
+                            ))?;
+                        }
+
+                        let msg = format!(
+                            "{}└─ {}",
+                            String::from(" ").repeat(line_pos - pipes),
+                            message
+                        );
+                        fmt.write_fmt(format_args!("{}\n", msg))?;
+                    }
                 }
             }
         }
-
-        // for elements in grouped_rows.values() {
-        //     for &(line, line_pos, width, message) in elements {
-        //         let caret = format!(
-        //             "{}{}",
-        //             String::from(" ").repeat(line_pos),
-        //             String::from("^").repeat(width),
-        //         );
-
-        //         let msg = format!("{}└─ {}", String::from(" ").repeat(line_pos), message);
-
-        //         let lines: String = text
-        //             .lines()
-        //             .enumerate()
-        //             .skip(std::cmp::max(line as i32 - self.margin as i32, 0) as usize)
-        //             .take(1 + self.margin * 2)
-        //             .fold(String::new(), |acc, (i, v)| {
-        //                 if i == line {
-        //                     format!("{}{} | {}\n  | {}\n  | {}\n", acc, i + 1, v, caret, msg)
-        //                 } else {
-        //                     format!("{}{} | {}\n", acc, i + 1, v)
-        //                 }
-        //             });
-
-        //         fmt.write_str(lines.as_ref())?;
-        //     }
-        // }
 
         Ok(())
     }
