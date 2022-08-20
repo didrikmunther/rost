@@ -1,4 +1,7 @@
+use itertools::Itertools;
+
 use std::{
+    collections::HashMap,
     fmt::{Display, Formatter},
     ops::Range,
 };
@@ -22,6 +25,7 @@ pub struct RostError {
     file: Option<String>,
     code: Option<String>,
     elements: Vec<RostErrorElement>,
+    margin: usize,
 }
 
 impl RostError {
@@ -31,17 +35,66 @@ impl RostError {
             kind: kind,
             file: None,
             code: None,
+            margin: 1,
         }
     }
 
+    #[allow(dead_code)]
     pub fn with_file(&mut self, file: Option<String>) -> &mut Self {
         self.file = file;
         self
     }
 
+    #[allow(dead_code)]
     pub fn with_code(&mut self, code: Option<String>) -> &mut Self {
         self.code = code;
         self
+    }
+
+    #[allow(dead_code)]
+    pub fn with_margin(&mut self, margin: usize) -> &mut Self {
+        self.margin = margin;
+        self
+    }
+
+    fn get_messages(&self) -> impl Iterator<Item = (usize, usize, usize, &String)> + Clone {
+        let text = self.code.as_ref().unwrap();
+
+        self.elements.iter().map(|element| {
+            let pos = &element.pos;
+            let message = &element.message;
+
+            let width = pos.end - pos.start;
+
+            let newlines = text
+                .chars()
+                .enumerate()
+                .take(pos.start)
+                .filter(|&(_, v)| v == '\n')
+                .map(|(i, _)| i);
+
+            let line = newlines.clone().count();
+            let line_pos = newlines
+                .clone()
+                .last()
+                .and_then(|i| Some(pos.start - i - 1))
+                .unwrap_or(pos.start);
+
+            (line, line_pos, width, message)
+        })
+    }
+
+    fn get_header<'a>(
+        &self,
+        messages: impl Iterator<Item = (usize, usize, usize, &'a String)>,
+    ) -> String {
+        let default_file = &"?".to_string();
+        let file = self.file.as_ref().unwrap_or(default_file);
+        let positions = messages
+            .map(|(line, line_pos, _, _)| format!("{}:{}", line + 1, line_pos + 1))
+            .join(", ");
+
+        format!("  --> [{}]:{{{}}} => {}\n", file, positions, self.kind)
     }
 }
 
@@ -52,70 +105,94 @@ impl Display for RostError {
         }
 
         let text = self.code.as_ref().unwrap();
+        let messages = self.get_messages();
+        fmt.write_str(&self.get_header(messages.clone()))?;
+        let text_lines = text.lines().collect::<Vec<&str>>();
 
-        let messages = self
-            .elements
-            .iter()
-            .map(|element| {
-                let pos = &element.pos;
-                let message = &element.message;
+        let mut grouped_messages = messages
+            .clone()
+            .group_by(|(line, _, _, _)| *line)
+            .into_iter()
+            .map(|(gi, group)| (gi, group.into_iter().collect()))
+            .collect::<Vec<(usize, Vec<_>)>>();
 
-                let width = pos.end - pos.start;
+        grouped_messages.sort_by(|(gi1, _), (gi2, _)| gi1.cmp(gi2));
+        let grouped_messages_lookup: HashMap<_, _> = grouped_messages.into_iter().collect();
 
-                let newlines = text
-                    .chars()
-                    .enumerate()
-                    .take(pos.start)
-                    .filter(|&(_, v)| v == '\n')
-                    .map(|(i, _)| i);
-
-                let line = newlines.clone().count();
-                let line_pos = newlines
-                    .clone()
-                    .last()
-                    .and_then(|i| Some(pos.start - i - 1))
-                    .unwrap_or(pos.start);
-
-                (line, line_pos, width, message)
+        // Rows of code
+        let total_lines = text.chars().filter(|&c| c == '\n').count() + 1;
+        let mut wanted_rows = messages
+            .flat_map(|(line, _, _, _)| {
+                ((line as i32 - self.margin as i32).clamp(0, total_lines as i32 - 1) as usize)
+                    ..=(line + self.margin).clamp(0, total_lines - 1)
             })
             .collect::<Vec<_>>();
 
-        for (line, line_pos, width, message) in messages {
-            let margin: usize = 1;
+        wanted_rows.sort();
+        wanted_rows.dedup();
 
-            let caret = format!(
-                "{}{}",
-                String::from(" ").repeat(line_pos),
-                String::from("^").repeat(width),
-            );
+        let wanted_row_groups = wanted_rows
+            .into_iter()
+            .enumerate()
+            .group_by(|(i, v)| v - i)
+            .into_iter()
+            .map(|v| v.1.into_iter().map(|(_, v)| v).collect())
+            .collect::<Vec<Vec<usize>>>();
 
-            let msg = format!("{}└─ {}", String::from(" ").repeat(line_pos), message);
+        println!("{:?}", wanted_row_groups);
 
-            let lines: String = text
-                .lines()
-                .enumerate()
-                .skip(std::cmp::max(line as i32 - margin as i32, 0) as usize)
-                .take(1 + margin * 2)
-                .fold(String::new(), |acc, (i, v)| {
-                    if i == line {
-                        format!("{}{} | {}\n  | {}\n  | {}\n", acc, i + 1, v, caret, msg)
-                    } else {
-                        format!("{}{} | {}\n", acc, i + 1, v)
-                    }
-                });
+        for (i, row_group) in wanted_row_groups.into_iter().enumerate() {
+            if i != 0 {
+                fmt.write_str("    ...\n")?;
+            }
 
-            let default_file = "?".to_string();
-            let file = self.file.as_ref().unwrap_or(&default_file);
-            let header = format!(
-                "  --> [{}]:{}:{} => {}",
-                file,
-                line + 1,
-                line_pos + 1,
-                self.kind
-            );
+            for row_index in row_group {
+                let text_line = text_lines.get(row_index).unwrap().to_string();
+                let code_row = format!("{} | {}\n", row_index + 1, text_line);
+                fmt.write_str(code_row.as_str())?;
 
-            fmt.write_fmt(format_args!("{}\n{}", header, lines))?;
+                if let Some(messages) = grouped_messages_lookup.get(&row_index) {
+                    let &(_, line_pos, width, message) = messages.get(0).unwrap();
+
+                    let caret = format!(
+                        "{}{}",
+                        String::from(" ").repeat(line_pos),
+                        String::from("^").repeat(width),
+                    );
+
+                    let msg = format!("{}└─ {}", String::from(" ").repeat(line_pos), message);
+
+                    fmt.write_fmt(format_args!("  | {}\n  | {}\n", caret, msg))?;
+                }
+            }
         }
+
+        // for elements in grouped_rows.values() {
+        //     for &(line, line_pos, width, message) in elements {
+        //         let caret = format!(
+        //             "{}{}",
+        //             String::from(" ").repeat(line_pos),
+        //             String::from("^").repeat(width),
+        //         );
+
+        //         let msg = format!("{}└─ {}", String::from(" ").repeat(line_pos), message);
+
+        //         let lines: String = text
+        //             .lines()
+        //             .enumerate()
+        //             .skip(std::cmp::max(line as i32 - self.margin as i32, 0) as usize)
+        //             .take(1 + self.margin * 2)
+        //             .fold(String::new(), |acc, (i, v)| {
+        //                 if i == line {
+        //                     format!("{}{} | {}\n  | {}\n  | {}\n", acc, i + 1, v, caret, msg)
+        //                 } else {
+        //                     format!("{}{} | {}\n", acc, i + 1, v)
+        //                 }
+        //             });
+
+        //         fmt.write_str(lines.as_ref())?;
+        //     }
+        // }
 
         Ok(())
     }

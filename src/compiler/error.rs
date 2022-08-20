@@ -61,7 +61,7 @@ impl CompilerError {
             } => {
                 vec![
                     (
-                        format!("Wrong type in binary expression: {:?}", got),
+                        format!("Incompatible types in binary expression: {:?}", got),
                         self.pos.clone(),
                     ),
                     (

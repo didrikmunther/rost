@@ -1,4 +1,6 @@
 let a = true
-a = 11
 
 printf("%i\n", a)
+
+a = 1
+
