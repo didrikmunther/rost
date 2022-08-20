@@ -35,7 +35,7 @@ impl<'a> Parser<'a> {
     }
 
     pub fn expression(&mut self) -> Result<Expression, ParserError> {
-        self.addition()
+        self.comparison()
     }
 
     pub fn get_at(&self, index: usize) -> Option<&'a Block> {

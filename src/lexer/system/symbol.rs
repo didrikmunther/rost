@@ -15,7 +15,10 @@ static SYMBOLS: phf::Map<&'static str, Keyword> = phf_map! {
     "{" => Keyword::BracketLeft,
     "}" => Keyword::BracketRight,
     "," => Keyword::Comma,
-    ":" => Keyword::Colon
+    ":" => Keyword::Colon,
+    "<" => Keyword::LessThan,
+    ">" => Keyword::GreaterThan,
+    "==" => Keyword::Equality,
 };
 
 pub struct SymbolLexer;

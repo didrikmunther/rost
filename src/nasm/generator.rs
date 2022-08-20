@@ -67,11 +67,15 @@ impl<'a> Generator<'a> {
                     self.handle_reassign(*reassign)?;
                 }
                 ProcedureKind::Push(operand) => self.handle_push(operand)?,
-                ProcedureKind::Arithmetic(arithmetic) => self.handle_arithmetic(arithmetic)?,
+                ProcedureKind::Arithmetic(arithmetic) => self.handle_arithmetic(i, arithmetic)?,
             };
         }
 
         return Ok(&mut self.code);
+    }
+
+    pub fn get_procedure_name(i: usize, addition: Option<&str>) -> String {
+        format!("_procedure_{}_{}", i, addition.unwrap_or(""))
     }
 
     pub fn get_data_name(i: usize) -> String {

@@ -34,6 +34,9 @@ pub enum Keyword {
     BracketRight,
     Comma,
     Colon,
+    LessThan,
+    GreaterThan,
+    Equality,
 
     // Temp
     Null,

@@ -19,6 +19,9 @@ impl Program {
             Keyword::Plus => Arithmetic::Add,
             Keyword::Minus => Arithmetic::Subtract,
             Keyword::Asterix => Arithmetic::Multiply,
+            Keyword::LessThan => Arithmetic::LessThan,
+            Keyword::GreaterThan => Arithmetic::GreaterThan,
+            Keyword::Equality => Arithmetic::Equality,
             _ => todo!(),
         };
 

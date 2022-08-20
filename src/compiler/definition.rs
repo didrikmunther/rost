@@ -31,6 +31,9 @@ pub enum Arithmetic {
     Add,
     Subtract,
     Multiply,
+    LessThan,
+    GreaterThan,
+    Equality
 }
 
 #[derive(Debug)]
