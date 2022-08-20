@@ -37,6 +37,6 @@ impl<'a> Parser<'a> {
             });
         }
 
-        self.unexpected()
+        self.parenthesis()
     }
 }

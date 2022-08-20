@@ -7,10 +7,13 @@ use super::{
 impl<'a> Parser<'a> {
     pub fn unexpected(&mut self) -> Result<Expression, ParserError> {
         if let Some(block) = self.peek() {
-            Err(ParserError::new(
-                block.pos.clone(),
-                ParserErrorKind::UnexpectedToken(block.token.clone()),
-            ))
+            match block.kind {
+                
+                _ => Err(ParserError::new(
+                    block.pos.clone(),
+                    ParserErrorKind::UnexpectedToken(block.token.clone()),
+                ))
+            }
         } else {
             Err(ParserError::new(
                 self.get_at(self.index - 1)

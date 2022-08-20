@@ -8,7 +8,7 @@ use super::{
 
 impl<'a> Parser<'a> {
     pub fn comparison(&mut self) -> Result<Expression, ParserError> {
-        let mut left = self.addition()?;
+        let left = self.addition()?;
 
         while let Some(block) =
             self.get(&[Keyword::LessThan, Keyword::GreaterThan, Keyword::Equality])

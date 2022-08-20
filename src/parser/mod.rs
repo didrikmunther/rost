@@ -12,6 +12,7 @@ mod error;
 mod function_call;
 mod function_declaration;
 mod multiplication;
+mod parenthesis;
 mod parser;
 mod primary;
 mod return_statement;

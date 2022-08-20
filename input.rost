@@ -1,6 +1,5 @@
 
 let b = 3
-let a = b > 3
+let a = (b + 3) * 2 < 100
 
-//let a = 1 == 1
 printf("%i", a)
