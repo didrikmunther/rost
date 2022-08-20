@@ -1,7 +1,7 @@
 use std::ops::Range;
 
 use crate::{
-    error::RostError,
+    error::{RostError, RostErrorElement},
     lexer::{Keyword, Token},
 };
 
@@ -25,19 +25,31 @@ impl ParserError {
         Self { pos, kind }
     }
 
-    fn get_message(&self) -> String {
+    fn get_messages(&self) -> Vec<(String, Range<usize>)> {
         match &self.kind {
-            ParserErrorKind::UnterminatedParenthesis => "Unterminated parenthesis".to_string(),
-            ParserErrorKind::UnexpectedEOF => "Unexpected EOF".to_string(),
-            ParserErrorKind::UnexpectedToken(t) => format!("Unexpected token: {:?}", t),
-            ParserErrorKind::Expected(k) => format!("Expected: {:?}", k),
-            ParserErrorKind::Unknown => "Unknown".to_string(),
+            ParserErrorKind::UnterminatedParenthesis => {
+                vec![("Unterminated parenthesis".to_string(), self.pos.clone())]
+            }
+            ParserErrorKind::UnexpectedEOF => {
+                vec![("Unexpected EOF".to_string(), self.pos.clone())]
+            }
+            ParserErrorKind::UnexpectedToken(t) => {
+                vec![(format!("Unexpected token: {:?}", t), self.pos.clone())]
+            }
+            ParserErrorKind::Expected(k) => vec![(format!("Expected: {:?}", k), self.pos.clone())],
+            ParserErrorKind::Unknown => vec![("Unknown".to_string(), self.pos.clone())],
         }
     }
 }
 
 impl Into<RostError> for ParserError {
     fn into(self) -> RostError {
-        RostError::new("ParserError".into(), self.get_message(), self.pos)
+        RostError::new(
+            "ParserError".into(),
+            self.get_messages()
+                .iter()
+                .map(RostErrorElement::from)
+                .collect(),
+        )
     }
 }

@@ -1,13 +1,29 @@
 use std::ops::Range;
 
-use crate::{error::RostError, parser::definition::Type};
+use crate::{
+    error::{RostError, RostErrorElement},
+    lexer::Keyword,
+    parser::definition::Type,
+};
 
 #[derive(Debug, PartialEq)]
 pub enum CompilerErrorKind {
-    Unimplemented(String),
     UndefinedVariable(String),
     RedeclaredVariable(String, Range<usize>),
-    WrongType { got: Type, expected: Type },
+    WrongBinaryExpressionTypes {
+        got: Type,
+        expected: Type,
+        expected_pos: Range<usize>,
+    },
+    WrongType {
+        got: Type,
+        expected: Type,
+    },
+    WrongAssignmentType {
+        got: Type,
+        typ: Keyword,
+        declaration_pos: Range<usize>,
+    },
 }
 
 #[derive(Debug, PartialEq)]
@@ -21,20 +37,60 @@ impl CompilerError {
         Self { pos, kind }
     }
 
-    fn get_message(&self) -> String {
+    fn get_messages(&self) -> Vec<(String, Range<usize>)> {
         match &self.kind {
-            CompilerErrorKind::Unimplemented(s) => format!("Unimplemented: {}", s),
             // todo: get_message should be a closure, accepting a document containing helper functions for getting lines.
             //  todo: perhaps a builder pattern to be able to show errors on multiple lines.
-            CompilerErrorKind::RedeclaredVariable(identifier, pos) => format!(
-                "Redeclared variable: {}. Already declared at {:?}",
-                identifier, pos
-            ),
+            CompilerErrorKind::RedeclaredVariable(identifier, pos) => vec![
+                (
+                    format!("Redeclared variable: {}", identifier),
+                    self.pos.clone(),
+                ),
+                ("Already declared here".to_string(), pos.clone()),
+            ],
             CompilerErrorKind::UndefinedVariable(identifier) => {
-                format!("Undefined variable: {}", identifier)
+                vec![(
+                    format!("Undefined variable: {}", identifier),
+                    self.pos.clone(),
+                )]
+            }
+            CompilerErrorKind::WrongBinaryExpressionTypes {
+                got,
+                expected,
+                expected_pos,
+            } => {
+                vec![
+                    (
+                        format!("Wrong type in binary expression: {:?}", got),
+                        self.pos.clone(),
+                    ),
+                    (
+                        format!("Other type is {:?}", expected),
+                        expected_pos.clone(),
+                    ),
+                ]
+            }
+            CompilerErrorKind::WrongAssignmentType {
+                got,
+                typ,
+                declaration_pos,
+            } => {
+                vec![
+                    (
+                        format!("Wrong type in assignment: {:?}", got),
+                        self.pos.clone(),
+                    ),
+                    (
+                        format!("Variable declared with type {:?}", typ),
+                        declaration_pos.clone(),
+                    ),
+                ]
             }
             CompilerErrorKind::WrongType { got, expected } => {
-                format!("Wrong type: {:?}, expected: {:?}", got, expected)
+                vec![(
+                    format!("Wrong type: {:?}, expected: {:?}", got, expected),
+                    self.pos.clone(),
+                )]
             }
         }
     }
@@ -42,6 +98,12 @@ impl CompilerError {
 
 impl Into<RostError> for CompilerError {
     fn into(self) -> RostError {
-        RostError::new("CompilerError".into(), self.get_message(), self.pos)
+        RostError::new(
+            "CompilerError".into(),
+            self.get_messages()
+                .iter()
+                .map(RostErrorElement::from)
+                .collect(),
+        )
     }
 }

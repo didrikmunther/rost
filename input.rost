@@ -1,3 +1,4 @@
 let a = true
+a = 11
 
-printf("%i: %i: %s\n", a, b, c)
+printf("%i\n", a)

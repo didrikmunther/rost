@@ -38,10 +38,11 @@ impl Program {
                     return Ok(left);
                 } else {
                     return Err(CompilerError::new(
-                        expr.pos.clone(),
-                        CompilerErrorKind::WrongType {
+                        binary.left.pos.clone(),
+                        CompilerErrorKind::WrongBinaryExpressionTypes {
                             got: left,
                             expected: right,
+                            expected_pos: binary.right.pos.clone(),
                         },
                     ));
                 }
@@ -69,9 +70,10 @@ impl Program {
                 if assignment_type != variable.typ {
                     return Err(CompilerError::new(
                         assignment.value_pos.clone(),
-                        CompilerErrorKind::WrongType {
+                        CompilerErrorKind::WrongAssignmentType {
                             got: assignment_type,
-                            expected: variable.typ,
+                            typ: variable.typ,
+                            declaration_pos: variable.pos.clone()
                         },
                     ));
                 }

@@ -1,45 +1,33 @@
+	; [header]
 	global main
 	extern printf
 
 	section .text
+	; [procedure 0]: Push(Int(1))
 main:
+	; [procedure 1]: Comment("Assignment: a, stack: 0")
+	; Assignment: a, stack: 0
+	; [procedure 2]: Push(Int(11))
 	push 1
-	push 3
-	mov rcx, [rsp+8]
-	mov rax, rcx
-	pop rbx
-	add rax, rbx
-	push rax
-	mov rax, 2
-	mov [rsp+8], rax
-	mov rcx, [rsp+0]
-	push rcx
-	push 1
-	mov rax, 3
-	pop rbx
-	add rax, rbx
-	pop rbx
-	add rax, rbx
-	mov [rsp+8], rax
+	; [procedure 3]: Reassign(0)
+	; Optimized: removed push / pop, added mov
+	mov rax, 11
+	; [procedure 4]: Push(ByteLocation(0))
+	mov [rsp+0], rax
+	; [procedure 5]: Push(StackLocation(0))
 	push _data_0
-	push _data_1
-	mov rcx, [rsp+24]
-	push rcx
-	mov rcx, [rsp+24]
-	push rcx
-	mov rcx, [rsp+24]
-	pop rdx
-	pop rsi
+	mov rcx, [rsp+8]
+	; [procedure 6]: SystemCall(SystemCall { identifier: "printf", nargs: 2 })
+	; Optimized: removed push / pop, added mov
+	mov rsi, rcx
 	pop rdi
 	xor rax, rax
 	call printf
-	pop rax
-	pop rax
+	; Cleaning stack variable: a
+	; [exit program]
 	pop rax
 	ret
 
 	section .data
 _data_0:
-	db 97, 98, 99, 0
-_data_1:
-	db 37, 105, 58, 32, 37, 105, 58, 32, 37, 115, 10, 0
+	db 37, 105, 10, 0

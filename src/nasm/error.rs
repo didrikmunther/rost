@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use crate::error::RostError;
+use crate::error::{RostError, RostErrorElement};
 
 #[derive(Debug, PartialEq)]
 pub enum NasmErrorKind {
@@ -18,18 +18,27 @@ impl NasmError {
         Self { pos, kind }
     }
 
-    fn get_message(&self) -> String {
+    fn get_messages(&self) -> Vec<(String, Range<usize>)> {
         match self.kind {
-            NasmErrorKind::TooManyArguments(a) => format!(
-                "Too many arguments ({}) to function (no more than 6 supported)",
-                a
-            ),
+            NasmErrorKind::TooManyArguments(a) => vec![(
+                format!(
+                    "Too many arguments ({}) to function (no more than 6 supported)",
+                    a
+                ),
+                self.pos.clone(),
+            )],
         }
     }
 }
 
 impl Into<RostError> for NasmError {
     fn into(self) -> RostError {
-        RostError::new("NasmError".into(), self.get_message(), self.pos)
+        RostError::new(
+            "NasmError".into(),
+            self.get_messages()
+                .iter()
+                .map(RostErrorElement::from)
+                .collect(),
+        )
     }
 }

@@ -37,6 +37,17 @@ impl Program {
         )))
     }
 
+    fn handle_bool_literal(
+        &mut self,
+        expression: &Expression,
+        b: bool,
+    ) -> Result<Builder, CompilerError> {
+        Ok(Builder::new().push(Procedure::new(
+            expression.pos.clone(),
+            ProcedureKind::Push(OperandValue::Int(if b { 1 } else { 0 })),
+        )))
+    }
+
     pub fn handle_literal(
         &mut self,
         expression: &Expression,
@@ -45,12 +56,7 @@ impl Program {
         match literal {
             Literal::String(s) => self.handle_string_literal(expression, s),
             Literal::Int(i) => self.handle_int_literal(expression, *i),
-            _ => {
-                return Err(CompilerError::new(
-                    expression.pos.clone(),
-                    CompilerErrorKind::Unimplemented(format!("{:?}", literal)),
-                ));
-            }
+            Literal::Bool(b) => self.handle_bool_literal(expression, *b),
         }
     }
 }
