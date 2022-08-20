@@ -50,7 +50,21 @@ pub struct Assignment {
 pub enum StatementKind {
     Expression(Expression),
     Assignment(Assignment),
+    IfStatement(IfStatement),
     Return(Return),
+}
+
+#[derive(Debug)]
+pub struct ElseStatement {
+    pub condition: Box<Expression>,
+    pub content: Vec<Declaration>,
+}
+
+#[derive(Debug)]
+pub struct IfStatement {
+    pub condition: Box<Expression>,
+    pub content: Vec<Declaration>,
+    pub elses: Vec<ElseStatement>,
 }
 
 #[derive(Debug)]

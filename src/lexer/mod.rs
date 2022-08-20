@@ -23,6 +23,8 @@ pub enum Keyword {
     Return,
     Equals,
     Semicolon,
+    If,
+    Else,
     Plus,
     Minus,
     Asterix,

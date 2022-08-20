@@ -8,6 +8,8 @@ static KEYWORDS: phf::Map<&'static str, Keyword> = phf_map! {
     "bool" => Keyword::Bool,
     "fn" => Keyword::Fn,
     "return" => Keyword::Return,
+    "if" => Keyword::If,
+    "else" => Keyword::Else,
 };
 
 pub struct KeywordLexer {

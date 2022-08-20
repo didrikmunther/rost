@@ -1,5 +1,0 @@
-printf("%s", "Hello World:\t")
-
-printf("%i", 5)
-
-printf("%s", "\n")

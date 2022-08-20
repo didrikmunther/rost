@@ -1,4 +1,4 @@
-use crate::compiler::{definition::ProcedureKind, program::Program};
+use crate::compiler::{builder::Builder, definition::ProcedureKind, program::Program};
 
 use super::{code::Code, error::NasmError, row::Row};
 
@@ -31,7 +31,7 @@ impl<'a> Generator<'a> {
 
     pub fn generate_code(mut self) -> Result<Code, NasmError> {
         self.add_header();
-        self.add_program()?;
+        self.add_program(&self.program.procedures, "")?;
         self.add_exit();
         self.add_data();
 
@@ -49,11 +49,17 @@ impl<'a> Generator<'a> {
         Ok(self.code)
     }
 
-    fn add_program(&mut self) -> Result<&mut Code, NasmError> {
-        for (i, procedure) in self.program.procedures.iter().enumerate() {
+    pub fn add_program(
+        &mut self,
+        procedures: &Builder,
+        label_prefix: &str,
+    ) -> Result<&mut Code, NasmError> {
+        for (i, procedure) in procedures.iter().enumerate() {
+            let label = format!("{}_{}", label_prefix, i);
+
             self.code.add(Row::Comment(format!(
                 "[procedure {}]: {:?}",
-                i, procedure.kind
+                label, procedure.kind
             )));
 
             match &procedure.kind {
@@ -67,14 +73,17 @@ impl<'a> Generator<'a> {
                     self.handle_reassign(*reassign)?;
                 }
                 ProcedureKind::Push(operand) => self.handle_push(operand)?,
-                ProcedureKind::Arithmetic(arithmetic) => self.handle_arithmetic(i, arithmetic)?,
+                ProcedureKind::Arithmetic(arithmetic) => {
+                    self.handle_arithmetic(&label, arithmetic)?
+                }
+                ProcedureKind::If(if_kind) => self.handle_if_statement(&label, if_kind)?,
             };
         }
 
         return Ok(&mut self.code);
     }
 
-    pub fn get_procedure_name(i: usize, addition: Option<&str>) -> String {
+    pub fn get_procedure_name(i: &str, addition: Option<&str>) -> String {
         format!("_procedure_{}_{}", i, addition.unwrap_or(""))
     }
 

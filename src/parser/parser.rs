@@ -31,7 +31,7 @@ impl<'a> Parser<'a> {
     }
 
     pub fn statement(&mut self) -> Result<Statement, ParserError> {
-        self.return_statement()
+        self.if_statement()
     }
 
     pub fn expression(&mut self) -> Result<Expression, ParserError> {

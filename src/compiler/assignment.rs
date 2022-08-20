@@ -1,7 +1,4 @@
-use crate::{
-    lexer::{Keyword, Literal},
-    parser::definition::{Assignment, Expression, ExpressionKind, Primary},
-};
+use crate::parser::definition::Assignment;
 
 use super::{
     builder::Builder,
@@ -11,46 +8,6 @@ use super::{
 };
 
 impl Program {
-    fn infer_identifier_type(&self, expr: &Expression) -> Result<Keyword, CompilerError> {
-        match &expr.kind {
-            ExpressionKind::Primary(primary) => match primary {
-                Primary::Identifier(ref identifier) => {
-                    if let Some(variable) = self.variables.get(identifier) {
-                        Ok(variable.typ)
-                    } else {
-                        return Err(CompilerError::new(
-                            expr.pos.clone(),
-                            CompilerErrorKind::UndefinedVariable(identifier.clone()),
-                        ));
-                    }
-                }
-                Primary::Literal(literal) => Ok(match literal {
-                    Literal::Int(_) => Keyword::Int,
-                    Literal::String(_) => Keyword::String,
-                    Literal::Bool(_) => Keyword::Bool,
-                }),
-            },
-            ExpressionKind::Binary(binary) => {
-                let left = self.infer_identifier_type(&binary.left)?;
-                let right = self.infer_identifier_type(&binary.right)?;
-
-                if left == right {
-                    return Ok(left);
-                } else {
-                    return Err(CompilerError::new(
-                        binary.left.pos.clone(),
-                        CompilerErrorKind::WrongBinaryExpressionTypes {
-                            got: left,
-                            expected: right,
-                            expected_pos: binary.right.pos.clone(),
-                        },
-                    ));
-                }
-            }
-            _ => todo!(),
-        }
-    }
-
     pub fn handle_assignment(&mut self, assignment: &Assignment) -> Result<Builder, CompilerError> {
         let expr = self.handle_expression(&assignment.value)?;
         let mut builder = Builder::new().append(expr);
@@ -65,7 +22,7 @@ impl Program {
                     ),
                 ));
             } else {
-                let assignment_type = self.infer_identifier_type(&assignment.value)?;
+                let assignment_type = self.infer_type(&assignment.value)?;
 
                 if assignment_type != variable.typ {
                     return Err(CompilerError::new(
@@ -73,7 +30,7 @@ impl Program {
                         CompilerErrorKind::WrongAssignmentType {
                             got: assignment_type,
                             typ: variable.typ,
-                            declaration_pos: variable.pos.clone()
+                            declaration_pos: variable.pos.clone(),
                         },
                     ));
                 }
@@ -95,7 +52,7 @@ impl Program {
         }
 
         if assignment.is_new {
-            let infered = self.infer_identifier_type(&assignment.value)?;
+            let infered = self.infer_type(&assignment.value)?;
             if let Some(typ) = assignment.typ {
                 if typ != infered {
                     return Err(CompilerError::new(

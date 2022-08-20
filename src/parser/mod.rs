@@ -11,6 +11,7 @@ mod comparison;
 mod error;
 mod function_call;
 mod function_declaration;
+mod if_statement;
 mod multiplication;
 mod parenthesis;
 mod parser;

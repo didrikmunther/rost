@@ -2,11 +2,13 @@ use crate::compiler::program::Program;
 
 use self::{code::Code, error::NasmError, generator::Generator};
 
-mod arithmetic;
 pub mod code;
+
+mod arithmetic;
 mod data;
 mod error;
 mod generator;
+mod if_statement;
 mod push;
 mod reassign;
 mod row;

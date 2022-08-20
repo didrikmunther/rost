@@ -3,7 +3,7 @@ use crate::compiler::definition::Arithmetic;
 use super::{error::NasmError, generator::Generator, row::Row};
 
 impl<'a> Generator<'a> {
-    fn get_equality_operations(procedure: usize, arithmetic: &Arithmetic) -> Vec<Row> {
+    fn get_equality_operations(procedure: &str, arithmetic: &Arithmetic) -> Vec<Row> {
         let label = Self::get_procedure_name(procedure, Some("equality"));
         let jump = match arithmetic {
             Arithmetic::Equality => Row::JumpIfEquals(label.clone()),
@@ -23,7 +23,7 @@ impl<'a> Generator<'a> {
 
     pub fn handle_arithmetic(
         &mut self,
-        procedure: usize,
+        procedure: &str,
         arithmetic: &Arithmetic,
     ) -> Result<(), NasmError> {
         let operations = match arithmetic {

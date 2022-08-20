@@ -11,6 +11,7 @@ impl Program {
             DeclarationKind::Statement(statement) => match &statement.kind {
                 StatementKind::Expression(expression) => self.handle_expression(expression),
                 StatementKind::Assignment(assignment) => self.handle_assignment(assignment),
+                StatementKind::IfStatement(if_statement) => self.handle_if_statement(statement, if_statement),
                 _ => todo!(),
             },
             DeclarationKind::FunctionDeclaration(fn_declaration) => {

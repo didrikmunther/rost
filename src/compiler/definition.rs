@@ -1,5 +1,7 @@
 use std::ops::Range;
 
+use super::builder::Builder;
+
 #[derive(Debug)]
 pub struct Procedure {
     pub pos: Range<usize>,
@@ -24,6 +26,12 @@ pub enum ProcedureKind {
     Reassign(usize), // stack location
     Arithmetic(Arithmetic),
     SystemCall(SystemCall),
+    If(If),
+}
+
+#[derive(Debug)]
+pub struct If {
+    pub content: Box<Builder>,
 }
 
 #[derive(Debug)]
@@ -33,7 +41,7 @@ pub enum Arithmetic {
     Multiply,
     LessThan,
     GreaterThan,
-    Equality
+    Equality,
 }
 
 #[derive(Debug)]
