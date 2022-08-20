@@ -20,6 +20,20 @@ impl From<&(String, Range<usize>)> for RostErrorElement {
     }
 }
 
+fn red(msg: &str) -> String {
+    format!("\x1b[91m{}\x1b[0m", msg)
+}
+
+#[allow(dead_code)]
+fn yellow(msg: &str) -> String {
+    format!("\x1b[93m{}\x1b[0m", msg)
+}
+
+#[allow(dead_code)]
+fn green(msg: &str) -> String {
+    format!("\x1b[92m{}\x1b[0m", msg)
+}
+
 pub struct RostError {
     kind: String,
     file: Option<String>,
@@ -187,7 +201,7 @@ impl Display for RostError {
                         let msg = format!(
                             "{}└─ {}",
                             String::from(" ").repeat(line_pos - pipes),
-                            message
+                            red(message)
                         );
                         fmt.write_fmt(format_args!("{}\n", msg))?;
                     }
