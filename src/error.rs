@@ -105,10 +105,10 @@ impl RostError {
         let default_file = &"?".to_string();
         let file = self.file.as_ref().unwrap_or(default_file);
         let positions = messages
-            .map(|(line, line_pos, _, _)| format!("{}:{}", line + 1, line_pos + 1))
+            .map(|(line, line_pos, _, _)| format!("{}:{}:{}", file, line + 1, line_pos + 1))
             .join(", ");
 
-        format!("  --> [{}]:{{{}}} => {}\n", file, positions, self.kind)
+        format!("  --> {} => {}\n", positions, self.kind)
     }
 }
 
