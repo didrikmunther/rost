@@ -1,9 +1,10 @@
-let a = 4
+let a = 10
 
-if(a < 1) printf("1")
-else if(a < 2) printf("2")
-else if(a < 3) printf("3")
-else if(a < 4) printf("4")
-else printf("Else")
+while(a > 0) {
+	a = a - 1;
+	printf("%i", a)
+}
 
 printf("Outside")
+
+printf("%i", a)

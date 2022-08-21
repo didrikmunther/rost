@@ -180,7 +180,7 @@ impl Display for RostError {
                         fmt.write_fmt(format_args!(
                             "{}{}",
                             String::from(" ").repeat(*line_pos - acc),
-                            String::from("^").repeat(*width)
+                            red(&String::from("^").repeat(*width)),
                         ))?;
                         acc += *line_pos + 1;
                     }
@@ -194,14 +194,16 @@ impl Display for RostError {
                         for &(position, _) in positions.iter().rev().skip(i + 1) {
                             pipes += 1 + *position;
                             fmt.write_fmt(format_args!(
-                                "{}│",
-                                String::from(" ").repeat(*position)
+                                "{}{}",
+                                String::from(" ").repeat(*position),
+                                red("│")
                             ))?;
                         }
 
                         let msg = format!(
-                            "{}└─ {}",
+                            "{}{} {}",
                             String::from(" ").repeat(line_pos - pipes),
+                            red("└─"),
                             red(message)
                         );
                         fmt.write_fmt(format_args!("{}\n", msg))?;
