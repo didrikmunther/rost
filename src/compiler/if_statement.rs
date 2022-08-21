@@ -15,26 +15,36 @@ impl Program {
     pub fn handle_if_statement(
         &mut self,
         statement: &Statement,
-        if_statement: &IfStatement,
+        if_statements: &Vec<IfStatement>,
     ) -> Result<Builder, CompilerError> {
-        match self.infer_type(&if_statement.condition)? {
-            Keyword::Bool => {}
-            _ => todo!("error"),
-        };
+        let mut ifs = Vec::new();
 
-        let condition = self.handle_expression(&if_statement.condition)?;
-        let mut builder = Builder::new().append(condition);
-        let mut content = Builder::new();
+        for if_statement in if_statements {
+            let condition = if_statement
+                .condition
+                .as_ref()
+                .map_or(Ok(None), |condition| match self.infer_type(&condition)? {
+                    Keyword::Bool => Ok(Some(self.handle_expression(&condition)?)),
+                    _ => todo!("error"),
+                })?
+                .map(Box::new);
 
-        for declaration in &if_statement.content {
-            content = content.append(self.handle_declaration(declaration)?);
+            let content = if_statement
+                .content
+                .iter()
+                .fold(Ok(Builder::new()), |builder, declaration| {
+                    Ok(builder?.append(self.handle_declaration(declaration)?))
+                })?;
+
+            ifs.push(If {
+                condition,
+                content: Box::new(content),
+            });
         }
 
-        builder = builder.push(Procedure::new(
+        let builder = Builder::new().push(Procedure::new(
             statement.pos.clone(),
-            ProcedureKind::If(If {
-                content: Box::new(content),
-            }),
+            ProcedureKind::If(ifs),
         ));
 
         Ok(builder)

@@ -2,7 +2,7 @@ use crate::{
     compiler::{
         builder::Builder,
         definition::{GlobalData, OperandValue, Procedure, ProcedureKind},
-        error::{CompilerError, CompilerErrorKind},
+        error::CompilerError,
         program::Program,
     },
     lexer::Literal,

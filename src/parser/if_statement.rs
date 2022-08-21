@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 use crate::lexer::Keyword;
 
 use super::{
@@ -7,35 +9,60 @@ use super::{
 };
 
 impl<'a> Parser<'a> {
-    pub fn if_statement(&mut self) -> Result<Statement, ParserError> {
-        if let Some(if_block) = self.get(&[Keyword::If]) {
-            let expr = self.expression()?;
-            if let None = self.get(&[Keyword::BracketLeft]) {
+    fn get_body(&mut self) -> Result<(Vec<Declaration>, Range<usize>), ParserError> {
+        if let None = self.get(&[Keyword::BracketLeft]) {
+            let declaration = self.declaration()?;
+            let pos = declaration.pos.clone();
+            return Ok((vec![declaration], pos));
+        }
+
+        let mut content: Vec<Declaration> = Vec::new();
+
+        loop {
+            if self.is_end() {
                 todo!("error")
             }
 
-            let mut content: Vec<Declaration> = Vec::new();
-
-            loop {
-                if self.is_end() {
-                    todo!("error")
-                }
-
-                if let Some(bracket_right) = self.get(&[Keyword::BracketRight]) {
-                    return Ok(Statement {
-                        pos: if_block.pos.start..bracket_right.pos.end,
-                        kind: StatementKind::IfStatement(IfStatement {
-                            condition: Box::new(expr),
-                            content,
-                            elses: Vec::new(),
-                        }),
-                    });
-                }
-
-                content.push(self.declaration()?);
+            if let Some(bracket_right) = self.get(&[Keyword::BracketRight]) {
+                return Ok((content, bracket_right.pos.clone()));
             }
 
-            // while let Some(else_block) = self.get(&[Keyword::Else]) { }
+            content.push(self.declaration()?);
+        }
+    }
+
+    pub fn if_statement(&mut self) -> Result<Statement, ParserError> {
+        if let Some(if_block) = self.get(&[Keyword::If]) {
+            let mut statements = Vec::new();
+
+            let condition = self.expression()?;
+            let (content, content_end) = self.get_body()?;
+
+            statements.push(IfStatement {
+                condition: Some(Box::new(condition)),
+                content,
+            });
+
+            while let Some(_) = self.get(&[Keyword::Else]) {
+                if let Some(_) = self.get(&[Keyword::If]) {
+                    statements.push(IfStatement {
+                        condition: Some(Box::new(self.expression()?)),
+                        content: self.get_body()?.0,
+                    });
+                } else {
+                    statements.push(IfStatement {
+                        condition: None,
+                        content: self.get_body()?.0,
+                    });
+
+                    break;
+                }
+            }
+
+            return Ok(Statement {
+                pos: if_block.pos.start..content_end.end,
+                kind: StatementKind::IfStatements(statements),
+            });
         }
 
         self.return_statement()

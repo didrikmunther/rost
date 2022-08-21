@@ -5,9 +5,9 @@ use super::{builder::Builder, error::CompilerError, program::Program};
 impl Program {
     pub fn handle_function_declaration(
         &mut self,
-        fdec: &FunctionDeclaration,
+        _fdec: &FunctionDeclaration,
     ) -> Result<Builder, CompilerError> {
-        let mut builder = Builder::new();
+        // let mut builder = Builder::new();
 
         todo!()
 

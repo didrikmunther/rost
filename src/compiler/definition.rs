@@ -26,11 +26,12 @@ pub enum ProcedureKind {
     Reassign(usize), // stack location
     Arithmetic(Arithmetic),
     SystemCall(SystemCall),
-    If(If),
+    If(Vec<If>),
 }
 
 #[derive(Debug)]
 pub struct If {
+    pub condition: Option<Box<Builder>>,
     pub content: Box<Builder>,
 }
 

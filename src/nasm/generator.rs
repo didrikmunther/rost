@@ -76,7 +76,7 @@ impl<'a> Generator<'a> {
                 ProcedureKind::Arithmetic(arithmetic) => {
                     self.handle_arithmetic(&label, arithmetic)?
                 }
-                ProcedureKind::If(if_kind) => self.handle_if_statement(&label, if_kind)?,
+                ProcedureKind::If(ifs) => self.handle_if_statement(&label, ifs)?,
             };
         }
 
