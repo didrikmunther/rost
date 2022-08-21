@@ -51,7 +51,14 @@ pub enum StatementKind {
     Expression(Expression),
     Assignment(Assignment),
     IfStatements(Vec<IfStatement>),
+    WhileStatement(WhileStatement),
     Return(Return),
+}
+
+#[derive(Debug)]
+pub struct WhileStatement {
+    pub condition: Box<Expression>,
+    pub content: Vec<Declaration>,
 }
 
 #[derive(Debug)]

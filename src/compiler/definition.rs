@@ -27,6 +27,13 @@ pub enum ProcedureKind {
     Arithmetic(Arithmetic),
     SystemCall(SystemCall),
     If(Vec<If>),
+    While(While),
+}
+
+#[derive(Debug)]
+pub struct While {
+    pub condition: Box<Builder>,
+    pub content: Box<Builder>,
 }
 
 #[derive(Debug)]

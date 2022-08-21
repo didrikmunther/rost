@@ -13,6 +13,7 @@ mod push;
 mod reassign;
 mod row;
 mod system_call;
+mod while_statement;
 
 pub fn generate(
     program: &Program,

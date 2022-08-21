@@ -18,6 +18,7 @@ mod parser;
 mod primary;
 mod return_statement;
 mod unexpected;
+mod while_statement;
 
 pub fn parse<'a>(document: &'a Vec<Block>) -> Result<AST, ParserError> {
     Parser::new(document).parse()

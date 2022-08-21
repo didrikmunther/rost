@@ -77,6 +77,9 @@ impl<'a> Generator<'a> {
                     self.handle_arithmetic(&label, arithmetic)?
                 }
                 ProcedureKind::If(ifs) => self.handle_if_statement(&label, ifs)?,
+                ProcedureKind::While(while_statement) => {
+                    self.handle_while_statement(&label, while_statement)?
+                }
             };
         }
 
