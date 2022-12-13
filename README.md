@@ -1,6 +1,6 @@
 # Rost
 
-Temporary interpreted language in Rust.
+Compiled language in Rust.
 
 ## Registers
 
