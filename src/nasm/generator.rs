@@ -58,7 +58,7 @@ impl<'a> Generator<'a> {
             let label = format!("{}_{}", label_prefix, i);
 
             self.code.add(Row::Comment(format!(
-                "[procedure {}]: {:?}",
+                "[procedure {}]: {}",
                 label, procedure.kind
             )));
 
@@ -121,6 +121,8 @@ impl<'a> Generator<'a> {
 
         self.code
             .add(Row::Comment("[exit program]".into()))
+            .add(Row::Move("eax".into(), "0".into()))
+            .add(Row::Move("ebx".into(), "0".into()))
             .add(Row::Ret)
     }
 }

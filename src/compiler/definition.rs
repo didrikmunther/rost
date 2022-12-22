@@ -1,4 +1,7 @@
-use std::ops::Range;
+use std::{
+    fmt::{Display, Formatter},
+    ops::Range,
+};
 
 use super::builder::Builder;
 
@@ -28,6 +31,19 @@ pub enum ProcedureKind {
     SystemCall(SystemCall),
     If(Vec<If>),
     While(While),
+}
+
+impl Display for ProcedureKind {
+    fn fmt(&self, fmt: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        match self {
+            ProcedureKind::If(ifs) => fmt.write_fmt(format_args!("If (n_cases: {})", ifs.len())),
+            ProcedureKind::While(while_statement) => fmt.write_fmt(format_args!(
+                "While (n_declarations: {})",
+                while_statement.content.procedures.len()
+            )),
+            _ => fmt.write_fmt(format_args!("{:?}", self)),
+        }
+    }
 }
 
 #[derive(Debug)]
