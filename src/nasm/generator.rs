@@ -127,22 +127,11 @@ impl<'a> Generator<'a> {
     }
 
     fn add_exit(&mut self) -> &mut Code {
-        for i in 0..self.code.stack_pos {
-            self.code.add_with_comment(
-                Row::Pop("rax".into()),
-                format!(
-                    "Cleaning stack variable: {}", //todo: just change rsp instead of popping
-                    self.program
-                        .variables
-                        .iter()
-                        .find(|(_, v)| v.stack_pos == i)
-                        .map(|(k, _)| k)
-                        .unwrap_or(&String::from("unknown variable"))
-                ),
-            );
-        }
+        let stack_pos = self.code.stack_pos;
 
         self.code
+            .add(Row::Comment("[reset root stack pointer]".into()))
+            .add(Row::Add("rsp".into(), format!("{}", stack_pos * 8).into()))
             .add(Row::Comment("[exit program]".into()))
             .add(Row::Ret)
     }
