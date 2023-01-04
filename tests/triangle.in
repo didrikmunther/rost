@@ -1,7 +1,29 @@
 // let row = 0
 // let total_width = 10
 
-// while(row < total_width / 2) {
+// printf("%i\n", total_width / 2)
+
+// while(row > total_width / 2) {
+// 	let pos = total_width / 2 - row
+// 	let width = row * 2 + 1
+
+// 	// let i = 0
+// 	// while(i < pos) {
+// 	// 	printf(" ")
+// 	// 	i = i + 1
+// 	// }
+
+// 	let i = 0
+// 	while(i < width) {
+// 		printf("*")
+// 		i = i + 1
+// 	}
+// 	printf("\n")
+
 // 	row = row + 1
-// 	let width = total_width / 2 - row
+
+// 	printf("row: %i\n", row)
+// 	printf("%b\n", row < total_width / 2)
 // }
+
+// printf("outside\n")

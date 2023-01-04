@@ -102,7 +102,7 @@ impl Code {
     /// This is done by pushing and removing a temporary dummy stack element if needed.
     pub fn aligned<F>(&mut self, inner: F) -> &mut Self
     where
-        F: Fn(&mut Self) -> &mut Self,
+        F: FnOnce(&mut Self) -> &mut Self,
     {
         let dummy = self.stack_pos % 2 == 0;
 

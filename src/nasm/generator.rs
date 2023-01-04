@@ -17,7 +17,7 @@ impl<'a> Generator<'a> {
             program,
             output_comments: false,
             optimize: false,
-            alignment: 0
+            alignment: 0,
         }
     }
 
@@ -49,6 +49,27 @@ impl<'a> Generator<'a> {
         }
 
         Ok(self.code)
+    }
+
+    pub fn add_block<F>(&mut self, inner: F) -> Result<&mut Code, NasmError>
+    where
+        F: FnOnce(&mut Self) -> Result<(), NasmError>,
+    {
+        let old_stack_pos = self.code.stack_pos;
+
+        inner(self)?;
+
+        self.code.add_with_comment(
+            Row::Add(
+                "rsp".into(),
+                format!("{}", (self.code.stack_pos - old_stack_pos) * 8).into(),
+            ),
+            "Restoring stack pointer".into(),
+        );
+
+        self.code.stack_pos = old_stack_pos;
+
+        Ok(&mut self.code)
     }
 
     pub fn add_program(
@@ -85,7 +106,7 @@ impl<'a> Generator<'a> {
             };
         }
 
-        return Ok(&mut self.code);
+        Ok(&mut self.code)
     }
 
     pub fn get_procedure_name(i: &str, addition: Option<&str>) -> String {
@@ -110,7 +131,7 @@ impl<'a> Generator<'a> {
             self.code.add_with_comment(
                 Row::Pop("rax".into()),
                 format!(
-                    "Cleaning stack variable: {}",
+                    "Cleaning stack variable: {}", //todo: just change rsp instead of popping
                     self.program
                         .variables
                         .iter()
