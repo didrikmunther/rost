@@ -19,7 +19,7 @@ impl Lexer for StringLexer {
         let mut escaped = false;
 
         for (i, &(pos, cur, eof)) in chars.into_iter().enumerate() {
-            if buf.is_empty() && cur.is_whitespace() {
+            if !is_string && cur.is_whitespace() {
                 continue;
             }
 

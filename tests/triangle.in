@@ -1,8 +1,6 @@
 let row = 0
 let total_width = 10
 
-printf("%i\n", total_width / 2)
-
 while(row < total_width / 2) {
 	let pos = total_width / 2 - row
 	let width = row * 2 + 1
@@ -13,7 +11,7 @@ while(row < total_width / 2) {
 		i = i + 1
 	}
 
-	let i = 0
+	i = 0
 	while(i < width) {
 		printf("*")
 		i = i + 1
@@ -22,5 +20,3 @@ while(row < total_width / 2) {
 
 	row = row + 1
 }
-
-printf("outside\n")

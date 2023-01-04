@@ -1,6 +1,10 @@
 use std::fmt::{Arguments, Display, Formatter};
 
 fn get_bytes(s: &String) -> String {
+    if s.len() <= 0 {
+        return "0".into();
+    }
+
     s.as_bytes()
         .iter()
         .map(|v| v.to_string())
