@@ -19,6 +19,7 @@ impl Program {
             Keyword::Plus => Arithmetic::Add,
             Keyword::Minus => Arithmetic::Subtract,
             Keyword::Asterix => Arithmetic::Multiply,
+            Keyword::Slash => Arithmetic::Divide,
             Keyword::LessThan => Arithmetic::LessThan,
             Keyword::GreaterThan => Arithmetic::GreaterThan,
             Keyword::Equality => Arithmetic::Equality,

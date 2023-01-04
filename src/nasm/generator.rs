@@ -7,6 +7,7 @@ pub struct Generator<'a> {
     pub program: &'a Program,
     pub output_comments: bool,
     pub optimize: bool,
+    pub alignment: usize,
 }
 
 impl<'a> Generator<'a> {
@@ -16,6 +17,7 @@ impl<'a> Generator<'a> {
             program,
             output_comments: false,
             optimize: false,
+            alignment: 0
         }
     }
 
@@ -121,8 +123,6 @@ impl<'a> Generator<'a> {
 
         self.code
             .add(Row::Comment("[exit program]".into()))
-            .add(Row::Move("eax".into(), "0".into()))
-            .add(Row::Move("ebx".into(), "0".into()))
             .add(Row::Ret)
     }
 }

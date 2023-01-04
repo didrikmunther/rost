@@ -2,7 +2,11 @@ use super::{Letter, Lexer, LexerError, Token};
 
 fn is_identifier(word: &str) -> bool {
     let mut chars = word.chars();
-    chars.next().map(char::is_alphabetic).unwrap_or(false) && chars.all(char::is_alphanumeric)
+    chars
+        .next()
+        .map(|c| c.is_alphabetic() || c == '_')
+        .unwrap_or(false)
+        && chars.all(|c| c.is_alphanumeric() || c == '_')
 }
 
 pub struct IdentifierLexer;
@@ -22,7 +26,7 @@ impl Lexer for IdentifierLexer {
                 continue;
             }
 
-            if !cur.is_alphanumeric() || cur.is_whitespace() || eof {
+            if !(cur.is_alphanumeric() || cur == '_') || cur.is_whitespace() || eof {
                 let word: String = buf.iter().collect();
 
                 if word.len() <= 0 || !is_identifier(&word) {

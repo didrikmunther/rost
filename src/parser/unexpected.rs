@@ -8,7 +8,6 @@ impl<'a> Parser<'a> {
     pub fn unexpected(&mut self) -> Result<Expression, ParserError> {
         if let Some(block) = self.peek() {
             match block.kind {
-                
                 _ => Err(ParserError::new(
                     block.pos.clone(),
                     ParserErrorKind::UnexpectedToken(block.token.clone()),

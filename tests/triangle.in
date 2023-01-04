@@ -1,0 +1,7 @@
+// let row = 0
+// let total_width = 10
+
+// while(row < total_width / 2) {
+// 	row = row + 1
+// 	let width = total_width / 2 - row
+// }

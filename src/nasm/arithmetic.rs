@@ -30,12 +30,15 @@ impl<'a> Generator<'a> {
             Arithmetic::Add => vec![Row::Add("rax".into(), "rbx".into())],
             Arithmetic::Subtract => vec![Row::Subtract("rax".into(), "rbx".into())],
             Arithmetic::Multiply => vec![Row::Multiply("rbx".into())],
-            Arithmetic::Equality => Self::get_equality_operations(procedure, arithmetic),
-            Arithmetic::LessThan => Self::get_equality_operations(procedure, arithmetic),
-            Arithmetic::GreaterThan => Self::get_equality_operations(procedure, arithmetic),
-
+            Arithmetic::Divide => vec![
+                Row::Xor("rdx".into(), "rdx".into()),
+                Row::Divide("rbx".into()),
+            ],
+            Arithmetic::Equality | Arithmetic::LessThan | Arithmetic::GreaterThan => {
+                Self::get_equality_operations(procedure, arithmetic)
+            }
             #[allow(unreachable_patterns)]
-            _ => unreachable!(),
+            _ => panic!("Unimplemented: {:?}", arithmetic),
         };
 
         self.code

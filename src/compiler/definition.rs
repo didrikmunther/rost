@@ -63,6 +63,7 @@ pub enum Arithmetic {
     Add,
     Subtract,
     Multiply,
+    Divide,
     LessThan,
     GreaterThan,
     Equality,

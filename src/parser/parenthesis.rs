@@ -11,10 +11,12 @@ impl<'a> Parser<'a> {
         if let Some(parenthesis) = self.get(&[Keyword::ParLeft]) {
             let expr = self.expression()?;
             if let None = self.get(&[Keyword::ParRight]) {
-                return Err(ParserError::new(
-                    parenthesis.pos.clone(),
-                    ParserErrorKind::UnterminatedParenthesis,
-                ));
+                if self.is_end() {
+                    return Err(ParserError::new(
+                        parenthesis.pos.clone(),
+                        ParserErrorKind::UnterminatedParenthesis,
+                    ));
+                }
             }
 
             return Ok(expr);

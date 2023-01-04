@@ -28,9 +28,10 @@ impl<'a> Generator<'a> {
             self.code.add(Row::Pop(reg.into()));
         }
 
-        self.code
-            .add(Row::Xor("rax".into(), "rax".into()))
-            .add(Row::Call(system_call.identifier.clone()));
+        self.code.aligned(|code| {
+            code.add(Row::Xor("rax".into(), "rax".into()))
+                .add(Row::Call(system_call.identifier.clone()))
+        });
 
         Ok(())
     }

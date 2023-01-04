@@ -1,5 +1,13 @@
 use std::fmt::{Arguments, Display, Formatter};
 
+fn get_bytes(s: &String) -> String {
+    s.as_bytes()
+        .iter()
+        .map(|v| v.to_string())
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
 #[derive(Debug, Clone)]
 pub struct CodeRow {
     pub row: Row,
@@ -37,6 +45,7 @@ pub enum Row {
     Add(String, String),
     Subtract(String, String),
     Multiply(String),
+    Divide(String),
     Compare(String, String),
     Jump(String),
     JumpIfEquals(String),
@@ -50,12 +59,14 @@ pub enum Row {
     Ret,
 }
 
-fn get_bytes(s: &String) -> String {
-    s.as_bytes()
-        .iter()
-        .map(|v| v.to_string())
-        .collect::<Vec<_>>()
-        .join(", ")
+impl Row {
+    pub fn stack_delta(&self) -> isize {
+        match self {
+            Row::Pop(_) => -1,
+            Row::Push(_) => 1,
+            _ => 0,
+        }
+    }
 }
 
 impl Display for Row {
@@ -80,6 +91,7 @@ impl Display for Row {
             Row::JumpIfGreaterThan(label) => w(format_args!("\tjg {}", label)),
             Row::Subtract(to, from) => w(format_args!("\tsub {}, {}", to, from)),
             Row::Multiply(to) => w(format_args!("\tmul {}", to)),
+            Row::Divide(divisor) => w(format_args!("\tidiv {}", divisor)),
             Row::Global(global) => w(format_args!("\tglobal {}", global)),
             Row::Call(function) => w(format_args!("\tcall {}", function)),
             Row::DeclareStaticString(s) => w(format_args!("\tdb {}, 0", get_bytes(s))),

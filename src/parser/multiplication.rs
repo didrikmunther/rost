@@ -10,7 +10,7 @@ impl<'a> Parser<'a> {
     pub fn multiplication(&mut self) -> Result<Expression, ParserError> {
         let mut expr = self.function_call()?;
 
-        while let Some(block) = self.get(&[Keyword::Asterix]) {
+        while let Some(block) = self.get(&[Keyword::Asterix, Keyword::Slash]) {
             let right = self.primary()?;
             let pos = expr.pos.start..right.pos.end;
 

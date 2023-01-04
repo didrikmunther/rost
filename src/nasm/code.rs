@@ -86,24 +86,39 @@ impl Code {
         )
     }
 
-    fn stack_delta(&mut self, row: &Row) -> i32 {
-        match row {
-            Row::Pop(_) => -1,
-            Row::Push(_) => 1,
-            _ => 0,
-        }
-    }
-
-    fn update_stack(&mut self, delta: i32) {
-        self.stack_pos = (self.stack_pos as i32 + delta) as usize;
+    fn update_stack(&mut self, delta: isize) {
+        self.stack_pos = (self.stack_pos as isize + delta) as usize;
     }
 
     pub fn add(&mut self, row: Row) -> &mut Self {
-        let stack_delta = self.stack_delta(&row);
+        let stack_delta = row.stack_delta();
         self.rows.push(CodeRow::new(row, true));
         self.update_stack(stack_delta);
 
         self
+    }
+
+    /// Aligns the stack such that RSP % 16 == 8.
+    /// This is done by pushing and removing a temporary dummy stack element if needed.
+    pub fn aligned<F>(&mut self, inner: F) -> &mut Self
+    where
+        F: Fn(&mut Self) -> &mut Self,
+    {
+        let dummy = self.stack_pos % 2 == 0;
+
+        if dummy {
+            self.add_with_comment(Row::Push("0".into()), format!("Dummy alignment"));
+            self.stack_pos += 1;
+        }
+
+        let this = inner(self);
+
+        if dummy {
+            this.add_with_comment(Row::Pop("rdx".into()), format!("Removing dummy alignment"));
+            this.stack_pos -= 1;
+        }
+
+        this
     }
 
     pub fn add_with_stack<F: FnOnce(usize) -> Row>(&mut self, row_generator: F) -> &mut Self {
@@ -112,7 +127,7 @@ impl Code {
     }
 
     pub fn add_with_comment(&mut self, row: Row, comment: String) -> &mut Self {
-        let stack_delta = self.stack_delta(&row);
+        let stack_delta = row.stack_delta();
         self.rows.push(CodeRow::new(row, false));
         self.rows.push(CodeRow::new(Row::Comment(comment), true));
         self.update_stack(stack_delta);
