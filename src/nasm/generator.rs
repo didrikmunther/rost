@@ -38,10 +38,19 @@ impl<'a> Generator<'a> {
         self.add_data();
 
         if self.optimize {
-            let (code, removed) = self.code.optimized();
-            self.code = code;
+            let mut did_remove = true;
+            let mut total_removed = 0;
+            let mut passes = 0;
 
-            println!("[NASM Optimizer]: Removed {} lines", removed);
+            while did_remove {
+                let (code, removed) = self.code.optimized();
+                self.code = code;
+                did_remove = removed > 0;
+                total_removed += removed;
+                passes += 1;
+            }
+
+            println!("[NASM Optimizer]: Removed {total_removed} lines in {} passes", passes - 1);
         }
 
         if !self.output_comments {

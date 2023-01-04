@@ -6,7 +6,7 @@ impl<'a> Generator<'a> {
     pub fn handle_push(&mut self, operand: &OperandValue) -> Result<(), NasmError> {
         match operand {
             OperandValue::ByteLocation(loc) => self.code.add(Row::Push(Self::get_data_name(*loc))),
-            OperandValue::Int(i) => self.code.add(Row::Push(format!("{}", *i))),
+            OperandValue::Int(i) => self.code.add(Row::Push(format!("dword {}", *i))),
             OperandValue::StackLocation(loc) => self
                 .code
                 .add_with_stack(|stack_pos| {

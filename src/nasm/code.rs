@@ -34,7 +34,6 @@ impl Code {
     pub fn optimized(&self) -> (Self, usize) {
         let mut code: Code = Code::new();
         let mut prev: Option<&CodeRow> = None;
-        let mut removed: usize = 0;
 
         for i in 0..self.rows.len() {
             let row = self.rows.get(i).unwrap();
@@ -46,25 +45,28 @@ impl Code {
             }
 
             if let Some(prev_row) = prev {
-                if let Row::Pop(pop) = &row.row {
-                    if let Row::Push(push) = &prev_row.row {
-                        let equal = pop.eq(push);
-                        code.add(Row::Comment(if equal {
-                            format!("Optimized: removed push / pop")
+                match (&prev_row.row, &row.row) {
+                    (Row::Push(push), Row::Pop(pop)) => {
+                        if pop.eq(push) {
+                            code.add(Row::Comment("Optimized: removed push / pop".into()));
                         } else {
-                            format!("Optimized: removed push / pop, added mov")
-                        }));
-
-                        if !equal {
-                            removed += 1;
-                            code.add(Row::Move(pop.clone(), push.clone()));
-                        } else {
-                            removed += 2;
+                            code.add_with_comment(
+                                Row::Move(pop.clone(), push.clone()),
+                                "Optimized: removed push / pop, added mov".into(),
+                            );
                         }
 
                         prev = None;
                         continue;
                     }
+                    (Row::Move(a1, a2), Row::Move(b1, b2)) => {
+                        if a1 == b2 {
+                            code.add_with_comment(Row::Move(b1.clone(), a2.clone()), "Optimized: removed mov / mov, added mov".into());
+                            prev = None;
+                            continue;
+                        }
+                    }
+                    _ => {}
                 }
 
                 code.add(prev_row.row.clone());
@@ -77,6 +79,8 @@ impl Code {
             code.add(prev.row.clone());
         }
 
+        let removed = self.instruction_len() - code.instruction_len();
+
         (
             Self {
                 rows: code.rows,
@@ -84,6 +88,17 @@ impl Code {
             },
             removed,
         )
+    }
+
+    /// Gives the amount of instructions without comments and labels
+    fn instruction_len(&self) -> usize {
+        self.rows
+            .iter()
+            .filter(|row| match row.row {
+                Row::Comment(_) | Row::Label(_) => false,
+                _ => true,
+            })
+            .count()
     }
 
     fn update_stack(&mut self, delta: isize) {
