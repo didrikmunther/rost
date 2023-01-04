@@ -168,9 +168,17 @@ impl Display for RostError {
             .map(|v| v.1.into_iter().map(|(_, v)| v).collect())
             .collect::<Vec<Vec<usize>>>();
 
+        // Get the largest width of line numbers
+        let number_padding = (*wanted_row_groups
+            .iter()
+            .map(|row_group| row_group.iter().max().unwrap_or(&0))
+            .max()
+            .unwrap_or(&0) as f32)
+            .log10() as usize;
+
         for (i, row_group) in wanted_row_groups.into_iter().enumerate() {
             if i != 0 {
-                fmt.write_str("    ...\n")?;
+                write!(fmt, "    {}...\n", " ".repeat(number_padding))?;
             }
 
             for row_index in row_group {
@@ -183,11 +191,18 @@ impl Display for RostError {
                     })
                     .collect();
 
-                let code_row = format!("{} | {}\n", row_index + 1, text_line_without_tabs);
+                let padding = " ".repeat(number_padding - (1.0 + row_index as f32).log10() as usize);
+                let code_row = format!(
+                    "{}{} | {}\n",
+                    padding,
+                    row_index + 1,
+                    text_line_without_tabs
+                );
                 fmt.write_str(code_row.as_str())?;
 
                 if let Some(messages) = grouped_messages_lookup.get(&row_index) {
-                    fmt.write_str("  | ")?;
+                    // fmt.write_str("  | ")?;
+                    write!(fmt, "{}  | ", " ".repeat(number_padding))?;
 
                     let mut positions = messages
                         .into_iter()
@@ -212,7 +227,7 @@ impl Display for RostError {
                     fmt.write_str("\n")?;
 
                     for (i, &(_, line_pos, _, message)) in messages.into_iter().rev().enumerate() {
-                        fmt.write_str("  | ")?;
+                        write!(fmt, "{}  | ", " ".repeat(number_padding))?;
 
                         let mut pipes = 0;
                         for &(position, _) in positions.iter().rev().skip(i + 1) {
