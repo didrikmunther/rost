@@ -20,6 +20,10 @@ impl<'a> Generator<'a> {
                 .add(Row::Compare("rax".into(), "1".into()))
                 .add(Row::JumpIfNotEquals(label_content_end.clone()));
 
+            Ok(())
+        })?;
+
+        self.add_block(|generator| {
             generator.add_program(&while_statement.content, &label_content)?;
 
             Ok(())
