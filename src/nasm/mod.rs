@@ -7,12 +7,12 @@ pub mod code;
 mod arithmetic;
 mod data;
 mod error;
+mod function_call;
 mod generator;
 mod if_statement;
 mod push;
 mod reassign;
 mod row;
-mod system_call;
 mod while_statement;
 
 pub fn generate(

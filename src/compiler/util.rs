@@ -6,9 +6,18 @@ use crate::{
 use super::{
     error::{CompilerError, CompilerErrorKind},
     program::Program,
+    scope::Variable,
 };
 
-impl Program {
+impl<'a> Program {
+    pub fn get_variable(&'a self, identifier: &String) -> Option<&'a Variable> {
+        self.scope.get_variable(identifier)
+    }
+
+    pub fn insert_variable(&'a mut self, identifier: String, variable: Variable) {
+        self.scope.insert_variable(identifier, variable)
+    }
+
     pub fn infer_binary_result_type(
         &self,
         left: Keyword,
@@ -38,7 +47,7 @@ impl Program {
         match &expr.kind {
             ExpressionKind::Primary(primary) => match primary {
                 Primary::Identifier(ref identifier) => {
-                    if let Some(variable) = self.variables.get(identifier) {
+                    if let Some(variable) = self.get_variable(identifier) {
                         Ok(variable.typ)
                     } else {
                         return Err(CompilerError::new(

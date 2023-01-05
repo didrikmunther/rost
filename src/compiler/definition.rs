@@ -28,7 +28,8 @@ pub enum ProcedureKind {
     Push(OperandValue),
     Reassign(usize), // stack location
     Arithmetic(Arithmetic),
-    SystemCall(SystemCall),
+    FunctionDefinition(FunctionDefinition),
+    ProcedureCall(ProcedureCall),
     If(Vec<If>),
     While(While),
 }
@@ -70,7 +71,14 @@ pub enum Arithmetic {
 }
 
 #[derive(Debug)]
-pub struct SystemCall {
+pub struct FunctionDefinition {
+    pub identifier: String,
+    pub parameters: Vec<String>,
+    pub content: Box<Builder>,
+}
+
+#[derive(Debug)]
+pub struct ProcedureCall {
     pub identifier: String,
     pub nargs: usize,
 }

@@ -1,4 +1,4 @@
-use crate::compiler::definition::{Procedure, SystemCall};
+use crate::compiler::definition::{Procedure, ProcedureCall};
 
 use super::{
     error::{NasmError, NasmErrorKind},
@@ -7,14 +7,15 @@ use super::{
 };
 
 static ARG_REG: &[&'static str] = &["rdi", "rsi", "rdx", "rcx", "r8", "r9"];
+static BUILT_IN: &[&'static str] = &["printf"];
 
 impl<'a> Generator<'a> {
     pub fn handle_system_call(
         &mut self,
         procedure: &Procedure,
-        system_call: &SystemCall,
+        call: &ProcedureCall,
     ) -> Result<(), NasmError> {
-        let nargs = system_call.nargs;
+        let nargs = call.nargs;
 
         if nargs > ARG_REG.len() {
             return Err(NasmError::new(
@@ -30,9 +31,29 @@ impl<'a> Generator<'a> {
 
         self.code.aligned(|code| {
             code.add(Row::Xor("rax".into(), "rax".into()))
-                .add(Row::Call(system_call.identifier.clone()))
+                .add(Row::Call(call.identifier.clone()))
         });
 
         Ok(())
+    }
+
+    pub fn handle_function_call(
+        &mut self,
+        procedure: &Procedure,
+        call: &ProcedureCall,
+    ) -> Result<(), NasmError> {
+        todo!()
+    }
+
+    pub fn handle_procedure_call(
+        &mut self,
+        procedure: &Procedure,
+        call: &ProcedureCall,
+    ) -> Result<(), NasmError> {
+        if BUILT_IN.contains(&call.identifier.as_str()) {
+            self.handle_system_call(procedure, call)
+        } else {
+            self.handle_function_call(procedure, call)
+        }
     }
 }

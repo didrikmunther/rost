@@ -13,6 +13,7 @@ mod expression;
 mod function_call;
 mod function_declaration;
 mod if_statement;
+mod scope;
 mod util;
 mod while_statement;
 

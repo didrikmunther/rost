@@ -1,25 +1,32 @@
-use crate::parser::definition::FunctionDeclaration;
+use crate::parser::definition::{Declaration, FunctionDeclaration};
 
-use super::{builder::Builder, error::CompilerError, program::Program};
+use super::{
+    builder::Builder,
+    definition::{FunctionDefinition, Procedure, ProcedureKind},
+    error::CompilerError,
+    program::Program,
+};
 
 impl Program {
     pub fn handle_function_declaration(
         &mut self,
-        _fdec: &FunctionDeclaration,
+        statement: &Declaration,
+        fdec: &FunctionDeclaration,
     ) -> Result<Builder, CompilerError> {
+        todo!()
         // let mut builder = Builder::new();
 
-        todo!()
+        // // for par in &fdec.parameters {
+        // //     let expr = self.handle_expression(par)?;
+        // //     builder = builder.append(expr);
+        // // }
 
-        // for arg in &fcall.args {
-        //     let expr = self.handle_expression(arg)?;
-        //     builder = builder.append(expr);
-        // }
+        // fdec.identifier
 
         // builder = builder.push(Procedure::new(
-        //     expression.pos.clone(),
-        //     ProcedureKind::SystemCall(SystemCall {
-        //         nargs: fcall.args.len(),
+        //     statement.pos.clone(),
+        //     ProcedureKind::FunctionDefinition(FunctionDefinition {
+        //         npars: fdec.parameters,
         //         identifier: fcall.identifier.clone(),
         //     }),
         // ));

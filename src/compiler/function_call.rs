@@ -2,7 +2,7 @@ use crate::parser::definition::{Expression, FunctionCall};
 
 use super::{
     builder::Builder,
-    definition::{Procedure, ProcedureKind, SystemCall},
+    definition::{Procedure, ProcedureCall, ProcedureKind},
     error::CompilerError,
     program::Program,
 };
@@ -22,7 +22,7 @@ impl Program {
 
         builder = builder.push(Procedure::new(
             expression.pos.clone(),
-            ProcedureKind::SystemCall(SystemCall {
+            ProcedureKind::ProcedureCall(ProcedureCall {
                 nargs: fcall.args.len(),
                 identifier: fcall.identifier.clone(),
             }),

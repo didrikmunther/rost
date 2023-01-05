@@ -50,7 +50,10 @@ impl<'a> Generator<'a> {
                 passes += 1;
             }
 
-            println!("[NASM Optimizer]: Removed {total_removed} lines in {} passes", passes - 1);
+            println!(
+                "[NASM Optimizer]: Removed {total_removed} lines in {} passes",
+                passes - 1
+            );
         }
 
         if !self.output_comments {
@@ -98,8 +101,8 @@ impl<'a> Generator<'a> {
                 ProcedureKind::Comment(comment) => {
                     self.code.add(Row::Comment(comment.clone()));
                 }
-                ProcedureKind::SystemCall(system_call) => {
-                    self.handle_system_call(procedure, system_call)?
+                ProcedureKind::ProcedureCall(procedure_call) => {
+                    self.handle_procedure_call(procedure, procedure_call)?
                 }
                 ProcedureKind::Reassign(reassign) => {
                     self.handle_reassign(*reassign)?;
@@ -112,6 +115,7 @@ impl<'a> Generator<'a> {
                 ProcedureKind::While(while_statement) => {
                     self.handle_while_statement(&label, while_statement)?
                 }
+                ProcedureKind::FunctionDefinition(_) => todo!()
             };
         }
 

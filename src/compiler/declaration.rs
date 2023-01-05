@@ -20,7 +20,7 @@ impl Program {
                 _ => todo!(),
             },
             DeclarationKind::FunctionDeclaration(fn_declaration) => {
-                self.handle_function_declaration(fn_declaration)
+                self.handle_function_declaration(declaration, fn_declaration)
             }
         }
     }

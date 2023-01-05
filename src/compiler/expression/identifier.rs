@@ -14,7 +14,7 @@ impl Program {
         expression: &Expression,
         identifier: &String,
     ) -> Result<Builder, CompilerError> {
-        if let Some(variable) = self.variables.get(identifier) {
+        if let Some(variable) = self.get_variable(identifier) {
             Ok(Builder::new().push(Procedure::new(
                 expression.pos.clone(),
                 ProcedureKind::Push(OperandValue::StackLocation(variable.stack_pos)),

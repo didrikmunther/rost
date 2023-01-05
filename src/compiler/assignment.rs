@@ -4,7 +4,8 @@ use super::{
     builder::Builder,
     definition::{Procedure, ProcedureKind},
     error::{CompilerError, CompilerErrorKind},
-    program::{Program, Variable},
+    program::Program,
+    scope::Variable,
 };
 
 impl Program {
@@ -12,7 +13,7 @@ impl Program {
         let expr = self.handle_expression(&assignment.value)?;
         let mut builder = Builder::new().append(expr);
 
-        if let Some(variable) = self.variables.get(&assignment.identifier) {
+        if let Some(variable) = self.get_variable(&assignment.identifier) {
             if assignment.is_new {
                 return Err(CompilerError::new(
                     assignment.identifier_pos.clone(),
@@ -65,7 +66,7 @@ impl Program {
                 }
             }
 
-            self.variables.insert(
+            self.insert_variable(
                 assignment.identifier.clone(),
                 Variable {
                     pos: assignment.identifier_pos.clone(),
