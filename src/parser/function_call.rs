@@ -27,10 +27,12 @@ impl<'a> Parser<'a> {
                         if let Some(close) = self.get(&[Keyword::ParRight]) {
                             return Ok(Expression {
                                 typ: Keyword::Null, // todo: type system for functions
-                                pos: open.pos.start..close.pos.end,
+                                pos: expr.pos.start..close.pos.end,
                                 kind: ExpressionKind::FunctionCall(FunctionCall {
                                     identifier,
                                     args,
+                                    identifier_pos: expr.pos.clone(),
+                                    parameters_pos: open.pos.start..close.pos.end,
                                 }),
                             });
                         }

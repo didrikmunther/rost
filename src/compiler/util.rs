@@ -1,15 +1,24 @@
 use crate::{
     lexer::{Keyword, Literal},
-    parser::definition::{Expression, ExpressionKind, Primary},
+    parser::definition::{Declaration, Expression, ExpressionKind, Primary},
 };
 
 use super::{
+    builder::Builder,
     error::{CompilerError, CompilerErrorKind},
     program::Program,
     scope::Variable,
 };
 
 impl<'a> Program {
+    pub fn get_procedures(&mut self, content: &Vec<Declaration>) -> Result<Builder, CompilerError> {
+        content
+            .iter()
+            .fold(Ok(Builder::new()), |builder, declaration| {
+                Ok(builder?.append(self.handle_declaration(declaration)?))
+            })
+    }
+
     pub fn get_variable(&'a self, identifier: &String) -> Option<&'a Variable> {
         self.scope.get_variable(identifier)
     }

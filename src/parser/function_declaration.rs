@@ -1,4 +1,4 @@
-use crate::lexer::Keyword;
+use crate::lexer::{Keyword, Token};
 
 use super::{
     definition::{Declaration, DeclarationKind, FunctionDeclaration, FunctionDeclarationParameter},
@@ -52,23 +52,30 @@ impl<'a> Parser<'a> {
                     }
                 }
 
-                let par_identifier =
-                    match get_block_identifier(self.expect(&[Keyword::Identifier])?) {
-                        Some(identifier) => identifier,
-                        _ => {
+                let (par_identifier, par_identifier_pos) =
+                    if let Some(identifier) = self.get(&[Keyword::Identifier]) {
+                        if let Token::Identifier(ref s) = identifier.token {
+                            (s, &identifier.pos)
+                        } else {
                             return Err(ParserError::new(
                                 fn_identifier.pos.clone(),
                                 ParserErrorKind::Expected(&[Keyword::Identifier]),
-                            ))
+                            ));
                         }
+                    } else {
+                        return Err(ParserError::new(
+                            fn_identifier.pos.clone(),
+                            ParserErrorKind::Expected(&[Keyword::Identifier]),
+                        ));
                     };
 
                 self.expect(&[Keyword::Colon])?;
                 let par_type = self.expect(&[Keyword::Int])?.kind;
 
                 parameters.push(FunctionDeclarationParameter {
-                    identifier: par_identifier,
+                    identifier: par_identifier.clone(),
                     typ: par_type,
+                    pos: par_identifier_pos.clone(),
                 });
             }
         }

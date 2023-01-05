@@ -30,14 +30,7 @@ impl Program {
                 .map(Box::new);
 
             self.new_scope();
-
-            let content = if_statement
-                .content
-                .iter()
-                .fold(Ok(Builder::new()), |builder, declaration| {
-                    Ok(builder?.append(self.handle_declaration(declaration)?))
-                })?;
-
+            let content = self.get_procedures(&if_statement.content)?;
             self.close_scope();
 
             ifs.push(If {

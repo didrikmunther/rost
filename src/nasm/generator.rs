@@ -7,7 +7,6 @@ pub struct Generator<'a> {
     pub program: &'a Program,
     pub output_comments: bool,
     pub optimize: bool,
-    pub alignment: usize,
 }
 
 impl<'a> Generator<'a> {
@@ -17,7 +16,6 @@ impl<'a> Generator<'a> {
             program,
             output_comments: false,
             optimize: false,
-            alignment: 0,
         }
     }
 
@@ -35,6 +33,7 @@ impl<'a> Generator<'a> {
         self.add_header();
         self.add_program(&self.program.procedures, "")?;
         self.add_exit();
+        self.add_functions()?;
         self.add_data();
 
         if self.optimize {
@@ -104,6 +103,9 @@ impl<'a> Generator<'a> {
                 ProcedureKind::ProcedureCall(procedure_call) => {
                     self.handle_procedure_call(procedure, procedure_call)?
                 }
+                ProcedureKind::SystemCall(system_call) => {
+                    self.handle_system_call(procedure, system_call)?
+                }
                 ProcedureKind::Reassign(reassign) => {
                     self.handle_reassign(*reassign)?;
                 }
@@ -115,7 +117,6 @@ impl<'a> Generator<'a> {
                 ProcedureKind::While(while_statement) => {
                     self.handle_while_statement(&label, while_statement)?
                 }
-                ProcedureKind::FunctionDefinition(_) => todo!()
             };
         }
 
@@ -124,6 +125,10 @@ impl<'a> Generator<'a> {
 
     pub fn get_procedure_name(i: &str, addition: Option<&str>) -> String {
         format!("_procedure_{}_{}", i, addition.unwrap_or(""))
+    }
+
+    pub fn get_function_name(function_id: usize) -> String {
+        format!("_function_{}", function_id)
     }
 
     pub fn get_data_name(i: usize) -> String {
@@ -147,5 +152,29 @@ impl<'a> Generator<'a> {
             .add(Row::Add("rsp".into(), format!("{}", stack_pos * 8).into()))
             .add(Row::Comment("[exit program]".into()))
             .add(Row::Ret)
+    }
+
+    fn add_functions(&mut self) -> Result<&mut Code, NasmError> {
+        self.code
+            .add(Row::Comment("[enter function definitions]".into()));
+
+        for (i, function) in self.program.functions.iter().enumerate() {
+            let name = Self::get_function_name(i);
+
+            let par_offset = 1 + function.npars; // Compensate for the return address on the stack from CALL instruction
+            let old_stack_pos = self.code.stack_pos;
+            self.code.stack_pos += par_offset; // Let the stack begin at the first argument of the function
+            
+            self.code.add(Row::Label(name.clone()));
+            self.add_block(|generator| {
+                generator.add_program(&function.body, &name)?;
+                Ok(())
+            })?;
+
+            self.code.stack_pos = old_stack_pos;
+            self.code.add(Row::Ret);
+        }
+
+        Ok(&mut self.code)
     }
 }

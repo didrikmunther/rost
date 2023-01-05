@@ -39,6 +39,7 @@ pub enum Keyword {
     Identifier,
     Literal,
     Comment,
+    Function,
 }
 
 #[derive(Debug, PartialEq, Clone)]

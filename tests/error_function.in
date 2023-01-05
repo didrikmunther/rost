@@ -1,0 +1,11 @@
+let a1 = 1
+let a2 = 1
+let a3 = 1
+let a4 = 1
+let a5 = 1
+let a6 = 1
+
+fn b(b: int, c: int) {}
+
+a(2, 5)
+b(1, 10)

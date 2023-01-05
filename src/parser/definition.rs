@@ -21,6 +21,7 @@ pub enum DeclarationKind {
 pub struct FunctionDeclarationParameter {
     pub identifier: String,
     pub typ: Keyword,
+    pub pos: Range<usize>,
 }
 
 #[derive(Debug)]
@@ -90,6 +91,8 @@ pub enum ExpressionKind {
 pub struct FunctionCall {
     pub identifier: String,
     pub args: Vec<Box<Expression>>,
+    pub identifier_pos: Range<usize>,
+    pub parameters_pos: Range<usize>
 }
 
 #[derive(Debug)]

@@ -2,8 +2,6 @@ use crate::lexer::Keyword;
 
 use std::{collections::HashMap, ops::Range};
 
-use super::error::CompilerError;
-
 #[derive(Debug)]
 pub struct Variable {
     pub pos: Range<usize>,
@@ -39,15 +37,16 @@ impl<'a> Scope {
         }
     }
 
-    /// Returns true if a variable was found and set
-    pub fn insert_variable_inner(&'a mut self, identifier: String, variable: Variable) -> bool {
-        if let Some(_) = self.variables.get(&identifier) {
-            self.variables.insert(identifier, variable);
-            true
+    /// Returns the variable if it was not set
+    pub fn insert_variable_inner(&'a mut self, identifier: &String, variable: Variable) -> Option<Variable> {
+        if let Some(_) = self.variables.get(identifier) {
+            self.variables.insert(identifier.clone(), variable);
+            None
         } else if let Some(ref mut parent) = self.parent {
-            parent.insert_variable_inner(identifier, variable)
+            parent.insert_variable_inner(identifier, variable);
+            None
         } else {
-            false
+            Some(variable)
         }
     }
 
@@ -55,7 +54,9 @@ impl<'a> Scope {
         if let Some(_) = self.variables.get(&identifier) {
             self.variables.insert(identifier, variable);
         } else if let Some(ref mut parent) = self.parent {
-            if !parent.insert_variable_inner(identifier, variable) {}
+            if let Some(variable) = parent.insert_variable_inner(&identifier, variable) {
+                self.variables.insert(identifier, variable);
+            }
         } else {
             self.variables.insert(identifier, variable);
         }

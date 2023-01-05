@@ -9,6 +9,7 @@ use crate::{
 #[derive(Debug, PartialEq)]
 pub enum CompilerErrorKind {
     UndefinedVariable(String),
+    UndefinedFunction(String),
     RedeclaredVariable(String, Range<usize>),
     WrongBinaryExpressionTypes {
         got: Type,
@@ -51,6 +52,12 @@ impl CompilerError {
             CompilerErrorKind::UndefinedVariable(identifier) => {
                 vec![(
                     format!("Undefined variable: {}", identifier),
+                    self.pos.clone(),
+                )]
+            }
+            CompilerErrorKind::UndefinedFunction(identifier) => {
+                vec![(
+                    format!("Undefined function: {}", identifier),
                     self.pos.clone(),
                 )]
             }

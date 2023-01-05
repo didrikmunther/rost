@@ -4,7 +4,8 @@ use crate::lexer::{Block, Keyword, Token};
 
 use super::{
     definition::{Declaration, Expression, ExpressionKind, Primary},
-    error::ParserError, parser::Parser,
+    error::ParserError,
+    parser::Parser,
 };
 
 pub fn get_expr_identifier(expr: &Expression) -> Option<String> {

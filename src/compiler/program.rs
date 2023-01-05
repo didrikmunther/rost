@@ -1,13 +1,17 @@
 use std::collections::HashMap;
 
-use super::{builder::Builder, definition::GlobalData, error::CompilerError, scope::Scope};
+use super::{
+    builder::Builder, definition::GlobalData, error::CompilerError, function_declaration::Function,
+    scope::Scope,
+};
 
-use crate::parser::definition::Declaration;
+use crate::parser::definition::{Declaration};
 
 #[derive(Debug)]
 pub struct Program {
     pub scope: Scope,
     pub global_data: Vec<GlobalData>,
+    pub functions: Vec<Function>,
     pub procedures: Builder,
     pub stack_pos: usize,
 }
@@ -17,6 +21,7 @@ impl Program {
         Self {
             scope: Scope::new(),
             global_data: Vec::new(),
+            functions: Vec::new(),
             procedures: Builder::new(),
             stack_pos: 0,
         }

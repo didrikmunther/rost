@@ -1,11 +1,15 @@
-use crate::parser::definition::{Declaration, FunctionDeclaration};
-
-use super::{
-    builder::Builder,
-    definition::{FunctionDefinition, Procedure, ProcedureKind},
-    error::CompilerError,
-    program::Program,
+use crate::{
+    lexer::Keyword,
+    parser::definition::{Declaration, FunctionDeclaration},
 };
+
+use super::{builder::Builder, error::CompilerError, program::Program, scope::Variable};
+
+#[derive(Debug)]
+pub struct Function {
+    pub npars: usize,
+    pub body: Builder,
+}
 
 impl Program {
     pub fn handle_function_declaration(
@@ -13,24 +17,42 @@ impl Program {
         statement: &Declaration,
         fdec: &FunctionDeclaration,
     ) -> Result<Builder, CompilerError> {
-        todo!()
-        // let mut builder = Builder::new();
+        self.new_scope();
 
-        // // for par in &fdec.parameters {
-        // //     let expr = self.handle_expression(par)?;
-        // //     builder = builder.append(expr);
-        // // }
+        let npars = fdec.parameters.len();
+        let old_stack_pos = self.stack_pos;
 
-        // fdec.identifier
+        for parameter in fdec.parameters.iter() {
+            self.insert_variable(
+                parameter.identifier.clone(),
+                Variable {
+                    pos: parameter.pos.clone(),
+                    typ: parameter.typ,
+                    stack_pos: self.stack_pos,
+                },
+            );
 
-        // builder = builder.push(Procedure::new(
-        //     statement.pos.clone(),
-        //     ProcedureKind::FunctionDefinition(FunctionDefinition {
-        //         npars: fdec.parameters,
-        //         identifier: fcall.identifier.clone(),
-        //     }),
-        // ));
+            self.stack_pos += 1;
+        }
 
-        // Ok(builder)
+        self.stack_pos += 1; // Calling a function adds the RET address to the stack, temporarily compensate for this here.
+        let body = self.get_procedures(&fdec.content)?;
+        self.close_scope();
+        self.stack_pos -= 1;
+
+        self.functions.push(Function { body, npars });
+
+        self.insert_variable(
+            fdec.identifier.clone(),
+            Variable {
+                pos: statement.pos.clone(),
+                typ: Keyword::Function,
+                stack_pos: self.functions.len() - 1, // Store function id in stack_pos
+            },
+        );
+
+        self.stack_pos = old_stack_pos;
+
+        Ok(Builder::new())
     }
 }

@@ -65,7 +65,9 @@ impl Code {
                             prev = None;
                             continue;
                         }
-                    }
+                    },
+                    // Todo: ADD _, 0
+                    // Todo: SUB _, 0
                     _ => {}
                 }
 
