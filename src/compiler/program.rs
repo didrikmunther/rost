@@ -76,16 +76,18 @@ impl Program {
             }),
         };
 
+        self.handle_declaration(&main_func)?; // Add main function to program
+
+        let main_func_id = self.functions.len() - 1; // Main function will always be last
         let call_main_func = Procedure::new(
             0..0,
             ProcedureKind::ProcedureCall(ProcedureCall {
-                function_id: 0,
+                function_id: main_func_id,
                 nargs: 0,
                 returns: false,
             }),
         );
 
-        self.handle_declaration(&main_func)?; // Add main function to program
         self.procedures = Builder::new().push(call_main_func); // Call main function
 
         Ok(self)

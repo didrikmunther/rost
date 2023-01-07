@@ -5,7 +5,7 @@ use super::{
     definition::{Procedure, ProcedureKind},
     error::{CompilerError, CompilerErrorKind},
     program::Program,
-    scope::Variable,
+    scope::{Variable, VariableType},
 };
 
 impl Program {
@@ -30,12 +30,12 @@ impl Program {
                 ));
             } else {
                 let assignment_type = self.infer_type(&assignment.value)?;
-                if assignment_type != variable.typ {
+                if assignment_type != variable.typ.to_keyword() {
                     return Err(CompilerError::new(
                         assignment.value_pos.clone(),
                         CompilerErrorKind::WrongAssignmentType {
                             got: assignment_type,
-                            typ: variable.typ,
+                            typ: variable.typ.to_keyword(),
                             declaration_pos: variable.pos.clone(),
                         },
                     ));
@@ -72,14 +72,14 @@ impl Program {
                 assignment.identifier.clone(),
                 Variable {
                     pos: assignment.identifier_pos.clone(),
-                    typ: infered,
+                    typ: VariableType::Value(infered),
                 },
             );
 
             return Ok(builder.push(Procedure {
                 pos: assignment.identifier_pos.start..assignment.value_pos.end,
                 comment: Some(format!("Assign: {}", assignment.identifier)),
-                kind: ProcedureKind::Assign(stack_pos),
+                kind: ProcedureKind::Assign(stack_pos as isize),
             }));
         }
 

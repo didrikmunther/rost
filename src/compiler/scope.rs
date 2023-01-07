@@ -1,6 +1,10 @@
 use crate::{lexer::Keyword, parser::definition::ReturnType};
 
-use std::{collections::HashMap, ops::Range, rc::Rc};
+use std::{
+    collections::HashMap,
+    ops::{Deref, Range},
+    rc::Rc,
+};
 
 /// Intermediate representation of a variable.
 /// This type represents what the user wants to save,
@@ -8,14 +12,40 @@ use std::{collections::HashMap, ops::Range, rc::Rc};
 #[derive(Debug)]
 pub struct Variable {
     pub pos: Range<usize>,
-    pub typ: Keyword,
+    pub typ: VariableType,
+}
+
+#[derive(Debug)]
+pub enum VariableType {
+    Value(Keyword),
+    Function(usize), // function id
+}
+
+impl VariableType {
+    pub fn to_keyword(&self) -> Keyword {
+        match *self {
+            Self::Value(keyword) => keyword,
+            Self::Function(_) => Keyword::Function,
+        }
+    }
 }
 
 #[derive(Debug)]
 pub struct StoredVariable {
-    pub pos: Range<usize>,
-    pub typ: Keyword,
-    pub stack_pos: usize,
+    variable: Variable,
+
+    // The stack_pos will be negative for
+    // arguments to functions, since
+    // they reside below `rbp`.
+    pub stack_pos: isize,
+}
+
+impl Deref for StoredVariable {
+    type Target = Variable;
+
+    fn deref(&self) -> &Self::Target {
+        &self.variable
+    }
 }
 
 #[derive(Debug)]
@@ -25,8 +55,14 @@ pub struct FunctionScope {
     pub variables: HashMap<String, Rc<StoredVariable>>,
     pub return_type: ReturnType,
 
-    // Keep track of assigned variables
+    // Keep track of assigned variables.
+    // Will grow by +1 for each declared variable.
     stack_pos: usize,
+
+    // Keep track of assigned parameters
+    // The value will grow negatively,
+    // since parameters reside below `rbp`.
+    par_pos: isize,
 }
 
 impl FunctionScope {
@@ -36,7 +72,12 @@ impl FunctionScope {
             scope: Scope::new(),
             variables: HashMap::new(),
             return_type,
-            stack_pos: 0,
+            stack_pos: 1,
+
+            // First two elements are
+            // old rbp and return address,
+            // therefore arguments start at -2.
+            par_pos: -3,
         }
     }
 
@@ -61,15 +102,25 @@ impl FunctionScope {
     }
 
     fn create_stored_variable(&mut self, variable: Variable) -> StoredVariable {
-        let variable = StoredVariable {
-            pos: variable.pos,
-            typ: variable.typ,
-            stack_pos: self.stack_pos,
+        let stored = StoredVariable {
+            variable,
+            stack_pos: self.stack_pos as isize,
         };
 
         self.stack_pos += 1;
 
-        variable
+        stored
+    }
+
+    fn create_stored_parameter(&mut self, variable: Variable) -> StoredVariable {
+        let stored = StoredVariable {
+            variable,
+            stack_pos: self.par_pos,
+        };
+
+        self.par_pos -= 1;
+
+        stored
     }
 
     /// Creates a stack allocated variable in the current function scope.
@@ -77,6 +128,20 @@ impl FunctionScope {
     /// Returns the stack position of the variable.
     pub fn create_variable(&mut self, identifier: String, variable: Variable) -> usize {
         let stored = Rc::new(self.create_stored_variable(variable));
+        let stack_pos = stored.stack_pos.try_into().unwrap();
+
+        self.variables.insert(
+            self.scope.get_scoped_variable_name(&identifier),
+            stored.clone(),
+        );
+        self.scope.insert_variable(identifier, stored);
+
+        stack_pos
+    }
+
+    /// Creates a stack allocated parameter similarly to `create_variable`.
+    pub fn create_parameter(&mut self, identifier: String, variable: Variable) -> isize {
+        let stored = Rc::new(self.create_stored_parameter(variable));
         let stack_pos = stored.stack_pos;
 
         self.variables.insert(
@@ -89,7 +154,11 @@ impl FunctionScope {
     }
 
     pub fn get_variable(&self, identifier: &String) -> Option<&StoredVariable> {
-        self.scope.get_variable(identifier)
+        self.scope.get_variable(identifier).or_else(|| {
+            self.parent
+                .as_ref()
+                .and_then(|parent| parent.get_variable(identifier))
+        })
     }
 }
 

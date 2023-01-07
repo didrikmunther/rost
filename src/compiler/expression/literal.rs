@@ -22,7 +22,7 @@ impl Program {
 
         Ok(Builder::new().push(Procedure::new(
             expression.pos.clone(),
-            ProcedureKind::Push(OperandValue::ByteLocation(last_index)),
+            ProcedureKind::Push(OperandValue::ByteLocation(last_index as isize)),
         )))
     }
 

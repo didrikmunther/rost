@@ -29,7 +29,7 @@ pub enum ProcedureKind {
     Comment(String),
     Allocate(usize), // Allocate a certain amount of variables on the stack
     Push(OperandValue),
-    Assign(usize), // Stack position of the variable to assign
+    Assign(isize), // Stack position of the variable to assign
     Arithmetic(Arithmetic),
     SystemCall(SystemCall),
     ProcedureCall(ProcedureCall),
@@ -113,7 +113,8 @@ pub struct GlobalData {
 
 #[derive(Debug)]
 pub enum OperandValue {
-    StackLocation(usize), // usize relative to stack
-    ByteLocation(usize),
+    StackLocation(isize), // usize relative to stack
+    ByteLocation(isize),
+    FunctionLocation(isize),
     Int(i32),
 }

@@ -138,6 +138,14 @@ impl<'a> Generator<'a> {
         format!("_data_{}", i)
     }
 
+    pub fn get_absolut_stack_location(&self, loc: isize) -> String {
+        format!(
+            "[rbp{}{}]",
+            if loc < 0 { '+' } else { '-' },
+            loc.abs() * 8
+        )
+    }
+
     fn add_header(&mut self) -> &mut Code {
         self.code
             .add(Row::Comment("[header]".into()))
@@ -148,11 +156,7 @@ impl<'a> Generator<'a> {
     }
 
     fn add_exit(&mut self) -> &mut Code {
-        // let stack_pos = self.code.stack_pos;
-
         self.code
-            // .add(Row::Comment("[reset root stack pointer]".into()))
-            // .add(Row::Add("rsp".into(), format!("{}", stack_pos * 8).into()))
             .add(Row::Comment("[exit program]".into()))
             .add(Row::Ret)
     }

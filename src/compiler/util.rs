@@ -7,7 +7,7 @@ use super::{
     builder::Builder,
     error::{CompilerError, CompilerErrorKind},
     program::Program,
-    scope::{StoredVariable, Variable},
+    scope::{StoredVariable, Variable, VariableType},
 };
 
 impl Program {
@@ -27,6 +27,12 @@ impl Program {
     /// Returns stack position of the stack allocated variable.
     pub fn create_variable(&mut self, identifier: String, variable: Variable) -> usize {
         self.function_scope.create_variable(identifier, variable)
+    }
+
+    /// Creates a stack allocated parameter to function.
+    /// Returns stack position of the stack allocated variable.
+    pub fn create_parameter(&mut self, identifier: String, variable: Variable) -> isize {
+        self.function_scope.create_parameter(identifier, variable)
     }
 
     pub fn infer_binary_result_type(
@@ -59,7 +65,7 @@ impl Program {
             ExpressionKind::Primary(primary) => match primary {
                 Primary::Identifier(ref identifier) => {
                     if let Some(variable) = self.get_variable(identifier) {
-                        Ok(variable.typ)
+                        Ok(variable.typ.to_keyword())
                     } else {
                         return Err(CompilerError::new(
                             expr.pos.clone(),
@@ -91,19 +97,23 @@ impl Program {
                 }
             }
             ExpressionKind::FunctionCall(call) => {
-                if let Some(function) = self.get_variable(&call.identifier) {
-                    return Ok(self
-                        .functions
-                        .get(function.stack_pos)
-                        .unwrap()
-                        .return_type
-                        .get_keyword_type());
-                } else {
+                let Some(function) = self.get_variable(&call.identifier) else {
                     return Err(CompilerError::new(
                         call.identifier_pos.clone(),
                         CompilerErrorKind::UndefinedFunction(call.identifier.clone()),
                     ));
-                }
+                };
+
+                let VariableType::Function(function_id) = function.typ else {
+                    todo!("Variable is not a function");
+                };
+
+                return Ok(self
+                    .functions
+                    .get(function_id)
+                    .unwrap()
+                    .return_type
+                    .get_keyword_type());
             }
         }
     }

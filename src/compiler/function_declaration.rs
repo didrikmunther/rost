@@ -2,9 +2,10 @@ use crate::parser::definition::{Declaration, FunctionDeclaration};
 
 use super::{
     builder::Builder,
-    definition::{Function, Procedure, ProcedureKind},
+    definition::{Function, OperandValue, Procedure, ProcedureKind},
     error::CompilerError,
     program::Program,
+    scope::{Variable, VariableType},
 };
 
 impl Program {
@@ -18,17 +19,17 @@ impl Program {
         let return_type = fdec.return_type.clone();
 
         let body = self.with_function_scope(return_type.clone(), |this| {
-            // for parameter in fdec.parameters.iter() {
-            //     this.create_variable(
-            //         parameter.identifier.clone(),
-            //         Variable {
-            //             pos: parameter.pos.clone(),
-            //             typ: parameter.typ,
-            //         },
-            //     );
+            for parameter in fdec.parameters.iter() {
+                this.create_parameter(
+                    parameter.identifier.clone(),
+                    Variable {
+                        pos: parameter.pos.clone(),
+                        typ: VariableType::Value(parameter.typ),
+                    },
+                );
 
-            //     this.stack_pos += 1;
-            // }
+                // this.stack_pos += 1;
+            }
 
             // Calling a function adds the RET address to the stack,
             // temporarily compensate for this here.
@@ -53,15 +54,22 @@ impl Program {
             return_type,
         });
 
-        // self.create_variable(
-        //     fdec.identifier.clone(),
-        //     Variable {
-        //         pos: statement.pos.clone(),
-        //         typ: Keyword::Function,
-        //     },
-        // );
+        let function_location = self.functions.len() - 1;
+
+        self.create_variable(
+            fdec.identifier.clone(),
+            Variable {
+                pos: statement.pos.clone(),
+                typ: VariableType::Function(function_location),
+            },
+        );
 
         self.stack_pos = old_stack_pos;
+
+        // let builder = Builder::new().push(Procedure::new(
+        //     statement.pos.clone(),
+        //     ProcedureKind::Push(OperandValue::FunctionLocation(function_location)),
+        // ));
 
         Ok(Builder::new())
     }

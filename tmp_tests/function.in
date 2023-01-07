@@ -1,35 +1,44 @@
-let a1 = 1
-let a2 = 1
-let a3 = 1
-let a4 = 1
-let a5 = 1
-let a6 = 1
-let a7 = 1000
+// let a1 = 1
+// let a2 = 1
+// let a3 = 1
+// let a4 = 1
+// let a5 = 1
+// let a6 = 1
+// let a7 = 1000
 
-fn none() {
-	printf("Hello\n")
+// fn none() {
+// 	printf("Hello\n")
+// }
+
+// fn a(b: int, c: int) {
+// 	let k = 150
+
+// 	printf("Ans_a1: %i\n", b)
+// 	printf("Ans_a2: %i\n", c)
+// 	printf("Ans_a3: %i\n", a7)
+// 	printf("Ans_a4: %i\n", k)
+// 	printf("Ans_a5: %i\n", k + c + b)
+// }
+
+// fn b(b: int, c: int) {
+// 	let k = 100
+
+// 	printf("Ans_b1: %i\n", b)
+// 	printf("Ans_b2: %i\n", c)
+// 	printf("Ans_b3: %i\n", a7)
+// 	printf("Ans_b4: %i\n", k)
+// 	printf("Ans_b5: %i\n", k + c + a7 + b)
+// }
+
+// none()
+// none()
+// a(2, 5)
+// b(1, 10)
+
+let out = 100
+
+fn a(b: int) {
+	printf("out: %i", out)
 }
 
-fn a(b: int, c: int) {
-	let k = 150
-
-	printf("Ans_a1: %i\n", b)
-	printf("Ans_a2: %i\n", c)
-	printf("Ans_a3: %i\n", a7)
-	printf("Ans_a4: %i\n", k)
-	printf("Ans_a5: %i\n", k + c + b)
-}
-
-fn b(b: int, c: int) {
-	let k = 100
-
-	printf("Ans_b1: %i\n", b)
-	printf("Ans_b2: %i\n", c)
-	printf("Ans_b3: %i\n", a7)
-	printf("Ans_b4: %i\n", k)
-	printf("Ans_b5: %i\n", k + c + a7 + b)
-}
-
-none()
-a(2, 5)
-b(1, 10)
+a(5555)
