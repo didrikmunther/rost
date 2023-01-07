@@ -5,13 +5,15 @@ use self::{code::Code, error::NasmError, generator::Generator};
 pub mod code;
 
 mod arithmetic;
+mod assign;
 mod data;
 mod error;
 mod function_call;
+mod function_declaration;
+mod function_return;
 mod generator;
 mod if_statement;
 mod push;
-mod reassign;
 mod row;
 mod while_statement;
 

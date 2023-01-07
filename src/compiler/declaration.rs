@@ -17,7 +17,7 @@ impl Program {
                 StatementKind::WhileStatement(while_statement) => {
                     self.handle_while_statement(statement, while_statement)
                 }
-                _ => todo!(),
+                StatementKind::ReturnStatement(ret_statement) => self.handle_return_statement(statement, ret_statement),
             },
             DeclarationKind::FunctionDeclaration(fn_declaration) => {
                 self.handle_function_declaration(declaration, fn_declaration)

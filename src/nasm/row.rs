@@ -41,6 +41,7 @@ pub enum Row {
     Comment(String),
     Extern(String),
     Move(String, String), // todo: types for numbers, registers, or labels
+    And(String, String), // todo: types for numbers, registers, or labels
     Xor(String, String),
     Section(String),
     Label(String),
@@ -81,6 +82,7 @@ impl Display for Row {
             Row::Comment(comment) => w(format_args!("\t; {}", *comment)),
             Row::Extern(ext) => w(format_args!("\textern {}", ext)),
             Row::Move(to, from) => w(format_args!("\tmov {}, {}", to, from)),
+            Row::And(to, from) => w(format_args!("\tand {}, {}", to, from)),
             Row::Xor(to, from) => w(format_args!("\txor {}, {}", to, from)),
             Row::Section(section) => w(format_args!("\n\tsection .{}", section)),
             Row::Label(label) => w(format_args!("{}:", label)),

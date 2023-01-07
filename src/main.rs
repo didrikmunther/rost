@@ -73,7 +73,7 @@ fn shell(settings: Settings) {
                     continue;
                 }
 
-                let compiled = parsed.and_then(|parsed| match compiler::compile(&parsed) {
+                let compiled = parsed.and_then(|parsed| match compiler::compile(parsed) {
                     Ok(code) => Some(code),
                     Err(err) => {
                         print_error(err.into());
@@ -150,7 +150,7 @@ fn run(settings: Settings) -> Option<Code> {
         return None;
     }
 
-    let compiled = parsed.and_then(|parsed| match compiler::compile(&parsed) {
+    let compiled = parsed.and_then(|parsed| match compiler::compile(parsed) {
         Ok(code) => Some(code),
         Err(err) => {
             print_error(err.into());

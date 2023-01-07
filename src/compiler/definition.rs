@@ -3,6 +3,8 @@ use std::{
     ops::Range,
 };
 
+use crate::parser::definition::ReturnType;
+
 use super::builder::Builder;
 
 #[derive(Debug)]
@@ -25,11 +27,13 @@ impl Procedure {
 #[derive(Debug)]
 pub enum ProcedureKind {
     Comment(String),
+    Allocate(usize), // Allocate a certain amount of variables on the stack
     Push(OperandValue),
-    Reassign(usize), // stack location
+    Assign(usize), // Stack position of the variable to assign
     Arithmetic(Arithmetic),
     SystemCall(SystemCall),
     ProcedureCall(ProcedureCall),
+    Return,
     If(Vec<If>),
     While(While),
 }
@@ -78,6 +82,13 @@ pub struct FunctionDefinition {
 }
 
 #[derive(Debug)]
+pub struct Function {
+    pub return_type: ReturnType,
+    pub npars: usize,
+    pub body: Builder,
+}
+
+#[derive(Debug)]
 pub struct SystemCall {
     pub identifier: String,
     pub nargs: usize,
@@ -87,6 +98,7 @@ pub struct SystemCall {
 pub struct ProcedureCall {
     pub function_id: usize,
     pub nargs: usize,
+    pub returns: bool, // If the called function returns a value
 }
 
 #[derive(Debug)]

@@ -100,15 +100,18 @@ impl<'a> Generator<'a> {
                 ProcedureKind::Comment(comment) => {
                     self.code.add(Row::Comment(comment.clone()));
                 }
-                ProcedureKind::ProcedureCall(procedure_call) => {
-                    self.handle_procedure_call(procedure, procedure_call)?
+                ProcedureKind::Allocate(size) => {
+                    self.code
+                        .add(Row::Subtract("rsp".into(), format!("{}", size * 8)));
                 }
                 ProcedureKind::SystemCall(system_call) => {
                     self.handle_system_call(procedure, system_call)?
                 }
-                ProcedureKind::Reassign(reassign) => {
-                    self.handle_reassign(*reassign)?;
+                ProcedureKind::ProcedureCall(procedure_call) => {
+                    self.handle_procedure_call(procedure, procedure_call)?
                 }
+                ProcedureKind::Return => self.handle_function_return(procedure)?,
+                ProcedureKind::Assign(stack_pos) => self.handle_assign(*stack_pos)?,
                 ProcedureKind::Push(operand) => self.handle_push(operand)?,
                 ProcedureKind::Arithmetic(arithmetic) => {
                     self.handle_arithmetic(&label, arithmetic)?
@@ -145,11 +148,11 @@ impl<'a> Generator<'a> {
     }
 
     fn add_exit(&mut self) -> &mut Code {
-        let stack_pos = self.code.stack_pos;
+        // let stack_pos = self.code.stack_pos;
 
         self.code
-            .add(Row::Comment("[reset root stack pointer]".into()))
-            .add(Row::Add("rsp".into(), format!("{}", stack_pos * 8).into()))
+            // .add(Row::Comment("[reset root stack pointer]".into()))
+            // .add(Row::Add("rsp".into(), format!("{}", stack_pos * 8).into()))
             .add(Row::Comment("[exit program]".into()))
             .add(Row::Ret)
     }
@@ -159,20 +162,7 @@ impl<'a> Generator<'a> {
             .add(Row::Comment("[enter function definitions]".into()));
 
         for (i, function) in self.program.functions.iter().enumerate() {
-            let name = Self::get_function_name(i);
-
-            let par_offset = 1 + function.npars; // Compensate for the return address on the stack from CALL instruction
-            let old_stack_pos = self.code.stack_pos;
-            self.code.stack_pos += par_offset; // Let the stack begin at the first argument of the function
-            
-            self.code.add(Row::Label(name.clone()));
-            self.add_block(|generator| {
-                generator.add_program(&function.body, &name)?;
-                Ok(())
-            })?;
-
-            self.code.stack_pos = old_stack_pos;
-            self.code.add(Row::Ret);
+            self.handle_function_declaration(i, function)?;
         }
 
         Ok(&mut self.code)

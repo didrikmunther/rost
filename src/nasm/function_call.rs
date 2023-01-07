@@ -46,20 +46,18 @@ impl<'a> Generator<'a> {
     ) -> Result<(), NasmError> {
         self.code
             .add(Row::Xor("rax".into(), "rax".into())) // Return value in rax, default 0
-            .add(Row::Call(Self::get_function_name(call.function_id)))
-            .add_with_comment(
-                Row::Add("rsp".into(), format!("{}", call.nargs * 8).into()),
-                "Resetting stack pointer after arguments to function".into(),
-            );
+            .add(Row::Call(Self::get_function_name(call.function_id)));
+            // .add_with_comment(
+            //     Row::Add("rsp".into(), format!("{}", call.nargs * 8).into()),
+            //     "Resetting stack pointer after arguments to function".into(),
+            // );
 
-        /*
-            Reset stack to be one element before the first argument
-            Todo: when function return values, should overwrite the arguments and offset the stack higher
-            Example:
-            Arguments:     a1, a2, a3, a4 | <- stack pointer
-            Return values: r1, r2 | <- stack pointer
-        */
-        self.code.stack_pos -= call.nargs;
+        if call.returns {
+            self.code.add(Row::Push("rax".into()));
+        }
+
+        // Reset stack to be one element before the first argument
+        // self.code.stack_pos -= call.nargs;
 
         Ok(())
     }

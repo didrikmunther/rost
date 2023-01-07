@@ -31,24 +31,22 @@ impl Program {
             }
 
             let function_id = variable.stack_pos; // stack_pos is used as an index to the function vector (temporary hack)
+            let function = self.functions.get(variable.stack_pos).unwrap();
 
-            if let Some(function) = self.functions.get(variable.stack_pos) {
-                if function.npars != fcall.args.len() {
-                    panic!(
-                        "Wrong number of arguments to function, takes {}, {} was given",
-                        function.npars,
-                        fcall.args.len()
-                    )
-                }
-            } else {
-                unreachable!()
+            if function.npars != fcall.args.len() {
+                todo!(
+                    "Wrong number of arguments to function, takes {}, {} was given",
+                    function.npars,
+                    fcall.args.len()
+                )
             }
 
             builder = builder.push(Procedure::new(
                 expression.pos.clone(),
                 ProcedureKind::ProcedureCall(ProcedureCall {
-                    nargs: fcall.args.len(),
                     function_id,
+                    nargs: fcall.args.len(),
+                    returns: function.return_type.returns(),
                 }),
             ));
         } else if BUILT_IN.contains(&fcall.identifier.as_str()) {

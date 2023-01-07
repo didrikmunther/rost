@@ -6,6 +6,7 @@ use super::row::{CodeRow, Row};
 pub struct Code {
     pub rows: Vec<CodeRow>,
     pub stack_pos: usize,
+    pub function_start_pos: Option<usize>, // If we are in a function, where is the starting position?
 }
 
 impl Code {
@@ -13,6 +14,7 @@ impl Code {
         Self {
             rows: Vec::new(),
             stack_pos: 0,
+            function_start_pos: None,
         }
     }
 
@@ -28,6 +30,7 @@ impl Code {
                 .map(|v| v.clone())
                 .collect(),
             stack_pos: self.stack_pos,
+            function_start_pos: None,
         }
     }
 
@@ -61,11 +64,14 @@ impl Code {
                     }
                     (Row::Move(a1, a2), Row::Move(b1, b2)) => {
                         if a1 == b2 {
-                            code.add_with_comment(Row::Move(b1.clone(), a2.clone()), "Optimized: removed mov / mov, added mov".into());
+                            code.add_with_comment(
+                                Row::Move(b1.clone(), a2.clone()),
+                                "Optimized: removed mov / mov, added mov".into(),
+                            );
                             prev = None;
                             continue;
                         }
-                    },
+                    }
                     // Todo: ADD _, 0
                     // Todo: SUB _, 0
                     _ => {}
@@ -87,6 +93,7 @@ impl Code {
             Self {
                 rows: code.rows,
                 stack_pos: self.stack_pos,
+                function_start_pos: self.function_start_pos,
             },
             removed,
         )
@@ -121,26 +128,15 @@ impl Code {
     where
         F: FnOnce(&mut Self) -> &mut Self,
     {
-        let dummy = self.stack_pos % 2 == 0;
+        self.add(Row::Comment("Aligning stack to 16".into()))
+            .add(Row::Move("rax".into(), "rsp".into()))
+            .add(Row::And("rsp".into(), "-16".into()))
+            .add(Row::Subtract("rsp".into(), "8".into()))
+            .add(Row::Push("rax".into()));
 
-        if dummy {
-            self.add_with_comment(Row::Push("0".into()), format!("Dummy alignment"));
-            self.stack_pos += 1;
-        }
+        inner(self);
 
-        let this = inner(self);
-
-        if dummy {
-            this.add_with_comment(Row::Pop("rdx".into()), format!("Removing dummy alignment"));
-            this.stack_pos -= 1;
-        }
-
-        this
-    }
-
-    pub fn add_with_stack<F: FnOnce(usize) -> Row>(&mut self, row_generator: F) -> &mut Self {
-        let row = row_generator(self.stack_pos);
-        self.add(row)
+        self.add(Row::Pop("rsp".into()))
     }
 
     pub fn add_with_comment(&mut self, row: Row, comment: String) -> &mut Self {

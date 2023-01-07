@@ -1,0 +1,39 @@
+// // fn a() -> int {
+// // 	return 1
+// // }
+
+// // let r = a()
+// // printf("%i\n", r)
+
+// let a1 = 1
+// let a2 = 1
+// let a3 = 1
+// let a4 = 1
+// let a5 = 1
+// let a6 = 1
+// let a7 = 1000
+
+// fn a(b: int, c: int) -> int {
+// 	let k = 150
+
+// 	if(k > 10) {
+// 		printf("LESS")
+// 		let abc = 1
+// 		return 100000
+// 	}
+
+// 	// return k + b + c
+// 	return 1
+// }
+
+// fn b(b: int, c: int) -> int {
+// 	let k = 100
+// 	// return k + b + c + a7
+// 	return 2
+// }
+
+// let g = a(2, 5)
+// let t = b(g, 10)
+
+// printf("%i\n", g)
+// printf("%i\n", t)

@@ -24,11 +24,34 @@ pub struct FunctionDeclarationParameter {
     pub pos: Range<usize>,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum ReturnType {
+    None,
+    Int,
+    Identifier(String),
+}
+
+impl ReturnType {
+    // Todo: Real type system with custom types
+    pub fn get_keyword_type(&self) -> Keyword {
+        match self {
+            ReturnType::Int => Keyword::Int,
+            _ => todo!(),
+        }
+    }
+
+    /// If the return type is not None
+    pub fn returns(&self) -> bool {
+        *self != ReturnType::None
+    }
+}
+
 #[derive(Debug)]
 pub struct FunctionDeclaration {
     pub identifier: String,
     pub parameters: Vec<FunctionDeclarationParameter>,
     pub content: Vec<Declaration>,
+    pub return_type: ReturnType,
 }
 
 #[derive(Debug)]
@@ -53,7 +76,7 @@ pub enum StatementKind {
     Assignment(Assignment),
     IfStatements(Vec<IfStatement>),
     WhileStatement(WhileStatement),
-    Return(Return),
+    ReturnStatement(ReturnStatement),
 }
 
 #[derive(Debug)]
@@ -69,7 +92,7 @@ pub struct IfStatement {
 }
 
 #[derive(Debug)]
-pub struct Return {
+pub struct ReturnStatement {
     pub value: Box<Expression>,
 }
 
@@ -92,7 +115,7 @@ pub struct FunctionCall {
     pub identifier: String,
     pub args: Vec<Box<Expression>>,
     pub identifier_pos: Range<usize>,
-    pub parameters_pos: Range<usize>
+    pub parameters_pos: Range<usize>,
 }
 
 #[derive(Debug)]

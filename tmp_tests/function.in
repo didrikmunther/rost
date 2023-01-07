@@ -6,6 +6,10 @@ let a5 = 1
 let a6 = 1
 let a7 = 1000
 
+fn none() {
+	printf("Hello\n")
+}
+
 fn a(b: int, c: int) {
 	let k = 150
 
@@ -26,5 +30,6 @@ fn b(b: int, c: int) {
 	printf("Ans_b5: %i\n", k + c + a7 + b)
 }
 
+none()
 a(2, 5)
 b(1, 10)

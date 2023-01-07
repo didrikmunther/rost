@@ -13,10 +13,11 @@ mod expression;
 mod function_call;
 mod function_declaration;
 mod if_statement;
+mod return_statement;
 mod scope;
 mod util;
 mod while_statement;
 
-pub fn compile(parsed: &Vec<Declaration>) -> Result<Program, CompilerError> {
+pub fn compile<'a>(parsed: Vec<Declaration>) -> Result<Program, CompilerError> {
     Program::new().compile(parsed)
 }

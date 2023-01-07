@@ -69,7 +69,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn advance(&mut self) {
+    pub fn advance(&mut self) {
         self.index += 1;
     }
 

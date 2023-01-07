@@ -21,9 +21,7 @@ impl Program {
             _ => todo!("error"),
         };
 
-        self.new_scope();
-        let content = self.get_procedures(&while_statement.content)?;
-        self.close_scope();
+        let content = self.with_scope(|this| this.get_procedures(&while_statement.content))?;
 
         let builder = Builder::new().push(Procedure::new(
             statement.pos.clone(),

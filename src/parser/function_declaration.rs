@@ -1,7 +1,9 @@
 use crate::lexer::{Keyword, Token};
 
 use super::{
-    definition::{Declaration, DeclarationKind, FunctionDeclaration, FunctionDeclarationParameter},
+    definition::{
+        Declaration, DeclarationKind, FunctionDeclaration, FunctionDeclarationParameter, ReturnType,
+    },
     error::{ParserError, ParserErrorKind},
     parser::Parser,
     util::get_block_identifier,
@@ -34,6 +36,26 @@ impl<'a> Parser<'a> {
 
                 if let None = self.get(&[Keyword::Comma]) {
                     if let Some(close) = self.get(&[Keyword::ParRight]) {
+                        let return_type = self
+                            .get(&[Keyword::Arrow])
+                            .map(|_| {
+                                let next = self.peek_or_eof()?;
+                                self.advance();
+
+                                Ok(match &next.token {
+                                    Token::Keyword(keyword) => match keyword {
+                                        Keyword::Int => ReturnType::Int,
+                                        _ => todo!("Unknown type"),
+                                    },
+                                    Token::Identifier(identifier) => {
+                                        ReturnType::Identifier(identifier.clone())
+                                    }
+                                    _ => todo!("Unknown type"),
+                                })
+                            })
+                            .transpose()?
+                            .unwrap_or(ReturnType::None);
+
                         self.expect(&[Keyword::BracketLeft])?;
                         let mut content: Vec<Declaration> = Vec::new();
 
@@ -47,6 +69,7 @@ impl<'a> Parser<'a> {
                                 identifier,
                                 parameters,
                                 content,
+                                return_type,
                             }),
                         });
                     }

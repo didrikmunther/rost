@@ -11,7 +11,13 @@ use super::{
 impl Program {
     pub fn handle_assignment(&mut self, assignment: &Assignment) -> Result<Builder, CompilerError> {
         let expr = self.handle_expression(&assignment.value)?;
-        let mut builder = Builder::new().append(expr);
+
+        let builder = Builder::new()
+            .push(Procedure::new(
+                assignment.identifier_pos.clone(),
+                ProcedureKind::Comment(format!("Assignment: {}", assignment.identifier.clone())),
+            ))
+            .append(expr);
 
         if let Some(variable) = self.get_variable(&assignment.identifier) {
             if assignment.is_new {
@@ -24,7 +30,6 @@ impl Program {
                 ));
             } else {
                 let assignment_type = self.infer_type(&assignment.value)?;
-
                 if assignment_type != variable.typ {
                     return Err(CompilerError::new(
                         assignment.value_pos.clone(),
@@ -38,11 +43,8 @@ impl Program {
 
                 return Ok(builder.push(Procedure {
                     pos: assignment.identifier_pos.start..assignment.value_pos.end,
-                    kind: ProcedureKind::Reassign(variable.stack_pos),
-                    comment: Some(format!(
-                        "Reassign: {}, stack: {}",
-                        assignment.identifier, variable.stack_pos
-                    )),
+                    comment: Some(format!("Reassign: {}", assignment.identifier)),
+                    kind: ProcedureKind::Assign(variable.stack_pos),
                 }));
             }
         } else if !assignment.is_new {
@@ -66,27 +68,21 @@ impl Program {
                 }
             }
 
-            self.insert_variable(
+            let stack_pos = self.create_variable(
                 assignment.identifier.clone(),
                 Variable {
                     pos: assignment.identifier_pos.clone(),
                     typ: infered,
-                    stack_pos: self.stack_pos,
                 },
             );
+
+            return Ok(builder.push(Procedure {
+                pos: assignment.identifier_pos.start..assignment.value_pos.end,
+                comment: Some(format!("Assign: {}", assignment.identifier)),
+                kind: ProcedureKind::Assign(stack_pos),
+            }));
         }
 
-        builder = builder.push(Procedure::new(
-            assignment.identifier_pos.clone(),
-            ProcedureKind::Comment(format!(
-                "Assignment: {}, stack: {}",
-                assignment.identifier.clone(),
-                self.stack_pos
-            )),
-        ));
-
-        self.stack_pos += 1;
-
-        Ok(builder)
+        todo!("this should not happen")
     }
 }

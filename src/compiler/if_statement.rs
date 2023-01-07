@@ -29,9 +29,7 @@ impl Program {
                 })?
                 .map(Box::new);
 
-            self.new_scope();
-            let content = self.get_procedures(&if_statement.content)?;
-            self.close_scope();
+            let content = self.with_scope(|this| this.get_procedures(&if_statement.content))?;
 
             ifs.push(If {
                 condition,

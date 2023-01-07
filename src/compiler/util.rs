@@ -7,10 +7,10 @@ use super::{
     builder::Builder,
     error::{CompilerError, CompilerErrorKind},
     program::Program,
-    scope::Variable,
+    scope::{StoredVariable, Variable},
 };
 
-impl<'a> Program {
+impl Program {
     pub fn get_procedures(&mut self, content: &Vec<Declaration>) -> Result<Builder, CompilerError> {
         content
             .iter()
@@ -19,12 +19,14 @@ impl<'a> Program {
             })
     }
 
-    pub fn get_variable(&'a self, identifier: &String) -> Option<&'a Variable> {
-        self.scope.get_variable(identifier)
+    pub fn get_variable(&self, identifier: &String) -> Option<&StoredVariable> {
+        self.function_scope.get_variable(identifier)
     }
 
-    pub fn insert_variable(&'a mut self, identifier: String, variable: Variable) {
-        self.scope.insert_variable(identifier, variable)
+    /// Creates a stack allocated variable.
+    /// Returns stack position of the stack allocated variable.
+    pub fn create_variable(&mut self, identifier: String, variable: Variable) -> usize {
+        self.function_scope.create_variable(identifier, variable)
     }
 
     pub fn infer_binary_result_type(
@@ -88,7 +90,21 @@ impl<'a> Program {
                     ));
                 }
             }
-            _ => todo!(),
+            ExpressionKind::FunctionCall(call) => {
+                if let Some(function) = self.get_variable(&call.identifier) {
+                    return Ok(self
+                        .functions
+                        .get(function.stack_pos)
+                        .unwrap()
+                        .return_type
+                        .get_keyword_type());
+                } else {
+                    return Err(CompilerError::new(
+                        call.identifier_pos.clone(),
+                        CompilerErrorKind::UndefinedFunction(call.identifier.clone()),
+                    ));
+                }
+            }
         }
     }
 }
