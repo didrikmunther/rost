@@ -4,7 +4,7 @@ use crate::parser::definition::ReturnType;
 
 use super::{
     scope::Scope,
-    variable::{StoredVariable, Variable},
+    variable::{StoredVariable, Variable, VariableLocation},
     ProgramScope,
 };
 
@@ -64,7 +64,7 @@ impl FunctionScope {
     fn create_stored_variable(&mut self, variable: Variable) -> StoredVariable {
         let stored = StoredVariable {
             variable,
-            stack_pos: self.stack_pos as isize,
+            location: VariableLocation::Stack(self.stack_pos as isize),
         };
 
         self.stack_pos += 1;
@@ -75,7 +75,7 @@ impl FunctionScope {
     fn create_stored_parameter(&mut self, variable: Variable) -> StoredVariable {
         let stored = StoredVariable {
             variable,
-            stack_pos: self.par_pos,
+            location: VariableLocation::Stack(self.par_pos),
         };
 
         self.par_pos -= 1;
@@ -85,10 +85,10 @@ impl FunctionScope {
 
     /// Creates a stack allocated variable in the current function scope.
     /// Also adds it to the current scope variable lookup.
-    /// Returns the stack position of the variable.
-    pub fn create_variable(&mut self, identifier: String, variable: Variable) -> usize {
+    /// Returns the location of the variable.
+    pub fn create_variable(&mut self, identifier: String, variable: Variable) -> VariableLocation {
         let stored = Rc::new(self.create_stored_variable(variable));
-        let stack_pos = stored.stack_pos.try_into().unwrap();
+        let location = stored.location.clone();
 
         self.variables.insert(
             self.scope.get_scoped_variable_name(&identifier),
@@ -96,13 +96,13 @@ impl FunctionScope {
         );
         self.scope.insert_variable(identifier, stored);
 
-        stack_pos
+        location
     }
 
     /// Creates a stack allocated parameter similarly to `create_variable`.
-    pub fn create_parameter(&mut self, identifier: String, variable: Variable) -> isize {
+    pub fn create_parameter(&mut self, identifier: String, variable: Variable) -> VariableLocation {
         let stored = Rc::new(self.create_stored_parameter(variable));
-        let stack_pos = stored.stack_pos;
+        let location = stored.location.clone();
 
         self.variables.insert(
             self.scope.get_scoped_variable_name(&identifier),
@@ -110,10 +110,17 @@ impl FunctionScope {
         );
         self.scope.insert_variable(identifier, stored);
 
-        stack_pos
+        location
     }
 
     pub fn get_variable(&self, identifier: &String) -> Option<&StoredVariable> {
-        self.scope.get_variable(identifier)
+        self.scope.get_variable(identifier).or_else(|| {
+            self.parent
+                .as_ref()
+                .and_then(|parent| match parent.as_ref() {
+                    ProgramScope::RootScope(root_scope) => root_scope.get_variable(identifier),
+                    _ => None,
+                })
+        })
     }
 }

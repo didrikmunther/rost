@@ -47,6 +47,22 @@ impl Code {
                 continue;
             }
 
+            match &row.row {
+                Row::Subtract(_, v) | Row::Add(_, v) => {
+                    if v.eq("0") {
+                        code.add(Row::Comment("Optimized: removed sub/add 0".into()));
+                        continue;
+                    }
+                },
+                Row::Move(a, b) => {
+                    if a.eq(b) {
+                        code.add(Row::Comment("Optimized: removed identical moves".into()));
+                        continue;
+                    }
+                }
+                _ => {}
+            }
+
             if let Some(prev_row) = prev {
                 match (&prev_row.row, &row.row) {
                     (Row::Push(push), Row::Pop(pop)) => {

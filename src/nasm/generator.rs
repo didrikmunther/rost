@@ -111,7 +111,7 @@ impl<'a> Generator<'a> {
                     self.handle_procedure_call(procedure, procedure_call)?
                 }
                 ProcedureKind::Return => self.handle_function_return(procedure)?,
-                ProcedureKind::Assign(stack_pos) => self.handle_assign(*stack_pos)?,
+                ProcedureKind::Assign(location) => self.handle_assign(location)?,
                 ProcedureKind::Push(operand) => self.handle_push(operand)?,
                 ProcedureKind::Arithmetic(arithmetic) => {
                     self.handle_arithmetic(&label, arithmetic)?
@@ -138,7 +138,7 @@ impl<'a> Generator<'a> {
         format!("_data_{}", i)
     }
 
-    pub fn get_absolut_stack_location(&self, loc: isize) -> String {
+    pub fn get_absolute_stack_location(&self, loc: isize) -> String {
         format!("[rbp{}{}]", if loc < 0 { '+' } else { '-' }, loc.abs() * 8)
     }
 

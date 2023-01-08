@@ -1,13 +1,18 @@
+use crate::compiler::definition::GlobalData;
+
 use super::{code::Code, generator::Generator, row::Row};
 
 impl<'a> Generator<'a> {
     pub fn add_data(&mut self) -> &mut Code {
         self.code.add(Row::Section("data".into()));
 
-        for (i, data) in self.program.global_data.iter().enumerate() {
-            self.code
-                .add(Row::Label(Self::get_data_name(i)))
-                .add(Row::DeclareStaticString(data.content.clone()));
+        for (label, data) in self.program.global_data.iter() {
+            self.code.add(Row::Label(label.clone()));
+
+            match data {
+                GlobalData::String(s) => self.code.add(Row::DeclareStaticString(s.clone())),
+                GlobalData::Int(i) => self.code.add(Row::DeclareStaticInt(*i)),
+            };
         }
 
         &mut self.code

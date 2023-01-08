@@ -26,14 +26,21 @@ impl VariableType {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum VariableLocation {
+    // The stack position will be negative for
+    // arguments to functions, since
+    // they reside below `rbp`.
+    Stack(isize),
+
+    // Name of global label
+    Global(String)
+}
+
 #[derive(Debug)]
 pub struct StoredVariable {
     pub variable: Variable,
-
-    // The stack_pos will be negative for
-    // arguments to functions, since
-    // they reside below `rbp`.
-    pub stack_pos: isize,
+    pub location: VariableLocation
 }
 
 impl Deref for StoredVariable {

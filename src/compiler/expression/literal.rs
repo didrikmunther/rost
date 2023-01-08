@@ -15,14 +15,15 @@ impl Program {
         expression: &Expression,
         string: &String,
     ) -> Result<Builder, CompilerError> {
-        self.global_data.push(GlobalData {
-            content: string.clone(),
-        });
-        let last_index = self.global_data.len() - 1;
+        let label = format!("_literal_{}", self.literal_index);
+        self.literal_index += 1;
+
+        self.global_data
+            .insert(label.clone(), GlobalData::String(string.clone()));
 
         Ok(Builder::new().push(Procedure::new(
             expression.pos.clone(),
-            ProcedureKind::Push(OperandValue::ByteLocation(last_index as isize)),
+            ProcedureKind::Push(OperandValue::DataPointerLocation(label)),
         )))
     }
 

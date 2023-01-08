@@ -44,7 +44,7 @@ impl Program {
                 return Ok(builder.push(Procedure {
                     pos: assignment.identifier_pos.start..assignment.value_pos.end,
                     comment: Some(format!("Reassign: {}", assignment.identifier)),
-                    kind: ProcedureKind::Assign(variable.stack_pos),
+                    kind: ProcedureKind::Assign(variable.location.clone()),
                 }));
             }
         } else if !assignment.is_new {
@@ -68,7 +68,7 @@ impl Program {
                 }
             }
 
-            let stack_pos = self.create_variable(
+            let variable_location = self.create_variable(
                 assignment.identifier.clone(),
                 Variable {
                     pos: assignment.identifier_pos.clone(),
@@ -79,7 +79,7 @@ impl Program {
             return Ok(builder.push(Procedure {
                 pos: assignment.identifier_pos.start..assignment.value_pos.end,
                 comment: Some(format!("Assign: {}", assignment.identifier)),
-                kind: ProcedureKind::Assign(stack_pos as isize),
+                kind: ProcedureKind::Assign(variable_location.clone()),
             }));
         }
 

@@ -5,6 +5,7 @@ use self::{error::CompilerError, program::Program};
 pub mod builder;
 pub mod definition;
 pub mod program;
+pub mod scope;
 
 mod assignment;
 mod declaration;
@@ -14,7 +15,6 @@ mod function_call;
 mod function_declaration;
 mod if_statement;
 mod return_statement;
-mod scope;
 mod util;
 mod while_statement;
 

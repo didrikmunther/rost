@@ -1,6 +1,6 @@
-fn main() {
-	let a = 0
+let a = 0
 
+fn main() {
 	while(a < 20) {
 		let b = a + 100
 		printf("%i\n", a)

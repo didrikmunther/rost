@@ -8,7 +8,7 @@ use super::{
     error::{CompilerError, CompilerErrorKind},
     program::Program,
     scope::{
-        variable::{StoredVariable, Variable, VariableType},
+        variable::{StoredVariable, Variable, VariableType, VariableLocation},
         ProgramScope,
     },
 };
@@ -31,7 +31,7 @@ impl Program {
 
     /// Creates a stack allocated variable.
     /// Returns stack position of the stack allocated variable.
-    pub fn create_variable(&mut self, identifier: String, variable: Variable) -> usize {
+    pub fn create_variable(&mut self, identifier: String, variable: Variable) -> VariableLocation {
         match &mut self.scope {
             ProgramScope::RootScope(scope) => scope.create_variable(identifier, variable),
             ProgramScope::FunctionScope(scope) => scope.create_variable(identifier, variable),

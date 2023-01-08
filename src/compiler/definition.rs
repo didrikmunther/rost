@@ -5,7 +5,7 @@ use std::{
 
 use crate::parser::definition::ReturnType;
 
-use super::builder::Builder;
+use super::{builder::Builder, scope::variable::VariableLocation};
 
 #[derive(Debug)]
 pub struct Procedure {
@@ -29,7 +29,7 @@ pub enum ProcedureKind {
     Comment(String),
     Allocate(usize), // Allocate a certain amount of variables on the stack
     Push(OperandValue),
-    Assign(isize), // Stack position of the variable to assign
+    Assign(VariableLocation), // Stack position of the variable to assign
     Arithmetic(Arithmetic),
     SystemCall(SystemCall),
     ProcedureCall(ProcedureCall),
@@ -107,13 +107,15 @@ pub struct Assignment {
 }
 
 #[derive(Debug)]
-pub struct GlobalData {
-    pub content: String, // todo: can be all sorts of bytes
+pub enum GlobalData {
+    String(String),
+    Int(isize),
 }
 
 #[derive(Debug)]
 pub enum OperandValue {
     StackLocation(isize), // usize relative to stack
-    ByteLocation(isize),
+    DataLocation(String),
+    DataPointerLocation(String),
     Int(i32),
 }
