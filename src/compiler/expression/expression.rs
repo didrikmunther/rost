@@ -6,19 +6,44 @@ use crate::{
         program::Program,
     },
     lexer::Keyword,
-    parser::definition::{Binary, Expression, ExpressionKind, Unary},
+    parser::definition::{Binary, Expression, ExpressionKind, Primary, Unary},
 };
 
 impl Program {
-    pub fn handle_unary(
+    fn handle_deref(
         &mut self,
+        _complete_expression: &Expression,
         expression: &Expression,
-        binary: &Unary,
     ) -> Result<Builder, CompilerError> {
-        todo!()
+        match &expression.kind {
+            ExpressionKind::Primary(primary) => match &primary {
+                Primary::Identifier(identifier) => {
+                    return Ok(Builder::new().append(self.handle_identifier(
+                        expression,
+                        &identifier,
+                        true,
+                    )?));
+                }
+                _ => todo!("Not supported"),
+            },
+            _ => todo!("Not supported"),
+        }
     }
 
-    pub fn handle_binary(
+    fn handle_unary(
+        &mut self,
+        expression: &Expression,
+        unary: &Unary,
+    ) -> Result<Builder, CompilerError> {
+        match unary.operator {
+            Keyword::Ampersand => {
+                return self.handle_deref(expression, &unary.expr);
+            }
+            _ => todo!("Not supported"),
+        }
+    }
+
+    fn handle_binary(
         &mut self,
         expression: &Expression,
         binary: &Binary,
@@ -31,7 +56,7 @@ impl Program {
             Keyword::LessThan => Arithmetic::LessThan,
             Keyword::GreaterThan => Arithmetic::GreaterThan,
             Keyword::Equality => Arithmetic::Equality,
-            _ => todo!(),
+            _ => todo!("Not supported"),
         };
 
         Ok(Builder::new()

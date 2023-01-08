@@ -1,7 +1,6 @@
 use ::std::io::Write;
 use std::{env, fs, process::exit};
 
-use language_server::server;
 use nasm::code::Code;
 
 use crate::error::RostError;
@@ -248,10 +247,6 @@ fn main() -> std::io::Result<()> {
                 }
             }
         }
-    }
-
-    if settings.lsp {
-        return server::run();
     }
 
     if settings.run_shell && settings.file.is_some() {

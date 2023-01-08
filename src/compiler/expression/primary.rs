@@ -11,7 +11,7 @@ impl Program {
     ) -> Result<Builder, CompilerError> {
         match primary {
             Primary::Literal(literal) => self.handle_literal(expression, literal),
-            Primary::Identifier(identifier) => self.handle_identifier(expression, identifier),
+            Primary::Identifier(identifier) => self.handle_identifier(expression, identifier, false),
         }
     }
 }

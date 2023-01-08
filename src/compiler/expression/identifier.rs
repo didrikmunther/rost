@@ -11,20 +11,23 @@ use crate::{
 };
 
 impl Program {
+    /// Pushes the value of the identifier to the stack.
+    /// If `load_address`, uses `LEA` instead of `MOV`
     pub fn handle_identifier(
         &mut self,
         expression: &Expression,
         identifier: &String,
+        load_address: bool,
     ) -> Result<Builder, CompilerError> {
         if let Some(variable) = self.get_variable(identifier) {
-            let is_pointer = match &variable.typ {
-                VariableType::Value(typ) => *typ == Keyword::String,
-                _ => false,
-            };
-
             let operand_value = match &variable.location {
                 VariableLocation::Stack(loc) => OperandValue::StackLocation(*loc),
                 VariableLocation::Global(label) => {
+                    let is_pointer = match &variable.typ {
+                        VariableType::Pointer(_) => true,
+                        _ => false,
+                    };
+
                     if is_pointer {
                         OperandValue::DataPointerLocation(label.clone())
                     } else {
@@ -33,10 +36,13 @@ impl Program {
                 }
             };
 
-            Ok(Builder::new().push(Procedure::new(
-                expression.pos.clone(),
-                ProcedureKind::Push(operand_value),
-            )))
+            let operation = if load_address {
+                ProcedureKind::PushAddress(operand_value)
+            } else {
+                ProcedureKind::Push(operand_value)
+            };
+
+            Ok(Builder::new().push(Procedure::new(expression.pos.clone(), operation)))
         } else {
             return Err(CompilerError::new(
                 expression.pos.clone(),
