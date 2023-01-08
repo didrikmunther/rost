@@ -139,11 +139,7 @@ impl<'a> Generator<'a> {
     }
 
     pub fn get_absolut_stack_location(&self, loc: isize) -> String {
-        format!(
-            "[rbp{}{}]",
-            if loc < 0 { '+' } else { '-' },
-            loc.abs() * 8
-        )
+        format!("[rbp{}{}]", if loc < 0 { '+' } else { '-' }, loc.abs() * 8)
     }
 
     fn add_header(&mut self) -> &mut Code {
@@ -153,11 +149,17 @@ impl<'a> Generator<'a> {
             .add(Row::Extern("printf".into()))
             .add(Row::Section("text".into()))
             .add(Row::Label("main".into()))
+            .add(Row::Comment("Save base pointer".into()))
+            .add(Row::Push("rbp".into()))
+            .add(Row::Move("rbp".into(), "rsp".into()))
     }
 
     fn add_exit(&mut self) -> &mut Code {
         self.code
             .add(Row::Comment("[exit program]".into()))
+            .add(Row::Comment("Restore base pointer".into()))
+            .add(Row::Move("rsp".into(), "rbp".into()))
+            .add(Row::Pop("rbp".into()))
             .add(Row::Ret)
     }
 

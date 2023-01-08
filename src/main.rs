@@ -1,12 +1,14 @@
 use ::std::io::Write;
 use std::{env, fs, process::exit};
 
+use language_server::server;
 use nasm::code::Code;
 
 use crate::error::RostError;
 
 mod compiler;
 mod error;
+mod language_server;
 mod lexer;
 mod nasm;
 mod parser;
@@ -184,6 +186,7 @@ fn run(settings: Settings) -> Option<Code> {
 struct Settings {
     pub optimize: bool,
     pub remove_comments: bool,
+    pub lsp: bool,
     pub file: Option<String>,
     pub shell_level: ShellLevel,
     pub run_shell: bool,
@@ -197,11 +200,12 @@ impl Default for Settings {
             file: None,
             shell_level: ShellLevel::End,
             run_shell: false,
+            lsp: false,
         }
     }
 }
 
-fn main() {
+fn main() -> std::io::Result<()> {
     let args = env::args().skip(1).collect::<Vec<_>>();
     let mut settings = Settings::default();
 
@@ -210,6 +214,7 @@ fn main() {
         i += 1;
 
         match arg.as_str() {
+            "-lsp" => settings.lsp = true,
             "-no-comments" => settings.remove_comments = true,
             "-no-optimize" => settings.optimize = false,
             "-s" => settings.run_shell = true,
@@ -245,6 +250,10 @@ fn main() {
         }
     }
 
+    if settings.lsp {
+        return server::run();
+    }
+
     if settings.run_shell && settings.file.is_some() {
         println!("Cannot use input file while running shell");
         exit(-1);
@@ -261,4 +270,6 @@ fn main() {
 
         exit(1);
     }
+
+    Ok(())
 }

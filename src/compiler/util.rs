@@ -7,7 +7,7 @@ use super::{
     builder::Builder,
     error::{CompilerError, CompilerErrorKind},
     program::Program,
-    scope::{StoredVariable, Variable, VariableType},
+    scope::{StoredVariable, Variable, VariableType, ProgramScope},
 };
 
 impl Program {
@@ -20,20 +20,28 @@ impl Program {
     }
 
     pub fn get_variable(&self, identifier: &String) -> Option<&StoredVariable> {
-        self.function_scope.get_variable(identifier)
+        match &self.scope {
+            ProgramScope::RootScope(scope) => {
+                scope.get_variable(identifier)
+            }
+        }
     }
 
     /// Creates a stack allocated variable.
     /// Returns stack position of the stack allocated variable.
     pub fn create_variable(&mut self, identifier: String, variable: Variable) -> usize {
-        self.function_scope.create_variable(identifier, variable)
+        match &mut self.scope {
+            ProgramScope::RootScope(scope) => {
+                scope.create_variable(identifier, variable)
+            }
+        }
     }
 
-    /// Creates a stack allocated parameter to function.
-    /// Returns stack position of the stack allocated variable.
-    pub fn create_parameter(&mut self, identifier: String, variable: Variable) -> isize {
-        self.function_scope.create_parameter(identifier, variable)
-    }
+    // /// Creates a stack allocated parameter to function.
+    // /// Returns stack position of the stack allocated variable.
+    // pub fn create_parameter(&mut self, identifier: String, variable: Variable) -> isize {
+    //     self.function_scope.create_parameter(identifier, variable)
+    // }
 
     pub fn infer_binary_result_type(
         &self,

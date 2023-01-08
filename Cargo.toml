@@ -8,3 +8,8 @@ edition = "2021"
 [dependencies]
 phf = { version = "0.11", features = ["macros"] }
 itertools = "0.10.2"
+
+# Language server
+actix-web = "4"
+json = "0.12"
+serde = { version = "1.0", features = ["derive"] }

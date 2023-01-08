@@ -115,6 +115,5 @@ pub struct GlobalData {
 pub enum OperandValue {
     StackLocation(isize), // usize relative to stack
     ByteLocation(isize),
-    FunctionLocation(isize),
     Int(i32),
 }
