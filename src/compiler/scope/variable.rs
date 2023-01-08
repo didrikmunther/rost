@@ -11,19 +11,11 @@ pub struct Variable {
     pub typ: VariableType,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum VariableType {
     Value(Keyword),
+    Pointer(Box<VariableType>),
     Function(usize), // function id
-}
-
-impl VariableType {
-    pub fn to_keyword(&self) -> Keyword {
-        match *self {
-            Self::Value(keyword) => keyword,
-            Self::Function(_) => Keyword::Function,
-        }
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -34,13 +26,13 @@ pub enum VariableLocation {
     Stack(isize),
 
     // Name of global label
-    Global(String)
+    Global(String),
 }
 
 #[derive(Debug)]
 pub struct StoredVariable {
     pub variable: Variable,
-    pub location: VariableLocation
+    pub location: VariableLocation,
 }
 
 impl Deref for StoredVariable {

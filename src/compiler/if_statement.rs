@@ -9,6 +9,7 @@ use super::{
     definition::{Procedure, ProcedureKind},
     error::CompilerError,
     program::Program,
+    scope::variable::VariableType,
 };
 
 impl Program {
@@ -24,7 +25,9 @@ impl Program {
                 .condition
                 .as_ref()
                 .map_or(Ok(None), |condition| match self.infer_type(&condition)? {
-                    Keyword::Bool => Ok(Some(self.handle_expression(&condition)?)),
+                    VariableType::Value(Keyword::Bool) => {
+                        Ok(Some(self.handle_expression(&condition)?))
+                    }
                     _ => todo!("error"),
                 })?
                 .map(Box::new);

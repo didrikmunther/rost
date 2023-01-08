@@ -1,6 +1,9 @@
 use crate::{
     lexer::{Keyword, Literal},
-    parser::definition::{Declaration, Expression, ExpressionKind, Primary},
+    parser::{
+        definition::{Declaration, Expression, ExpressionKind, Primary},
+        types::{Type, TypeIdentifier},
+    },
 };
 
 use super::{
@@ -8,7 +11,7 @@ use super::{
     error::{CompilerError, CompilerErrorKind},
     program::Program,
     scope::{
-        variable::{StoredVariable, Variable, VariableType, VariableLocation},
+        variable::{StoredVariable, Variable, VariableLocation, VariableType},
         ProgramScope,
     },
 };
@@ -38,22 +41,20 @@ impl Program {
         }
     }
 
-    // /// Creates a stack allocated parameter to function.
-    // /// Returns stack position of the stack allocated variable.
-    // pub fn create_parameter(&mut self, identifier: String, variable: Variable) -> isize {
-    //     self.function_scope.create_parameter(identifier, variable)
-    // }
-
     pub fn infer_binary_result_type(
         &self,
-        left: Keyword,
-        right: Keyword,
+        left: &VariableType,
+        right: &VariableType,
         operator: Keyword,
     ) -> Option<Keyword> {
+        let (VariableType::Value(left), VariableType::Value(right)) = (left, right) else {
+            return None;
+        };
+
         match operator {
             Keyword::Plus | Keyword::Minus | Keyword::Slash | Keyword::Asterix => {
                 if left == right {
-                    Some(left)
+                    Some(left.clone())
                 } else {
                     None
                 }
@@ -69,12 +70,18 @@ impl Program {
         }
     }
 
-    pub fn infer_type(&self, expr: &Expression) -> Result<Keyword, CompilerError> {
+    pub fn get_variable_type(&self, typ: &Type) -> VariableType {
+        match typ.identifier {
+            TypeIdentifier::Primitive(primitive) => VariableType::Value(primitive),
+        }
+    }
+
+    pub fn infer_type(&self, expr: &Expression) -> Result<VariableType, CompilerError> {
         match &expr.kind {
             ExpressionKind::Primary(primary) => match primary {
                 Primary::Identifier(ref identifier) => {
                     if let Some(variable) = self.get_variable(identifier) {
-                        Ok(variable.typ.to_keyword())
+                        Ok(variable.typ.clone())
                     } else {
                         return Err(CompilerError::new(
                             expr.pos.clone(),
@@ -83,17 +90,19 @@ impl Program {
                     }
                 }
                 Primary::Literal(literal) => Ok(match literal {
-                    Literal::Int(_) => Keyword::Int,
-                    Literal::String(_) => Keyword::String,
-                    Literal::Bool(_) => Keyword::Bool,
+                    Literal::Int(_) => VariableType::Value(Keyword::Int),
+                    Literal::Bool(_) => VariableType::Value(Keyword::Bool),
+                    Literal::String(_) => {
+                        VariableType::Pointer(Box::new(VariableType::Value(Keyword::Char)))
+                    }
                 }),
             },
             ExpressionKind::Binary(binary) => {
                 let left = self.infer_type(&binary.left)?;
                 let right = self.infer_type(&binary.right)?;
 
-                if let Some(typ) = self.infer_binary_result_type(left, right, binary.operator) {
-                    return Ok(typ);
+                if let Some(typ) = self.infer_binary_result_type(&left, &right, binary.operator) {
+                    return Ok(VariableType::Value(typ));
                 } else {
                     return Err(CompilerError::new(
                         binary.left.pos.clone(),
@@ -117,12 +126,11 @@ impl Program {
                     todo!("Variable is not a function");
                 };
 
-                return Ok(self
-                    .functions
-                    .get(function_id)
-                    .unwrap()
-                    .return_type
-                    .get_keyword_type());
+                let Some(return_type) = &self.functions.get(function_id).unwrap().return_type else {
+                    todo!("No return type for function");
+                };
+
+                Ok(return_type.clone())
             }
         }
     }

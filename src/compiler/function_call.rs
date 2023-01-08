@@ -1,13 +1,11 @@
-use crate::{
-    lexer::Keyword,
-    parser::definition::{Expression, FunctionCall},
-};
+use crate::parser::definition::{Expression, FunctionCall};
 
 use super::{
     builder::Builder,
     definition::{Procedure, ProcedureCall, ProcedureKind, SystemCall},
     error::{CompilerError, CompilerErrorKind},
-    program::Program, scope::variable::VariableType,
+    program::Program,
+    scope::variable::VariableType,
 };
 
 static BUILT_IN: &[&'static str] = &["printf"];
@@ -42,10 +40,6 @@ impl Program {
             ));
         };
 
-        if variable.typ.to_keyword() != Keyword::Function {
-            todo!("Non-function variable already declared with same identifier")
-        }
-
         let VariableType::Function(function_id) = variable.typ else {
             todo!("Variable is not a function")
         };
@@ -65,7 +59,7 @@ impl Program {
             ProcedureKind::ProcedureCall(ProcedureCall {
                 function_id,
                 nargs: fcall.args.len(),
-                returns: function.return_type.returns(),
+                returns: function.return_type.is_some(),
             }),
         ));
 

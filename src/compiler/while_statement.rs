@@ -8,6 +8,7 @@ use super::{
     definition::{Procedure, ProcedureKind, While},
     error::CompilerError,
     program::Program,
+    scope::variable::VariableType,
 };
 
 impl Program {
@@ -16,11 +17,12 @@ impl Program {
         statement: &Statement,
         while_statement: &WhileStatement,
     ) -> Result<Builder, CompilerError> {
-        let condition = match self.infer_type(&while_statement.condition)? {
-            Keyword::Bool => self.handle_expression(&while_statement.condition)?,
-            _ => todo!("error"),
+        match self.infer_type(&while_statement.condition)? {
+            VariableType::Value(Keyword::Bool) => {}
+            _ => todo!("Wrong type for while loop"),
         };
 
+        let condition = self.handle_expression(&while_statement.condition)?;
         let content = self.with_scope(|this| this.get_procedures(&while_statement.content))?;
 
         let builder = Builder::new().push(Procedure::new(

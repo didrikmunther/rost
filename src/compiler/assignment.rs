@@ -5,7 +5,7 @@ use super::{
     definition::{Procedure, ProcedureKind},
     error::{CompilerError, CompilerErrorKind},
     program::Program,
-    scope::variable::{Variable, VariableType},
+    scope::variable::Variable,
 };
 
 impl Program {
@@ -30,12 +30,12 @@ impl Program {
                 ));
             } else {
                 let assignment_type = self.infer_type(&assignment.value)?;
-                if assignment_type != variable.typ.to_keyword() {
+                if assignment_type != variable.typ {
                     return Err(CompilerError::new(
                         assignment.value_pos.clone(),
                         CompilerErrorKind::WrongAssignmentType {
                             got: assignment_type,
-                            typ: variable.typ.to_keyword(),
+                            typ: variable.typ.clone(),
                             declaration_pos: variable.pos.clone(),
                         },
                     ));
@@ -56,7 +56,11 @@ impl Program {
 
         if assignment.is_new {
             let infered = self.infer_type(&assignment.value)?;
-            if let Some(typ) = assignment.typ {
+            if let Some(typ) = assignment
+                .typ
+                .as_ref()
+                .map(|typ| self.get_variable_type(&typ))
+            {
                 if typ != infered {
                     return Err(CompilerError::new(
                         assignment.value_pos.clone(),
@@ -72,7 +76,7 @@ impl Program {
                 assignment.identifier.clone(),
                 Variable {
                     pos: assignment.identifier_pos.clone(),
-                    typ: VariableType::Value(infered),
+                    typ: infered,
                 },
             );
 

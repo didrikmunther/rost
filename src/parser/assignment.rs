@@ -4,6 +4,7 @@ use super::{
     definition::{Assignment, Expression, Statement, StatementKind},
     error::{ParserError, ParserErrorKind},
     parser::Parser,
+    types::Type,
     util::{get_block_identifier, get_expr_identifier},
 };
 
@@ -20,18 +21,21 @@ impl<'a> Parser<'a> {
 
     fn new_assignment(&mut self) -> Result<Statement, ParserError> {
         if let Some(left) = self.get(&[Keyword::Identifier]) {
-            let mut assignment_type: Option<&Block> = None;
+            let assignment_type: Option<Type> = self
+                .get(&[Keyword::Colon])
+                .map(|_| self.parse_type())
+                .transpose()?;
 
-            if let Some(_) = self.get(&[Keyword::Colon]) {
-                if let Some(typ) = self.get(ALLOWED_TYPES) {
-                    assignment_type = Some(typ);
-                } else {
-                    return Err(ParserError::new(
-                        self.peek_or_eof()?.pos.clone(),
-                        ParserErrorKind::Expected(ALLOWED_TYPES),
-                    ));
-                }
-            }
+            // if let Some(_) = self.get(&[Keyword::Colon]) {
+            //     // if let Some(typ) = self.get(ALLOWED_TYPES) {
+            //     //     assignment_type = Some(typ);
+            //     // } else {
+            //     //     return Err(ParserError::new(
+            //     //         self.peek_or_eof()?.pos.clone(),
+            //     //         ParserErrorKind::Expected(ALLOWED_TYPES),
+            //     //     ));
+            //     // }
+            // }
 
             if let Some(right) = self.parse_assignment_value()? {
                 let identifier = match get_block_identifier(&left) {
@@ -48,7 +52,7 @@ impl<'a> Parser<'a> {
                     pos: left.pos.start..right.pos.end,
                     kind: StatementKind::Assignment(Assignment {
                         is_new: true,
-                        typ: assignment_type.map(|v| v.kind),
+                        typ: assignment_type,
                         identifier,
                         identifier_pos: left.pos.clone(),
                         value_pos: right.pos.clone(),

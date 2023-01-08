@@ -134,10 +134,6 @@ impl<'a> Generator<'a> {
         format!("_function_{}", function_id)
     }
 
-    pub fn get_data_name(i: usize) -> String {
-        format!("_data_{}", i)
-    }
-
     pub fn get_absolute_stack_location(&self, loc: isize) -> String {
         format!("[rbp{}{}]", if loc < 0 { '+' } else { '-' }, loc.abs() * 8)
     }

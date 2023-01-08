@@ -4,7 +4,11 @@ use super::{
     builder::Builder,
     definition::{Function, Procedure, ProcedureKind},
     error::CompilerError,
-    program::Program, scope::{ProgramScope, variable::{Variable, VariableType}},
+    program::Program,
+    scope::{
+        variable::{Variable, VariableType},
+        ProgramScope,
+    },
 };
 
 impl Program {
@@ -19,7 +23,10 @@ impl Program {
 
         let npars = fdec.parameters.len();
         let old_stack_pos = self.stack_pos;
-        let return_type = fdec.return_type.clone();
+        let return_type = fdec
+            .return_type
+            .as_ref()
+            .map(|t| self.get_variable_type(&t));
 
         let body = self.with_function_scope(return_type.clone(), |this| {
             let ProgramScope::FunctionScope(function_scope) = &mut this.scope else {

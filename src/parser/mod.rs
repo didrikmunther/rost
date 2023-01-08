@@ -3,6 +3,7 @@ use crate::lexer::Block;
 use self::{definition::AST, error::ParserError, parser::Parser};
 
 pub mod definition;
+pub mod types;
 pub mod util;
 
 mod addition;

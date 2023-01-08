@@ -1,10 +1,8 @@
 use std::ops::Range;
 
-use crate::{
-    error::{RostError, RostErrorElement},
-    lexer::Keyword,
-    parser::definition::Type,
-};
+use crate::error::{RostError, RostErrorElement};
+
+use super::scope::variable::VariableType;
 
 #[derive(Debug, PartialEq)]
 pub enum CompilerErrorKind {
@@ -13,17 +11,17 @@ pub enum CompilerErrorKind {
     RedeclaredVariable(String, Range<usize>),
     MissingMainFunction,
     WrongBinaryExpressionTypes {
-        got: Type,
-        expected: Type,
+        got: VariableType,
+        expected: VariableType,
         expected_pos: Range<usize>,
     },
     WrongType {
-        got: Type,
-        expected: Type,
+        got: VariableType,
+        expected: VariableType,
     },
     WrongAssignmentType {
-        got: Type,
-        typ: Keyword,
+        got: VariableType,
+        typ: VariableType,
         declaration_pos: Range<usize>,
     },
 }

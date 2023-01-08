@@ -1,10 +1,8 @@
 use std::{collections::HashMap, rc::Rc};
 
-use crate::parser::definition::ReturnType;
-
 use super::{
     scope::Scope,
-    variable::{StoredVariable, Variable, VariableLocation},
+    variable::{StoredVariable, Variable, VariableLocation, VariableType},
     ProgramScope,
 };
 
@@ -13,7 +11,7 @@ pub struct FunctionScope {
     parent: Option<Box<ProgramScope>>,
     pub scope: Scope,
     pub variables: HashMap<String, Rc<StoredVariable>>,
-    pub return_type: ReturnType,
+    pub return_type: Option<VariableType>,
 
     // Keep track of assigned variables.
     // Will grow by +1 for each declared variable.
@@ -26,7 +24,7 @@ pub struct FunctionScope {
 }
 
 impl FunctionScope {
-    pub fn new(return_type: ReturnType) -> Self {
+    pub fn new(return_type: Option<VariableType>) -> Self {
         Self {
             parent: None,
             scope: Scope::new(),

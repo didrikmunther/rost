@@ -2,8 +2,9 @@ use std::ops::Range;
 
 use crate::lexer::{Keyword, Literal};
 
+use super::types::Type;
+
 pub type AST = Vec<Declaration>;
-pub type Type = Keyword; // todo: this can also be custom made types
 
 #[derive(Debug)]
 pub struct Declaration {
@@ -24,34 +25,12 @@ pub struct FunctionDeclarationParameter {
     pub pos: Range<usize>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum ReturnType {
-    None,
-    Int,
-    Identifier(String),
-}
-
-impl ReturnType {
-    // Todo: Real type system with custom types
-    pub fn get_keyword_type(&self) -> Keyword {
-        match self {
-            ReturnType::Int => Keyword::Int,
-            _ => todo!(),
-        }
-    }
-
-    /// If the return type is not None
-    pub fn returns(&self) -> bool {
-        *self != ReturnType::None
-    }
-}
-
 #[derive(Debug)]
 pub struct FunctionDeclaration {
     pub identifier: String,
     pub parameters: Vec<FunctionDeclarationParameter>,
     pub content: Vec<Declaration>,
-    pub return_type: ReturnType,
+    pub return_type: Option<Type>,
 }
 
 #[derive(Debug)]
@@ -98,7 +77,7 @@ pub struct ReturnStatement {
 
 #[derive(Debug)]
 pub struct Expression {
-    pub typ: Type,
+    pub typ: Keyword, // todo: Represent in a better way
     pub pos: Range<usize>,
     pub kind: ExpressionKind,
 }

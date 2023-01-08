@@ -12,7 +12,7 @@ use super::{
     },
 };
 
-use crate::parser::definition::{Declaration, ReturnType};
+use crate::parser::definition::Declaration;
 
 #[derive(Debug)]
 pub struct Program {
@@ -44,7 +44,7 @@ impl Program {
     // todo: clean up
     pub fn with_function_scope<F>(
         &mut self,
-        return_type: ReturnType,
+        return_type: Option<VariableType>,
         inner: F,
     ) -> Result<Builder, CompilerError>
     where

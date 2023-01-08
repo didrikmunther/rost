@@ -33,6 +33,7 @@ pub enum Keyword {
     Int,
     Bool,
     String,
+    Char,
 
     // Abstract keywords
     EOF,
@@ -40,6 +41,7 @@ pub enum Keyword {
     Literal,
     Comment,
     Function,
+    Pointer,
 }
 
 #[derive(Debug, PartialEq, Clone)]

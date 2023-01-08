@@ -3,9 +3,10 @@ use std::{
     ops::Range,
 };
 
-use crate::parser::definition::ReturnType;
-
-use super::{builder::Builder, scope::variable::VariableLocation};
+use super::{
+    builder::Builder,
+    scope::variable::{VariableLocation, VariableType},
+};
 
 #[derive(Debug)]
 pub struct Procedure {
@@ -83,7 +84,7 @@ pub struct FunctionDefinition {
 
 #[derive(Debug)]
 pub struct Function {
-    pub return_type: ReturnType,
+    pub return_type: Option<VariableType>,
     pub npars: usize,
     pub body: Builder,
 }
