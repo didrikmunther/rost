@@ -2,3 +2,4 @@ target/
 out.asm
 *.log
 .vscode/
+input.rost

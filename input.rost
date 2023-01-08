@@ -1,8 +1,0 @@
-let a = 0
-
-while(a < 1000) {
-	printf("%i\n", a)
-	a = a + 1
-}
-
-printf("Outside\n")

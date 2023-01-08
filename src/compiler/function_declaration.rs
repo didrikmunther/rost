@@ -33,7 +33,7 @@ impl Program {
                 unreachable!();
             };
 
-            for parameter in fdec.parameters.iter() {
+            for parameter in fdec.parameters.iter().rev() {
                 function_scope.create_parameter(
                     parameter.identifier.clone(),
                     Variable {
