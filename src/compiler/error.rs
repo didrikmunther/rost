@@ -12,6 +12,7 @@ pub enum CompilerErrorKind {
     UndefinedVariable(String),
     UndefinedFunction(String),
     RedeclaredVariable(String, Range<usize>),
+    DereferenceNonPointer(VariableType),
     MissingMainFunction,
     WrongBinaryExpressionTypes {
         got: VariableType,
@@ -49,6 +50,10 @@ impl CompilerError {
             // todo: get_message should be a closure, accepting a document containing helper functions for getting lines.
             //  todo: perhaps a builder pattern to be able to show errors on multiple lines.
             CompilerErrorKind::MissingMainFunction => vec![("Missing main function".into(), 0..0)],
+            CompilerErrorKind::DereferenceNonPointer(typ) => vec![(
+                format!("Cannot dereference non-pointer value of type {}", typ),
+                self.pos.clone(),
+            )],
             CompilerErrorKind::RedeclaredVariable(identifier, pos) => vec![
                 (
                     format!("Redeclared variable: {}", identifier),

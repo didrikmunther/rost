@@ -1,0 +1,8 @@
+  --> ./tests/error_pointers.in:5:10, ./tests/error_pointers.in:5:12, ./tests/error_pointers.in:5:14 => CompilerError
+4 |     let c = &b
+5 |     let d = c + b
+  |             ^ ^ ^
+  |             │ │ └─ Other type is *int
+  |             │ └─ Operator Plus is not defined for types.
+  |             └─ Incompatible types in binary expression: **int
+6 | }

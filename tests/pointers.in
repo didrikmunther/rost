@@ -1,0 +1,15 @@
+fn main() {
+	let p = 100
+	let a = 123
+	let b: pointer<int> = &a
+	let c: pointer<pointer<int>> = &b
+	let d: pointer<int> = &p
+
+	printf("%i\n", a) // a = 123
+	printf("%i\n", *b) // a = 123
+	printf("%i\n", **c) // a = 123
+	printf("%i\n", *c == &a) // b == b
+	printf("%i\n", d - b) // &p - &a == 8
+	printf("%i\n", b - *c) // &a - b == b - b == 0
+	printf("%i\n", *(&a + 8)) // p = 100
+}

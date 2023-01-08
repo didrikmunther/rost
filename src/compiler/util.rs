@@ -46,29 +46,50 @@ impl Program {
         left: &VariableType,
         right: &VariableType,
         operator: Keyword,
-    ) -> Option<Keyword> {
-        // if let VariableType::Pointer(left) = left {
-
-        // }
-
-        let (VariableType::Value(left), VariableType::Value(right)) = (left, right) else {
-            return None;
-        };
-
-        match operator {
-            Keyword::Plus | Keyword::Minus | Keyword::Slash | Keyword::Asterix => {
-                if left == right {
-                    Some(left.clone())
-                } else {
-                    None
+    ) -> Option<VariableType> {
+        match (left, right) {
+            (VariableType::Pointer(_), VariableType::Value(Keyword::Int)) => Some(left.clone()),
+            (VariableType::Value(Keyword::Int), VariableType::Pointer(_)) => match operator {
+                Keyword::Plus => Some(right.clone()),
+                _ => None,
+            },
+            (VariableType::Value(left), VariableType::Value(right)) => {
+                if left != right {
+                    return None;
                 }
+
+                return match operator {
+                    Keyword::Plus | Keyword::Minus | Keyword::Slash | Keyword::Asterix => {
+                        Some(VariableType::Value(left.clone()))
+                    }
+                    Keyword::LessThan | Keyword::GreaterThan | Keyword::Equality => {
+                        Some(VariableType::Value(Keyword::Bool))
+                    }
+                    _ => None,
+                };
             }
-            Keyword::LessThan | Keyword::GreaterThan | Keyword::Equality => {
-                if left == right {
-                    Some(Keyword::Bool)
-                } else {
-                    None
+            (VariableType::Pointer(left), VariableType::Pointer(right)) => {
+                if left != right {
+                    return None;
                 }
+
+                return match operator {
+                    Keyword::Plus | Keyword::Minus => {
+                        if left == right {
+                            Some(VariableType::Value(Keyword::Int))
+                        } else {
+                            None
+                        }
+                    }
+                    Keyword::LessThan | Keyword::GreaterThan | Keyword::Equality => {
+                        if left == right {
+                            Some(VariableType::Value(Keyword::Bool))
+                        } else {
+                            None
+                        }
+                    }
+                    _ => None,
+                };
             }
             _ => None,
         }
@@ -118,6 +139,16 @@ impl Program {
 
                 match unary.operator {
                     Keyword::Ampersand => return Ok(VariableType::Pointer(Box::new(expr_type))),
+                    Keyword::Asterix => {
+                        if let VariableType::Pointer(typ) = expr_type {
+                            return Ok(*typ);
+                        } else {
+                            return Err(CompilerError::new(
+                                unary.operator_pos.clone(),
+                                CompilerErrorKind::DereferenceNonPointer(expr_type),
+                            ));
+                        }
+                    }
                     _ => todo!("Not supported"),
                 }
             }
@@ -126,10 +157,8 @@ impl Program {
                 let right = self.infer_type(&binary.right)?;
 
                 if let Some(typ) = self.infer_binary_result_type(&left, &right, binary.operator) {
-                    return Ok(VariableType::Value(typ));
+                    return Ok(typ);
                 } else {
-                    println!("expected: {:?}, {:?}", binary.left.pos, binary.right.pos);
-
                     return Err(CompilerError::new(
                         binary.left.pos.clone(),
                         CompilerErrorKind::WrongBinaryExpressionTypes {

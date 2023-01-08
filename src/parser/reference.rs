@@ -13,13 +13,12 @@ impl<'a> Parser<'a> {
         if let Some(operation) = self.get(&[Keyword::Ampersand, Keyword::Asterix]) {
             let expr = self.reference()?;
 
-            println!("pos: {:?}, expr.pos: {:?}", operation.pos.start, expr.pos);
-
             return Ok(Expression {
                 pos: operation.pos.start..expr.pos.end,
                 kind: ExpressionKind::Unary(Unary {
                     expr: Box::new(expr),
                     operator: operation.kind,
+                    operator_pos: operation.pos.clone(),
                 }),
             });
         }

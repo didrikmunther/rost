@@ -101,6 +101,7 @@ pub struct FunctionCall {
 pub struct Unary {
     pub expr: Box<Expression>,
     pub operator: Keyword,
+    pub operator_pos: Range<usize>
 }
 
 #[derive(Debug)]

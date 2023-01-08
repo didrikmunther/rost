@@ -26,6 +26,7 @@ impl Procedure {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)] // todo: remove
 pub enum ProcedureKind {
     Comment(String),
     Allocate(usize), // Allocate a certain amount of variables on the stack
@@ -66,7 +67,7 @@ pub struct If {
     pub content: Box<Builder>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Arithmetic {
     Add,
     Subtract,
