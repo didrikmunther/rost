@@ -6,6 +6,7 @@ static SYMBOLS: phf::Map<&'static str, Keyword> = phf_map! {
     "=" => Keyword::Equals,
     ";" => Keyword::Semicolon,
     "->" => Keyword::Arrow,
+    "&" => Keyword::Ampersand,
     "+" => Keyword::Plus,
     "-" => Keyword::Minus,
     "*" => Keyword::Asterix,

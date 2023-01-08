@@ -25,7 +25,7 @@ impl Scope {
     }
 
     pub fn get_scoped_variable_name(&self, name: &str) -> String {
-        format!("{}[{}]", self.name, name)
+        format!("{}__{}", self.name, name)
     }
 
     pub fn set_parent(&mut self, mut parent: Box<Scope>) {

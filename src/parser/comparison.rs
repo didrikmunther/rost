@@ -17,7 +17,6 @@ impl<'a> Parser<'a> {
             let pos = left.pos.start..right.pos.end;
 
             return Ok(Expression {
-                typ: Keyword::Binary,
                 pos: pos.clone(),
                 kind: ExpressionKind::Binary(Binary {
                     left: Box::new(left),

@@ -32,8 +32,8 @@ impl Program {
         }
     }
 
-    /// Creates a stack allocated variable.
-    /// Returns stack position of the stack allocated variable.
+    /// Creates a variable in the current scope.
+    /// Returns location of the created variable.
     pub fn create_variable(&mut self, identifier: String, variable: Variable) -> VariableLocation {
         match &mut self.scope {
             ProgramScope::RootScope(scope) => scope.create_variable(identifier, variable),
@@ -72,6 +72,18 @@ impl Program {
 
     pub fn get_variable_type(&self, typ: &Type) -> VariableType {
         match typ.identifier {
+            TypeIdentifier::Primitive(Keyword::Pointer) => {
+                let Some(children) = &typ.children else {
+                    todo!("Pointer type requires 1 child type");
+                };
+
+                if children.len() != 1 {
+                    todo!("Wrong amount of type arguments for pointer type");
+                }
+
+                let inner = children.get(0).unwrap();
+                VariableType::Pointer(Box::new(self.get_variable_type(inner)))
+            }
             TypeIdentifier::Primitive(primitive) => VariableType::Value(primitive),
         }
     }
@@ -97,6 +109,14 @@ impl Program {
                     }
                 }),
             },
+            ExpressionKind::Unary(unary) => {
+                let expr_type = self.infer_type(&unary.expr)?;
+
+                match unary.operator {
+                    Keyword::Ampersand => return Ok(VariableType::Pointer(Box::new(expr_type))),
+                    _ => todo!("Not supported"),
+                }
+            }
             ExpressionKind::Binary(binary) => {
                 let left = self.infer_type(&binary.left)?;
                 let right = self.infer_type(&binary.right)?;

@@ -6,10 +6,18 @@ use crate::{
         program::Program,
     },
     lexer::Keyword,
-    parser::definition::{Binary, Expression, ExpressionKind},
+    parser::definition::{Binary, Expression, ExpressionKind, Unary},
 };
 
 impl Program {
+    pub fn handle_unary(
+        &mut self,
+        expression: &Expression,
+        binary: &Unary,
+    ) -> Result<Builder, CompilerError> {
+        todo!()
+    }
+
     pub fn handle_binary(
         &mut self,
         expression: &Expression,
@@ -26,21 +34,20 @@ impl Program {
             _ => todo!(),
         };
 
-        let builder = Builder::new()
+        Ok(Builder::new()
             .append(self.handle_expression(&binary.right)?)
             .append(self.handle_expression(&binary.left)?)
             .push(Procedure::new(
                 expression.pos.clone(),
                 ProcedureKind::Arithmetic(operation),
-            ));
-
-        Ok(builder)
+            )))
     }
 
     pub fn handle_expression(&mut self, expression: &Expression) -> Result<Builder, CompilerError> {
         match &expression.kind {
             ExpressionKind::FunctionCall(fcall) => self.handle_function_call(expression, fcall),
             ExpressionKind::Primary(primary) => self.handle_primary(expression, primary),
+            ExpressionKind::Unary(unary) => self.handle_unary(expression, unary),
             ExpressionKind::Binary(binary) => self.handle_binary(expression, binary),
         }
     }

@@ -9,7 +9,7 @@ use super::{
 impl<'a> Parser<'a> {
     pub fn primary(&mut self) -> Result<Expression, ParserError> {
         if let Some(block) = self.get(&[Keyword::Literal, Keyword::Identifier]) {
-            let (typ, kind) = match &block.token {
+            let (_, kind) = match &block.token {
                 Token::Identifier(identifier) => {
                     (Keyword::Identifier, Primary::Identifier(identifier.clone()))
                 }
@@ -31,7 +31,6 @@ impl<'a> Parser<'a> {
             };
 
             return Ok(Expression {
-                typ,
                 pos: block.pos.clone(),
                 kind: ExpressionKind::Primary(kind),
             });

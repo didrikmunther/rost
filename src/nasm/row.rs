@@ -59,7 +59,7 @@ pub enum Row {
     JumpIfGreaterThan(String),
     // DeclareByte(String), // todo: allow for all allowed values: https://www.nasm.us/doc/nasmdoc3.html 3.2.1
     DeclareStaticString(String), // Declare byte abstraction, completes it with the string length
-    DeclareStaticInt(isize),
+    ReserveBytes(usize),
     Push(String),
     Pop(String),
     Ret,
@@ -102,7 +102,7 @@ impl Display for Row {
             Row::Global(global) => w(format_args!("\tglobal {}", global)),
             Row::Call(function) => w(format_args!("\tcall {}", function)),
             Row::DeclareStaticString(s) => w(format_args!("\tdb {}, 0", get_bytes(s))),
-            Row::DeclareStaticInt(i) => w(format_args!("\tdd {}", i)),
+            Row::ReserveBytes(i) => w(format_args!("\tresb {}", i)),
             Row::Ret => w(format_args!("\tret")),
         }
     }

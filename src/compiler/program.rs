@@ -125,12 +125,13 @@ impl Program {
             }),
         );
 
-        // Add global variables to data section
+        // Add global variables to bss section
         for (_, variable) in &root_scope.variables {
             if let VariableType::Value(_) = variable.typ {
                 match &variable.location {
                     VariableLocation::Global(label) => {
-                        self.global_data.insert(label.clone(), GlobalData::Int(0));
+                        // Todo: currently only integers
+                        self.global_data.insert(label.clone(), GlobalData::Reserved(1));
                     }
                     _ => {}
                 };

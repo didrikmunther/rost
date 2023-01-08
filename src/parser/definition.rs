@@ -77,7 +77,6 @@ pub struct ReturnStatement {
 
 #[derive(Debug)]
 pub struct Expression {
-    pub typ: Keyword, // todo: Represent in a better way
     pub pos: Range<usize>,
     pub kind: ExpressionKind,
 }
@@ -85,6 +84,7 @@ pub struct Expression {
 #[derive(Debug)]
 pub enum ExpressionKind {
     Primary(Primary),
+    Unary(Unary),
     Binary(Binary),
     FunctionCall(FunctionCall),
 }
@@ -95,6 +95,12 @@ pub struct FunctionCall {
     pub args: Vec<Box<Expression>>,
     pub identifier_pos: Range<usize>,
     pub parameters_pos: Range<usize>,
+}
+
+#[derive(Debug)]
+pub struct Unary {
+    pub expr: Box<Expression>,
+    pub operator: Keyword,
 }
 
 #[derive(Debug)]

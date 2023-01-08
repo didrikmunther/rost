@@ -1,8 +1,9 @@
 fn main() {
+	let tmp: pointer<char> = "%i\n"
 	let a = 123
 	let b = 321
-	printf("%i\n", a)
+	printf(tmp, a)
 	a = 1
-	printf("%i\n", a + b)
+	printf(tmp, a + b)
 	printf("%i\n", b)
 }

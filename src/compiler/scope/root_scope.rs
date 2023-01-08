@@ -34,7 +34,10 @@ impl RootScope {
     /// Creates a global allocated variable in the root scope.
     /// Returns the label name of the variable.
     pub fn create_variable(&mut self, identifier: String, variable: Variable) -> VariableLocation {
-        let location = VariableLocation::Global(format!("_global_{}", identifier));
+        let location = VariableLocation::Global(format!(
+            "_global_{}",
+            self.scope.get_scoped_variable_name(&identifier)
+        ));
         let stored = Rc::new(StoredVariable {
             variable,
             location: location.clone(),

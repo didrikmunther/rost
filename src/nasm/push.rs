@@ -18,7 +18,7 @@ impl<'a> Generator<'a> {
                 .add(Row::Move("rcx".into(), format!("[{}]", label)))
                 .add(Row::Push("rcx".into())),
             OperandValue::DataPointerLocation(label) => {
-                self.code.add(Row::Push(format!("{}", label)))
+                self.code.add(Row::Push(format!("dword {}", label)))
             }
         };
 

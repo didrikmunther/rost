@@ -13,6 +13,7 @@ pub enum Keyword {
     Plus,
     Minus,
     Asterix,
+    Ampersand,
     Slash,
     Arrow,
     ParLeft,
@@ -34,14 +35,13 @@ pub enum Keyword {
     Bool,
     String,
     Char,
+    Pointer,
 
     // Abstract keywords
     EOF,
     Identifier,
     Literal,
     Comment,
-    Function,
-    Pointer,
 }
 
 #[derive(Debug, PartialEq, Clone)]

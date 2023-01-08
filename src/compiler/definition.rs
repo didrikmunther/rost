@@ -109,8 +109,11 @@ pub struct Assignment {
 
 #[derive(Debug)]
 pub enum GlobalData {
+    // Initialized .data literals
     String(String),
-    Int(isize),
+
+    // Uninitialized .bss data
+    Reserved(usize)
 }
 
 #[derive(Debug)]

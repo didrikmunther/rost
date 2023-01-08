@@ -1,4 +1,4 @@
-use crate::lexer::{Block, Keyword};
+use crate::lexer::{Keyword};
 
 use super::{
     definition::{Assignment, Expression, Statement, StatementKind},
@@ -7,8 +7,6 @@ use super::{
     types::Type,
     util::{get_block_identifier, get_expr_identifier},
 };
-
-static ALLOWED_TYPES: &[Keyword] = &[Keyword::Int, Keyword::Bool, Keyword::String];
 
 impl<'a> Parser<'a> {
     fn parse_assignment_value(&mut self) -> Result<Option<Expression>, ParserError> {
@@ -25,17 +23,6 @@ impl<'a> Parser<'a> {
                 .get(&[Keyword::Colon])
                 .map(|_| self.parse_type())
                 .transpose()?;
-
-            // if let Some(_) = self.get(&[Keyword::Colon]) {
-            //     // if let Some(typ) = self.get(ALLOWED_TYPES) {
-            //     //     assignment_type = Some(typ);
-            //     // } else {
-            //     //     return Err(ParserError::new(
-            //     //         self.peek_or_eof()?.pos.clone(),
-            //     //         ParserErrorKind::Expected(ALLOWED_TYPES),
-            //     //     ));
-            //     // }
-            // }
 
             if let Some(right) = self.parse_assignment_value()? {
                 let identifier = match get_block_identifier(&left) {
