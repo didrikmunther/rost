@@ -114,7 +114,7 @@ impl Code {
     }
 
     /// Gives the amount of instructions without comments and labels
-    fn instruction_len(&self) -> usize {
+    pub fn instruction_len(&self) -> usize {
         self.rows
             .iter()
             .filter(|row| match row.row {

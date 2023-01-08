@@ -40,6 +40,7 @@ impl<'a> Generator<'a> {
             let mut did_remove = true;
             let mut total_removed = 0;
             let mut passes = 0;
+            let n_lines = self.code.instruction_len();
 
             while did_remove {
                 let (code, removed) = self.code.optimized();
@@ -50,8 +51,9 @@ impl<'a> Generator<'a> {
             }
 
             println!(
-                "[NASM Optimizer]: Removed {total_removed} lines in {} passes",
-                passes - 1
+                "[NASM Optimizer]: Removed {total_removed} lines in {} passes ({:.1}% removed).",
+                passes - 1,
+                (1.0 - self.code.instruction_len() as f64 / n_lines as f64) * 100.0
             );
         }
 
