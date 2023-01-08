@@ -5,7 +5,7 @@ use super::{
     definition::{Procedure, ProcedureKind},
     error::{CompilerError, CompilerErrorKind},
     program::Program,
-    scope::{Variable, VariableType},
+    scope::variable::{Variable, VariableType},
 };
 
 impl Program {

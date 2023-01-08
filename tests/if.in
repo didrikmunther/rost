@@ -1,15 +1,17 @@
-let a = 500
+fn main() {
+	let a = 500
 
-if(a < 1000) {
-	printf("a < 1000\n")
-} else {
-	printf("a >= 1000\n")
+	if(a < 1000) {
+		printf("a < 1000\n")
+	} else {
+		printf("a >= 1000\n")
+	}
+
+	if(a < 500) {
+		printf("a < 500\n")
+	} else {
+		printf("a >= 500\n")
+	}
+
+	printf("Outside\n")
 }
-
-if(a < 500) {
-	printf("a < 500\n")
-} else {
-	printf("a >= 500\n")
-}
-
-printf("Outside\n")

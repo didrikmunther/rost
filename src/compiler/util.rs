@@ -7,7 +7,10 @@ use super::{
     builder::Builder,
     error::{CompilerError, CompilerErrorKind},
     program::Program,
-    scope::{StoredVariable, Variable, VariableType, ProgramScope},
+    scope::{
+        variable::{StoredVariable, Variable, VariableType},
+        ProgramScope,
+    },
 };
 
 impl Program {
@@ -21,9 +24,8 @@ impl Program {
 
     pub fn get_variable(&self, identifier: &String) -> Option<&StoredVariable> {
         match &self.scope {
-            ProgramScope::RootScope(scope) => {
-                scope.get_variable(identifier)
-            }
+            ProgramScope::RootScope(scope) => scope.get_variable(identifier),
+            ProgramScope::FunctionScope(scope) => scope.get_variable(identifier),
         }
     }
 
@@ -31,9 +33,8 @@ impl Program {
     /// Returns stack position of the stack allocated variable.
     pub fn create_variable(&mut self, identifier: String, variable: Variable) -> usize {
         match &mut self.scope {
-            ProgramScope::RootScope(scope) => {
-                scope.create_variable(identifier, variable)
-            }
+            ProgramScope::RootScope(scope) => scope.create_variable(identifier, variable),
+            ProgramScope::FunctionScope(scope) => scope.create_variable(identifier, variable),
         }
     }
 

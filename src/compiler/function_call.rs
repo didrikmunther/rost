@@ -7,8 +7,7 @@ use super::{
     builder::Builder,
     definition::{Procedure, ProcedureCall, ProcedureKind, SystemCall},
     error::{CompilerError, CompilerErrorKind},
-    program::Program,
-    scope::VariableType,
+    program::Program, scope::variable::VariableType,
 };
 
 static BUILT_IN: &[&'static str] = &["printf"];

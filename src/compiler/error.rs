@@ -11,6 +11,7 @@ pub enum CompilerErrorKind {
     UndefinedVariable(String),
     UndefinedFunction(String),
     RedeclaredVariable(String, Range<usize>),
+    MissingMainFunction,
     WrongBinaryExpressionTypes {
         got: Type,
         expected: Type,
@@ -33,6 +34,8 @@ pub struct CompilerError {
     pub kind: CompilerErrorKind,
 }
 
+// Todo: Allow errors without positions,
+// todo: such as no-main function.
 impl CompilerError {
     pub fn new(pos: Range<usize>, kind: CompilerErrorKind) -> Self {
         Self { pos, kind }
@@ -42,6 +45,7 @@ impl CompilerError {
         match &self.kind {
             // todo: get_message should be a closure, accepting a document containing helper functions for getting lines.
             //  todo: perhaps a builder pattern to be able to show errors on multiple lines.
+            CompilerErrorKind::MissingMainFunction => vec![("Missing main function".into(), 0..0)],
             CompilerErrorKind::RedeclaredVariable(identifier, pos) => vec![
                 (
                     format!("Redeclared variable: {}", identifier),
