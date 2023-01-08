@@ -2,17 +2,15 @@ use crate::parser::definition::{ReturnStatement, Statement};
 
 use super::{
     builder::Builder,
-    definition::{Procedure, ProcedureKind},
     error::CompilerError,
     program::Program,
-    scope::ProgramScope,
 };
 
 impl Program {
     pub fn handle_return_statement(
         &mut self,
-        statement: &Statement,
-        ret_statement: &ReturnStatement,
+        _statement: &Statement,
+        _ret_statement: &ReturnStatement,
     ) -> Result<Builder, CompilerError> {
         // let ProgramScope::FunctionScope(function_scope) = self.scope else {
         //     todo!("We're not in a function");

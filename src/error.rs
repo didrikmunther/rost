@@ -128,12 +128,13 @@ impl Display for RostError {
             .chain(std::iter::once("")) // lines() ignores a potential last whitespace line, add it manually
             .collect::<Vec<&str>>();
 
-        let get_ntabs = |line: usize, offset: usize| {
+        let get_ntabs = |line: usize, start: usize, amount: usize| {
             text_lines
                 .get(line)
                 .unwrap()
                 .chars()
-                .take(offset)
+                .skip(start)
+                .take(amount)
                 .filter(|&v| v == '\t')
                 .count()
         };
@@ -191,7 +192,8 @@ impl Display for RostError {
                     })
                     .collect();
 
-                let padding = " ".repeat(number_padding - (1.0 + row_index as f32).log10() as usize);
+                let padding =
+                    " ".repeat(number_padding - (1.0 + row_index as f32).log10() as usize);
                 let code_row = format!(
                     "{}{} | {}\n",
                     padding,
@@ -201,7 +203,6 @@ impl Display for RostError {
                 fmt.write_str(code_row.as_str())?;
 
                 if let Some(messages) = grouped_messages_lookup.get(&row_index) {
-                    // fmt.write_str("  | ")?;
                     write!(fmt, "{}  | ", " ".repeat(number_padding))?;
 
                     let mut positions = messages
@@ -209,11 +210,11 @@ impl Display for RostError {
                         .map(|(_, line_pos, width, _)| (line_pos, width))
                         .collect::<Vec<_>>();
 
-                    positions.sort_by(|(_, a), (_, b)| a.cmp(b));
+                    positions.sort_by(|(a, _), (b, _)| a.cmp(b));
                     let mut acc = 0;
                     for &(line_pos, width) in positions.iter() {
                         let offset = *line_pos - acc;
-                        let ntabs = get_ntabs(row_index, offset);
+                        let ntabs = get_ntabs(row_index, acc, *line_pos);
 
                         fmt.write_fmt(format_args!(
                             "{}{}",
@@ -221,7 +222,7 @@ impl Display for RostError {
                             red(&String::from("^").repeat(*width)),
                         ))?;
 
-                        acc += *line_pos + 1;
+                        acc = *line_pos + *width;
                     }
 
                     fmt.write_str("\n")?;
@@ -229,20 +230,23 @@ impl Display for RostError {
                     for (i, &(_, line_pos, _, message)) in messages.into_iter().rev().enumerate() {
                         write!(fmt, "{}  | ", " ".repeat(number_padding))?;
 
-                        let mut pipes = 0;
-                        for &(position, _) in positions.iter().rev().skip(i + 1) {
-                            pipes += 1 + *position;
-                            let ntabs = get_ntabs(row_index, *position);
+                        let mut prev_pos = 0;
+                        for &(line_pos, width) in positions.iter().take(positions.len() - 1 - i) {
+                            let active_pos = *line_pos - prev_pos;
+                            let ntabs = get_ntabs(row_index, prev_pos, active_pos);
 
                             fmt.write_fmt(format_args!(
-                                "{}{}",
-                                String::from(" ").repeat(*position - ntabs + TAB_SIZE * ntabs),
-                                red("│")
+                                "{}{}{}",
+                                String::from(" ").repeat(active_pos - ntabs + TAB_SIZE * ntabs),
+                                red("│"),
+                                String::from(" ").repeat(*width - 1),
                             ))?;
+
+                            prev_pos = *line_pos + *width;
                         }
 
-                        let offset = line_pos - pipes;
-                        let ntabs = get_ntabs(row_index, offset);
+                        let offset = line_pos - prev_pos;
+                        let ntabs = get_ntabs(row_index, prev_pos, offset);
                         let msg = format!(
                             "{}{} {}",
                             String::from(" ").repeat(offset - ntabs + TAB_SIZE * ntabs),

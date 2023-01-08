@@ -1,12 +1,19 @@
 fn main() {
-	let tmp: pointer<char> = "0x%x\n"
+	// let k = 1 < 2
+	// let s = 5
+	// s = k
+
 	let a = 1
 	let b: pointer<int> = &a
 	let c: pointer<pointer<int>> = &b
-	// let c = &a
 
-	// printf(tmp, a)
-	// printf(tmp, b)
-	printf("%i\n", b - c)
-	// printf(tmp, c)
+	// printf("%i\n", a)
+	// printf("%i\n", *b)
+	// printf("%i\n", **c)
+	// printf("%i\n", b - &a)
+	// printf("%i\n", b - *c)
+	// printf("%i\n", b - c)
+
+	printf("%i\n", **(&a - 8))
+	// printf("%i\n", b)
 }

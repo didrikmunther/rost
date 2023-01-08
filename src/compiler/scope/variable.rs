@@ -1,4 +1,7 @@
-use std::ops::{Deref, Range};
+use std::{
+    fmt::Display,
+    ops::{Deref, Range},
+};
 
 use crate::lexer::Keyword;
 
@@ -40,5 +43,26 @@ impl Deref for StoredVariable {
 
     fn deref(&self) -> &Self::Target {
         &self.variable
+    }
+}
+
+impl Display for VariableType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            VariableType::Pointer(pointer) => {
+                write!(f, "*")?;
+                pointer.fmt(f)
+            }
+            VariableType::Value(value) => {
+                let v = match value {
+                    Keyword::Int => "int",
+                    Keyword::Bool => "bool",
+                    _ => return write!(f, "{:?}", value),
+                };
+
+                write!(f, "{}", v)
+            }
+            _ => write!(f, "{:?}", self),
+        }
     }
 }

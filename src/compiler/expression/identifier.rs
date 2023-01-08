@@ -6,7 +6,6 @@ use crate::{
         program::Program,
         scope::variable::{VariableLocation, VariableType},
     },
-    lexer::Keyword,
     parser::definition::Expression,
 };
 

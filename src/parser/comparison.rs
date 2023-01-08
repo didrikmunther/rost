@@ -10,7 +10,7 @@ impl<'a> Parser<'a> {
     pub fn comparison(&mut self) -> Result<Expression, ParserError> {
         let left = self.addition()?;
 
-        while let Some(block) =
+        while let Some(operator) =
             self.get(&[Keyword::LessThan, Keyword::GreaterThan, Keyword::Equality])
         {
             let right = self.addition()?;
@@ -21,7 +21,8 @@ impl<'a> Parser<'a> {
                 kind: ExpressionKind::Binary(Binary {
                     left: Box::new(left),
                     right: Box::new(right),
-                    operator: block.kind,
+                    operator: operator.kind,
+                    operator_pos: operator.pos.clone(),
                 }),
             });
         }

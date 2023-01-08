@@ -108,6 +108,7 @@ pub struct Binary {
     pub left: Box<Expression>,
     pub right: Box<Expression>,
     pub operator: Keyword,
+    pub operator_pos: Range<usize>
 }
 
 #[derive(Debug)]

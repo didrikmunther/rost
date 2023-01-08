@@ -29,6 +29,7 @@ impl Procedure {
 pub enum ProcedureKind {
     Comment(String),
     Allocate(usize), // Allocate a certain amount of variables on the stack
+    Deref,
     Push(OperandValue),
     PushAddress(OperandValue),
     Assign(VariableLocation), // Stack position of the variable to assign

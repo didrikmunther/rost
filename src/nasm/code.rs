@@ -47,47 +47,47 @@ impl Code {
                 continue;
             }
 
-            // match &row.row {
-            //     Row::Subtract(_, v) | Row::Add(_, v) => {
-            //         if v.eq("0") {
-            //             code.add(Row::Comment("Optimized: removed sub/add 0".into()));
-            //             continue;
-            //         }
-            //     },
-            //     Row::Move(a, b) => {
-            //         if a.eq(b) {
-            //             code.add(Row::Comment("Optimized: removed identical moves".into()));
-            //             continue;
-            //         }
-            //     }
-            //     _ => {}
-            // }
+            match &row.row {
+                Row::Subtract(_, v) | Row::Add(_, v) => {
+                    if v.eq("0") {
+                        code.add(Row::Comment("Optimized: removed sub/add 0".into()));
+                        continue;
+                    }
+                },
+                Row::Move(a, b) => {
+                    if a.eq(b) {
+                        code.add(Row::Comment("Optimized: removed identical moves".into()));
+                        continue;
+                    }
+                }
+                _ => {}
+            }
 
             if let Some(prev_row) = prev {
                 match (&prev_row.row, &row.row) {
-                    // (Row::Push(push), Row::Pop(pop)) => {
-                    //     if pop.eq(push) {
-                    //         code.add(Row::Comment("Optimized: removed push / pop".into()));
-                    //     } else {
-                    //         code.add_with_comment(
-                    //             Row::Move(pop.clone(), push.clone()),
-                    //             "Optimized: removed push / pop, added mov".into(),
-                    //         );
-                    //     }
+                    (Row::Push(push), Row::Pop(pop)) => {
+                        if pop.eq(push) {
+                            code.add(Row::Comment("Optimized: removed push / pop".into()));
+                        } else {
+                            code.add_with_comment(
+                                Row::Move(pop.clone(), push.clone()),
+                                "Optimized: removed push / pop, added mov".into(),
+                            );
+                        }
 
-                    //     prev = None;
-                    //     continue;
-                    // }
-                    // (Row::Move(a1, a2), Row::Move(b1, b2)) => {
-                    //     if a1 == b2 {
-                    //         code.add_with_comment(
-                    //             Row::Move(b1.clone(), a2.clone()),
-                    //             "Optimized: removed mov / mov, added mov".into(),
-                    //         );
-                    //         prev = None;
-                    //         continue;
-                    //     }
-                    // }
+                        prev = None;
+                        continue;
+                    }
+                    (Row::Move(a1, a2), Row::Move(b1, b2)) => {
+                        if a1 == b2 {
+                            code.add_with_comment(
+                                Row::Move(b1.clone(), a2.clone()),
+                                "Optimized: removed mov / mov, added mov".into(),
+                            );
+                            prev = None;
+                            continue;
+                        }
+                    }
                     _ => {}
                 }
 

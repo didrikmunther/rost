@@ -47,6 +47,10 @@ impl Program {
         right: &VariableType,
         operator: Keyword,
     ) -> Option<Keyword> {
+        // if let VariableType::Pointer(left) = left {
+
+        // }
+
         let (VariableType::Value(left), VariableType::Value(right)) = (left, right) else {
             return None;
         };
@@ -124,12 +128,16 @@ impl Program {
                 if let Some(typ) = self.infer_binary_result_type(&left, &right, binary.operator) {
                     return Ok(VariableType::Value(typ));
                 } else {
+                    println!("expected: {:?}, {:?}", binary.left.pos, binary.right.pos);
+
                     return Err(CompilerError::new(
                         binary.left.pos.clone(),
                         CompilerErrorKind::WrongBinaryExpressionTypes {
                             got: left,
                             expected: right,
                             expected_pos: binary.right.pos.clone(),
+                            operator: binary.operator,
+                            operator_pos: binary.operator_pos.clone(),
                         },
                     ));
                 }

@@ -26,10 +26,6 @@ pub enum Keyword {
     GreaterThan,
     Equality,
 
-    // Temp
-    Null,
-    Binary,
-
     // Types
     Int,
     Bool,

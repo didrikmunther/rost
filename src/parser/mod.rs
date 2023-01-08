@@ -17,6 +17,7 @@ mod multiplication;
 mod parenthesis;
 mod parser;
 mod primary;
+mod reference;
 mod return_statement;
 mod unexpected;
 mod while_statement;

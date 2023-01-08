@@ -1,6 +1,9 @@
 use std::ops::Range;
 
-use crate::error::{RostError, RostErrorElement};
+use crate::{
+    error::{RostError, RostErrorElement},
+    lexer::Keyword,
+};
 
 use super::scope::variable::VariableType;
 
@@ -14,6 +17,8 @@ pub enum CompilerErrorKind {
         got: VariableType,
         expected: VariableType,
         expected_pos: Range<usize>,
+        operator: Keyword,
+        operator_pos: Range<usize>,
     },
     WrongType {
         got: VariableType,
@@ -67,16 +72,19 @@ impl CompilerError {
                 got,
                 expected,
                 expected_pos,
+                operator,
+                operator_pos,
             } => {
                 vec![
                     (
-                        format!("Incompatible types in binary expression: {:?}", got),
+                        format!("Incompatible types in binary expression: {}", got),
                         self.pos.clone(),
                     ),
                     (
-                        format!("Other type is {:?}", expected),
-                        expected_pos.clone(),
+                        format!("Operator {:?} is not defined for types.", operator),
+                        operator_pos.clone(),
                     ),
+                    (format!("Other type is {}", expected), expected_pos.clone()),
                 ]
             }
             CompilerErrorKind::WrongAssignmentType {
@@ -86,18 +94,18 @@ impl CompilerError {
             } => {
                 vec![
                     (
-                        format!("Wrong type in assignment: {:?}", got),
+                        format!("Wrong type in assignment: {}", got),
                         self.pos.clone(),
                     ),
                     (
-                        format!("Variable declared with type {:?}", typ),
+                        format!("Variable declared with type {}", typ),
                         declaration_pos.clone(),
                     ),
                 ]
             }
             CompilerErrorKind::WrongType { got, expected } => {
                 vec![(
-                    format!("Wrong type: {:?}, expected: {:?}", got, expected),
+                    format!("Wrong type: {}, expected: {}", got, expected),
                     self.pos.clone(),
                 )]
             }

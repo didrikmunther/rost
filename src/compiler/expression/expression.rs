@@ -6,39 +6,18 @@ use crate::{
         program::Program,
     },
     lexer::Keyword,
-    parser::definition::{Binary, Expression, ExpressionKind, Primary, Unary},
+    parser::definition::{Binary, Expression, ExpressionKind, Unary},
 };
 
 impl Program {
-    fn handle_deref(
-        &mut self,
-        _complete_expression: &Expression,
-        expression: &Expression,
-    ) -> Result<Builder, CompilerError> {
-        match &expression.kind {
-            ExpressionKind::Primary(primary) => match &primary {
-                Primary::Identifier(identifier) => {
-                    return Ok(Builder::new().append(self.handle_identifier(
-                        expression,
-                        &identifier,
-                        true,
-                    )?));
-                }
-                _ => todo!("Not supported"),
-            },
-            _ => todo!("Not supported"),
-        }
-    }
-
     fn handle_unary(
         &mut self,
         expression: &Expression,
         unary: &Unary,
     ) -> Result<Builder, CompilerError> {
         match unary.operator {
-            Keyword::Ampersand => {
-                return self.handle_deref(expression, &unary.expr);
-            }
+            Keyword::Ampersand => self.handle_ref(expression, &unary.expr),
+            Keyword::Asterix => self.handle_deref(expression, &unary.expr),
             _ => todo!("Not supported"),
         }
     }

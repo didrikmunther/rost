@@ -114,6 +114,7 @@ impl<'a> Generator<'a> {
                 ProcedureKind::Assign(location) => self.handle_assign(location)?,
                 ProcedureKind::Push(operand) => self.handle_push(operand, false)?,
                 ProcedureKind::PushAddress(operand) => self.handle_push(operand, true)?,
+                ProcedureKind::Deref => self.handle_deref()?,
                 ProcedureKind::Arithmetic(arithmetic) => {
                     self.handle_arithmetic(&label, arithmetic)?
                 }
