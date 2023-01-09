@@ -1,6 +1,6 @@
   --> ./tests/error_scope.in:8:2 => CompilerError
 7 | if(c < 5) {
-8 |     a = 2
+8 |     a = 2;
   |     ^
   |     └─ Undefined variable: a
 9 | }

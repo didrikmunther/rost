@@ -13,7 +13,7 @@ for file in ./tests/*.in; do
 
 	echo "[Running test ${file}]" | tee -a tests.log
 	name=$(echo $file | sed 's/.*\///;s/\.in//')
-	./target/debug/rost ./tests/${name}.in "$@" >> tests.log || (echo "Compiler error for test ${name}, check logs" | tee -a tests.log || exit)
+	./target/debug/rost ./tests/${name}.in "$@" >> tests.log || echo "Compiler error for test ${name}, check logs" | tee -a tests.log || exit
 	output=$(docker run -v $(PWD):/app rost)
 	expected=$(cat ./tests/${name}.out)
 	if [ "$output" != "$expected" ]; then

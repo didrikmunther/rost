@@ -1,0 +1,31 @@
+let a1 = 1;
+let a2 = 1;
+let a3 = 1;
+let a4 = 1;
+let a5 = 1;
+let a6 = 1;
+let a7 = 1000;
+
+fn a(b: int, c: int) -> int {
+	let k = 150;
+
+	if(k > 10) {
+		let abc = 1;
+		return 100000;
+	}
+
+	return k + b + c;
+}
+
+fn b(b: int, c: int) -> int {
+	let k = 100;
+	return k + b + c + a7;
+}
+
+fn main() {
+	let g = a(2, 5);
+	let t = b(g, 10);
+
+	printf("%i\n", g);
+	printf("%i\n", t);
+}

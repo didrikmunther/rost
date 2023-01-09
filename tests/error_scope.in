@@ -1,9 +1,9 @@
-let c = 2
+let c = 2;
 
 if(c < 5) {
-	let a = 5
+	let a = 5;
 }
 
 if(c < 5) {
-	a = 2
+	a = 2;
 }

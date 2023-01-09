@@ -1,0 +1,13 @@
+// let b = 123;
+
+// fn a(k: pointer<int>) {
+// 	printf("%i\n", *k);
+// 	// *k = 5
+// }
+
+// fn main() {
+// 	a(&b);
+// 	printf("%i\n", b);
+// }
+
+fn main() {}

@@ -1,0 +1,6 @@
+  --> ./tests/error_function_return.in:6:24 => CompilerError
+5 | fn main() {
+6 |     let a: pointer<int> = b();
+  |                           ^^^
+  |                           └─ Wrong type: int, expected: *int
+7 | }

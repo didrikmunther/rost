@@ -18,10 +18,10 @@ pub enum DeclarationKind {
     FunctionDeclaration(FunctionDeclaration),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FunctionDeclarationParameter {
     pub identifier: String,
-    pub typ: Keyword,
+    pub typ: Type,
     pub pos: Range<usize>,
 }
 

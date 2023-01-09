@@ -1,4 +1,4 @@
-use crate::lexer::{Keyword, Token};
+use crate::{lexer::{Keyword, Token}, parser_todo};
 
 use super::{error::ParserError, parser::Parser};
 
@@ -23,20 +23,20 @@ impl<'a> Parser<'a> {
                 Keyword::Int | Keyword::Bool | Keyword::Char | Keyword::Pointer => {
                     TypeIdentifier::Primitive(keyword.clone())
                 }
-                _ => todo!("Unknown type"),
+                _ => return parser_todo!(next.pos.clone(), "Unknown type"),
             },
             Token::Identifier(_identifier) => todo!(),
-            _ => todo!("Unknown type"),
+            _ => return parser_todo!(next.pos.clone(), "Unknown type"),
         };
 
-        if let Some(_) = self.get(&[Keyword::LessThan]) {
+        if let Some(lt) = self.get(&[Keyword::LessThan]) {
             let mut children = vec![Box::new(self.parse_type()?)];
             while let Some(_) = self.get(&[Keyword::Comma]) {
                 children.push(Box::new(self.parse_type()?));
             }
 
             if let None = self.get(&[Keyword::GreaterThan]) {
-                todo!("Unclosed type");
+                return parser_todo!(lt.pos.clone(), "Unclosed type");
             }
 
             Ok(Type {

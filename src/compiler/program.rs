@@ -106,7 +106,7 @@ impl Program {
 
         // Get root scope in order to find main function
         let ProgramScope::RootScope(root_scope) = &self.scope else {
-            todo!("We should be in root_scope by end of program");
+            unreachable!("We should be in root_scope by end of program");
         };
 
         // Find main function in root scope

@@ -7,6 +7,6 @@
 // }
 
 fn main() {
-	let a = 15 / 3
-	printf("%i\n", a)
+	let a = 15 / 3;
+	printf("%i\n", a);
 }

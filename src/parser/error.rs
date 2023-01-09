@@ -5,11 +5,37 @@ use crate::{
     lexer::{Keyword, Token},
 };
 
+#[macro_export]
+macro_rules! parser_todo {
+    ($pos: expr, $msg: expr) => {{
+        use super::error::{ParserError, ParserErrorKind};
+        Err(ParserError::new(
+            $pos,
+            ParserErrorKind::Todo {
+                msg: format!("{}", $msg),
+                file: file!(),
+                line: line!(),
+            },
+        ))
+    }};
+}
+
+pub use parser_todo;
+
 #[derive(Debug, PartialEq)]
 pub enum ParserErrorKind {
     Unknown,
+    Todo {
+        msg: String,
+        file: &'static str,
+        line: u32,
+    },
     UnexpectedToken(Token),
     Expected(&'static [Keyword]),
+    ExpectedSemicolon,
+    AssignmentToNonIdentifier {
+        equals_pos: Range<usize>,
+    },
     UnexpectedEOF,
     UnterminatedParenthesis,
 }
@@ -27,8 +53,26 @@ impl ParserError {
 
     fn get_messages(&self) -> Vec<(String, Range<usize>)> {
         match &self.kind {
+            ParserErrorKind::Todo { file, line, msg } => {
+                vec![(
+                    format!("Not yet implemented, {}. {}:{}", msg, file, line),
+                    self.pos.clone(),
+                )]
+            }
+            ParserErrorKind::AssignmentToNonIdentifier { equals_pos } => {
+                vec![
+                    (
+                        format!("Trying to assign to non identifier"),
+                        self.pos.clone(),
+                    ),
+                    (format!("Assignment happens here"), equals_pos.clone()),
+                ]
+            }
             ParserErrorKind::UnterminatedParenthesis => {
                 vec![("Unterminated parenthesis".to_string(), self.pos.clone())]
+            }
+            ParserErrorKind::ExpectedSemicolon => {
+                vec![("Expected terminating semicolon for statement".to_string(), self.pos.clone())]
             }
             ParserErrorKind::UnexpectedEOF => {
                 vec![("Unexpected EOF".to_string(), self.pos.clone())]

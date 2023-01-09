@@ -3,6 +3,8 @@ use std::{
     ops::Range,
 };
 
+use crate::parser::definition::FunctionDeclarationParameter;
+
 use super::{
     builder::Builder,
     scope::variable::{VariableLocation, VariableType},
@@ -88,7 +90,7 @@ pub struct FunctionDefinition {
 #[derive(Debug)]
 pub struct Function {
     pub return_type: Option<VariableType>,
-    pub npars: usize,
+    pub parameters: Vec<FunctionDeclarationParameter>,
     pub body: Builder,
 }
 

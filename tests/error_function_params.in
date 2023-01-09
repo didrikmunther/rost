@@ -1,0 +1,7 @@
+fn b(a: pointer<int>) -> int {
+	return 1;
+}
+
+fn main() {
+	b(5);
+}

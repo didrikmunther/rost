@@ -47,17 +47,10 @@ impl<'a> Generator<'a> {
         self.code
             .add(Row::Xor("rax".into(), "rax".into())) // Return value in rax, default 0
             .add(Row::Call(Self::get_function_name(call.function_id)));
-            // .add_with_comment(
-            //     Row::Add("rsp".into(), format!("{}", call.nargs * 8).into()),
-            //     "Resetting stack pointer after arguments to function".into(),
-            // );
 
         if call.returns {
             self.code.add(Row::Push("rax".into()));
         }
-
-        // Reset stack to be one element before the first argument
-        // self.code.stack_pos -= call.nargs;
 
         Ok(())
     }

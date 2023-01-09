@@ -76,7 +76,7 @@ impl<'a> Parser<'a> {
                     };
 
                 self.expect(&[Keyword::Colon])?;
-                let par_type = self.expect(&[Keyword::Int])?.kind;
+                let par_type = self.parse_type()?;
 
                 parameters.push(FunctionDeclarationParameter {
                     identifier: par_identifier.clone(),

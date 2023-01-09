@@ -1,6 +1,9 @@
 use std::ops::Range;
 
-use crate::lexer::{Block, Keyword, Token};
+use crate::{
+    lexer::{Block, Keyword, Token},
+    parser_todo,
+};
 
 use super::{
     definition::{Declaration, Expression, ExpressionKind, Primary},
@@ -32,7 +35,7 @@ impl<'a> Parser<'a> {
 
             loop {
                 if self.is_end() {
-                    todo!("error")
+                    return parser_todo!(open.pos.clone(), "error");
                 }
 
                 if let Some(close) = self.get(&[Keyword::BracketRight]) {

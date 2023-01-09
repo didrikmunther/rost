@@ -1,8 +1,22 @@
 use crate::compiler::definition::Function;
 
-use super::{error::NasmError, generator::Generator, row::Row};
+use super::{code::Code, error::NasmError, generator::Generator, row::Row};
 
 impl<'a> Generator<'a> {
+    pub fn save_base_pointer(&mut self) -> &mut Code {
+        self.code
+            .add(Row::Comment("Save base pointer".into()))
+            .add(Row::Push("rbp".into()))
+            .add(Row::Move("rbp".into(), "rsp".into()))
+    }
+
+    pub fn restore_base_pointer(&mut self) -> &mut Code {
+        self.code
+            .add(Row::Comment("Restore base pointer".into()))
+            .add(Row::Move("rsp".into(), "rbp".into()))
+            .add(Row::Pop("rbp".into()))
+    }
+
     pub fn handle_function_declaration(
         &mut self,
         index: usize,
@@ -10,25 +24,17 @@ impl<'a> Generator<'a> {
     ) -> Result<(), NasmError> {
         let name = Self::get_function_name(index);
 
-        // let par_offset = 1 + function.npars; // Compensate for the return address on the stack from CALL instruction
         let old_stack_pos = self.code.stack_pos;
-        // self.code.stack_pos += par_offset; // Let the stack begin at the first argument of the function
 
         self.code.add(Row::Label(name.clone()));
 
-        self.code
-            .add(Row::Comment("Save base pointer".into()))
-            .add(Row::Push("rbp".into()))
-            .add(Row::Move("rbp".into(), "rsp".into()));
+        self.save_base_pointer();
 
         self.code.stack_pos = 1;
         self.add_program(&function.body, &name)?;
         self.code.stack_pos = old_stack_pos;
 
-        self.code
-            .add(Row::Comment("Restore base pointer".into()))
-            .add(Row::Move("rsp".into(), "rbp".into()))
-            .add(Row::Pop("rbp".into()))
+        self.restore_base_pointer()
             .add(Row::Comment("Return from function".into()))
             .add(Row::Ret);
 

@@ -1,0 +1,4 @@
+  --> ./tests/error_semicolon.in:1:5 => ParserError
+1 | let c = 2
+  |     ^^^^^
+  |     └─ Expected terminating semicolon for statement

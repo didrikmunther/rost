@@ -1,0 +1,11 @@
+  --> ./tests/error_function_params.in:6:4, ./tests/error_function_params.in:1:6 => CompilerError
+1 | fn b(a: pointer<int>) -> int {
+  |      ^
+  |      └─ Function takes parameter of type: *int
+2 |     return 1;
+    ...
+5 | fn main() {
+6 |     b(5);
+  |       ^
+  |       └─ Wrong type in argument: int
+7 | }

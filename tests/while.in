@@ -1,12 +1,12 @@
-let a = 0
+let a = 0;
 
 fn main() {
 	while(a < 20) {
-		let b = a + 100
-		printf("%i\n", a)
-		a = a + 1
+		let b = a + 100;
+		printf("%i\n", a);
+		a = a + 1;
 	}
 
-	printf("Outside\n")
-	printf("%i\n", a)
+	printf("Outside\n");
+	printf("%i\n", a);
 }

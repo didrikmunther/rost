@@ -21,7 +21,6 @@ impl Program {
             todo!("We're already in a function");
         };
 
-        let npars = fdec.parameters.len();
         let old_stack_pos = self.stack_pos;
         let return_type = fdec
             .return_type
@@ -29,18 +28,25 @@ impl Program {
             .map(|t| self.get_variable_type(&t));
 
         let body = self.with_function_scope(return_type.clone(), |this| {
+            let parameters = fdec
+                .parameters
+                .iter()
+                .rev()
+                .map(|parameter| {
+                    (
+                        parameter.identifier.clone(),
+                        parameter.pos.clone(),
+                        this.get_variable_type(&parameter.typ),
+                    )
+                })
+                .collect::<Vec<_>>();
+
             let ProgramScope::FunctionScope(function_scope) = &mut this.scope else {
                 unreachable!();
             };
 
-            for parameter in fdec.parameters.iter().rev() {
-                function_scope.create_parameter(
-                    parameter.identifier.clone(),
-                    Variable {
-                        pos: parameter.pos.clone(),
-                        typ: VariableType::Value(parameter.typ),
-                    },
-                );
+            for (identifier, pos, typ) in parameters {
+                function_scope.create_parameter(identifier, Variable { pos, typ });
             }
 
             // Calling a function adds the RET address to the stack,
@@ -67,7 +73,7 @@ impl Program {
 
         self.functions.push(Function {
             body,
-            npars,
+            parameters: fdec.parameters.clone(),
             return_type,
         });
 

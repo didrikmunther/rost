@@ -1,6 +1,6 @@
   --> ./tests/error_function.in:10:1 => CompilerError
  9 | 
-10 | a(2, 5)
+10 | a(2, 5);
    | ^
    | └─ Undefined function: a
-11 | b(1, 10)
+11 | b(1, 10);

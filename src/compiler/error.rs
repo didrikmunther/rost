@@ -25,6 +25,12 @@ pub enum CompilerErrorKind {
         got: VariableType,
         expected: VariableType,
     },
+    WrongArgumentType {
+        parameter: VariableType,
+        argument: VariableType,
+        parameter_pos: Range<usize>
+
+    },
     WrongAssignmentType {
         got: VariableType,
         typ: VariableType,
@@ -105,6 +111,22 @@ impl CompilerError {
                     (
                         format!("Variable declared with type {}", typ),
                         declaration_pos.clone(),
+                    ),
+                ]
+            }
+            CompilerErrorKind::WrongArgumentType {
+                argument,
+                parameter,
+                parameter_pos,
+            } => {
+                vec![
+                    (
+                        format!("Wrong type in argument: {}", argument),
+                        self.pos.clone(),
+                    ),
+                    (
+                        format!("Function takes parameter of type: {}", parameter),
+                        parameter_pos.clone()
                     ),
                 ]
             }

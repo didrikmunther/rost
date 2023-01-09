@@ -1,4 +1,4 @@
-use crate::lexer::{Keyword};
+use crate::lexer::{Block, Keyword};
 
 use super::{
     definition::{Assignment, Expression, Statement, StatementKind},
@@ -9,9 +9,9 @@ use super::{
 };
 
 impl<'a> Parser<'a> {
-    fn parse_assignment_value(&mut self) -> Result<Option<Expression>, ParserError> {
-        if let Some(_) = self.get(&[Keyword::Equals]) {
-            Ok(Some(self.expression()?))
+    fn parse_assignment_value(&mut self) -> Result<Option<(Expression, &Block)>, ParserError> {
+        if let Some(equals) = self.get(&[Keyword::Equals]) {
+            Ok(Some((self.expression()?, equals)))
         } else {
             Ok(None)
         }
@@ -24,7 +24,7 @@ impl<'a> Parser<'a> {
                 .map(|_| self.parse_type())
                 .transpose()?;
 
-            if let Some(right) = self.parse_assignment_value()? {
+            if let Some((right, _)) = self.parse_assignment_value()? {
                 let identifier = match get_block_identifier(&left) {
                     Some(identifier) => identifier,
                     _ => {
@@ -66,10 +66,17 @@ impl<'a> Parser<'a> {
         }
 
         let left = self.expression()?;
-        if let Some(right) = self.parse_assignment_value()? {
+        if let Some((right, equals)) = self.parse_assignment_value()? {
             let identifier = match get_expr_identifier(&left) {
                 Some(identifier) => identifier,
-                _ => todo!(),
+                _ => {
+                    return Err(ParserError::new(
+                        left.pos.clone(),
+                        ParserErrorKind::AssignmentToNonIdentifier {
+                            equals_pos: equals.pos.clone(),
+                        },
+                    ))
+                }
             };
 
             return Ok(Statement {

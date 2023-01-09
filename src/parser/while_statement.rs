@@ -2,7 +2,7 @@ use crate::lexer::Keyword;
 
 use super::{
     definition::{Statement, StatementKind, WhileStatement},
-    error::ParserError,
+    error::{ParserError, ParserErrorKind},
     parser::Parser,
 };
 
@@ -21,6 +21,15 @@ impl<'a> Parser<'a> {
             });
         }
 
-        self.return_statement()
+        let statement = self.return_statement()?;
+
+        if let None = self.get(&[Keyword::Semicolon]) {
+            return Err(ParserError::new(
+                statement.pos.clone(),
+                ParserErrorKind::ExpectedSemicolon,
+            ));
+        }
+
+        Ok(statement)
     }
 }

@@ -46,12 +46,28 @@ impl Program {
 
         let function = self.functions.get(function_id).unwrap();
 
-        if function.npars != fcall.args.len() {
+        if function.parameters.len() != fcall.args.len() {
             todo!(
                 "Wrong number of arguments to function, takes {}, {} was given",
-                function.npars,
+                function.parameters.len(),
                 fcall.args.len()
             )
+        }
+
+        for (par, arg) in function.parameters.iter().zip(&fcall.args) {
+            let arg_type = self.infer_type(arg)?;
+            let par_type = self.get_variable_type(&par.typ);
+
+            if arg_type != par_type {
+                return Err(CompilerError::new(
+                    arg.pos.clone(),
+                    CompilerErrorKind::WrongArgumentType {
+                        parameter: par_type,
+                        argument: arg_type,
+                        parameter_pos: par.pos.clone(),
+                    },
+                ));
+            }
         }
 
         builder = builder.push(Procedure::new(
