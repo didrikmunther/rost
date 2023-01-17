@@ -1,11 +1,14 @@
-use crate::lexer::{Block, Keyword};
+use crate::{
+    lexer::{Block, Keyword},
+    parser::definition::VariableAssignment,
+};
 
 use super::{
-    definition::{Assignment, Expression, Statement, StatementKind},
+    definition::{Expression, Statement, StatementKind, VariableDeclaration},
     error::{ParserError, ParserErrorKind},
     parser::Parser,
     types::Type,
-    util::{get_block_identifier, get_expr_identifier},
+    util::get_block_identifier,
 };
 
 impl<'a> Parser<'a> {
@@ -24,34 +27,30 @@ impl<'a> Parser<'a> {
                 .map(|_| self.parse_type())
                 .transpose()?;
 
-            if let Some((right, _)) = self.parse_assignment_value()? {
-                let identifier = match get_block_identifier(&left) {
-                    Some(identifier) => identifier,
-                    _ => {
-                        return Err(ParserError::new(
-                            left.pos.clone(),
-                            ParserErrorKind::Expected(&[Keyword::Identifier]),
-                        ))
-                    }
-                };
-
-                return Ok(Statement {
-                    pos: left.pos.start..right.pos.end,
-                    kind: StatementKind::Assignment(Assignment {
-                        is_new: true,
-                        typ: assignment_type,
-                        identifier,
-                        identifier_pos: left.pos.clone(),
-                        value_pos: right.pos.clone(),
-                        value: Box::new(right),
-                    }),
-                });
-            } else {
-                Err(ParserError::new(
+            let Some((right, _)) = self.parse_assignment_value()? else {
+                return Err(ParserError::new(
                     self.peek_or_eof()?.pos.clone(),
                     ParserErrorKind::Expected(&[Keyword::Equals]),
-                ))
-            }
+                ));
+            };
+
+            let Some(identifier) = get_block_identifier(&left) else {
+                return Err(ParserError::new(
+                    left.pos.clone(),
+                    ParserErrorKind::Expected(&[Keyword::Identifier]),
+                ));
+            };
+
+            return Ok(Statement {
+                pos: left.pos.start..right.pos.end,
+                kind: StatementKind::VariableDeclaration(VariableDeclaration {
+                    typ: assignment_type,
+                    identifier,
+                    identifier_pos: left.pos.clone(),
+                    right_pos: right.pos.clone(),
+                    right: Box::new(right),
+                }),
+            });
         } else {
             return Err(ParserError::new(
                 self.peek_or_eof()?.pos.clone(),
@@ -66,28 +65,27 @@ impl<'a> Parser<'a> {
         }
 
         let left = self.expression()?;
+
         if let Some((right, equals)) = self.parse_assignment_value()? {
-            let identifier = match get_expr_identifier(&left) {
-                Some(identifier) => identifier,
-                _ => {
-                    return Err(ParserError::new(
-                        left.pos.clone(),
-                        ParserErrorKind::AssignmentToNonIdentifier {
-                            equals_pos: equals.pos.clone(),
-                        },
-                    ))
-                }
-            };
+            // let identifier = match get_expr_identifier(&left) {
+            //     Some(identifier) => identifier,
+            //     _ => {
+            //         return Err(ParserError::new(
+            //             left.pos.clone(),
+            //             ParserErrorKind::AssignmentToNonIdentifier {
+            //                 equals_pos: equals.pos.clone(),
+            //             },
+            //         ))
+            //     }
+            // };
 
             return Ok(Statement {
                 pos: left.pos.start..right.pos.end,
-                kind: StatementKind::Assignment(Assignment {
-                    is_new: false,
-                    typ: None,
-                    identifier,
-                    identifier_pos: left.pos.clone(),
-                    value_pos: right.pos.clone(),
-                    value: Box::new(right),
+                kind: StatementKind::VariableAssignment(VariableAssignment {
+                    left_pos: left.pos.clone(),
+                    left: Box::new(left),
+                    right_pos: right.pos.clone(),
+                    right: Box::new(right),
                 }),
             });
         }

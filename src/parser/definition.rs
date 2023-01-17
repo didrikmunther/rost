@@ -40,19 +40,27 @@ pub struct Statement {
 }
 
 #[derive(Debug)]
-pub struct Assignment {
-    pub is_new: bool,
+pub struct VariableDeclaration {
     pub typ: Option<Type>,
     pub identifier: String,
     pub identifier_pos: Range<usize>,
-    pub value: Box<Expression>,
-    pub value_pos: Range<usize>,
+    pub right: Box<Expression>,
+    pub right_pos: Range<usize>,
+}
+
+#[derive(Debug)]
+pub struct VariableAssignment {
+    pub left: Box<Expression>,
+    pub left_pos: Range<usize>,
+    pub right: Box<Expression>,
+    pub right_pos: Range<usize>,
 }
 
 #[derive(Debug)]
 pub enum StatementKind {
     Expression(Expression),
-    Assignment(Assignment),
+    VariableDeclaration(VariableDeclaration),
+    VariableAssignment(VariableAssignment),
     IfStatements(Vec<IfStatement>),
     WhileStatement(WhileStatement),
     ReturnStatement(ReturnStatement),

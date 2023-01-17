@@ -9,6 +9,10 @@ impl<'a> Generator<'a> {
         let into = match location {
             VariableLocation::Stack(loc) => self.get_absolute_stack_location(*loc),
             VariableLocation::Global(label) => format!("[{}]", label),
+            VariableLocation::Address => {
+                self.code.add(Row::Pop("rbx".into()));
+                format!("[rbx]")
+            }
         };
 
         self.code.add(Row::Move(into, "rax".into()));

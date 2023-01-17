@@ -10,7 +10,8 @@ impl Program {
         match &declaration.kind {
             DeclarationKind::Statement(statement) => match &statement.kind {
                 StatementKind::Expression(expression) => self.handle_expression(expression),
-                StatementKind::Assignment(assignment) => self.handle_assignment(assignment),
+                StatementKind::VariableAssignment(assignment) => self.handle_variable_assignment(assignment),
+                StatementKind::VariableDeclaration(declaration) => self.handle_variable_declaration(declaration),
                 StatementKind::IfStatements(if_statements) => {
                     self.handle_if_statement(statement, if_statements)
                 }

@@ -33,6 +33,9 @@ impl Program {
                         OperandValue::DataLocation(label.clone())
                     }
                 }
+                VariableLocation::Address => {
+                    todo!()
+                }
             };
 
             let operation = if load_address {

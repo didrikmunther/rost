@@ -30,6 +30,10 @@ pub enum VariableLocation {
 
     // Name of global label
     Global(String),
+
+    // The address has been pushed to the stack,
+    // pop it and write to it.
+    Address,
 }
 
 #[derive(Debug)]
