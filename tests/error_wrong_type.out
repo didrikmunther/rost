@@ -1,0 +1,7 @@
+  --> ./tests/error_wrong_type.in:2:5, ./tests/error_wrong_type.in:1:5 => CompilerError
+1 | let a = 123;
+  |     ^
+  |     └─ Variable declared with type int
+2 | a = "b";
+  |     ^^^
+  |     └─ Wrong type in assignment: *Char

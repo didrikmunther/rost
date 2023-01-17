@@ -67,7 +67,7 @@ mod tests {
 
     #[test]
     fn symbol_works() {
-        let letters = &get_letters("=>");
+        let letters = &get_letters("->");
         let lexed = SymbolLexer.lex(letters);
 
         assert_eq!(lexed, Ok(Some((Token::Keyword(Keyword::Arrow), 2))));
