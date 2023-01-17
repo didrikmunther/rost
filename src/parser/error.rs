@@ -33,9 +33,6 @@ pub enum ParserErrorKind {
     UnexpectedToken(Token),
     Expected(&'static [Keyword]),
     ExpectedSemicolon,
-    AssignmentToNonIdentifier {
-        equals_pos: Range<usize>,
-    },
     UnexpectedEOF,
     UnterminatedParenthesis,
 }
@@ -58,15 +55,6 @@ impl ParserError {
                     format!("Not yet implemented, {}. {}:{}", msg, file, line),
                     self.pos.clone(),
                 )]
-            }
-            ParserErrorKind::AssignmentToNonIdentifier { equals_pos } => {
-                vec![
-                    (
-                        format!("Trying to assign to non identifier"),
-                        self.pos.clone(),
-                    ),
-                    (format!("Assignment happens here"), equals_pos.clone()),
-                ]
             }
             ParserErrorKind::UnterminatedParenthesis => {
                 vec![("Unterminated parenthesis".to_string(), self.pos.clone())]

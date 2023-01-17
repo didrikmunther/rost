@@ -66,19 +66,7 @@ impl<'a> Parser<'a> {
 
         let left = self.expression()?;
 
-        if let Some((right, equals)) = self.parse_assignment_value()? {
-            // let identifier = match get_expr_identifier(&left) {
-            //     Some(identifier) => identifier,
-            //     _ => {
-            //         return Err(ParserError::new(
-            //             left.pos.clone(),
-            //             ParserErrorKind::AssignmentToNonIdentifier {
-            //                 equals_pos: equals.pos.clone(),
-            //             },
-            //         ))
-            //     }
-            // };
-
+        if let Some((right, _)) = self.parse_assignment_value()? {
             return Ok(Statement {
                 pos: left.pos.start..right.pos.end,
                 kind: StatementKind::VariableAssignment(VariableAssignment {

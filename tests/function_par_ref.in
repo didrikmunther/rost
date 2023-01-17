@@ -1,12 +1,23 @@
 let b = 123;
 
-fn a(k: pointer<pointer<int>>) {
+fn print_and_change(k: pointer<pointer<int>>) {
 	printf("%i\n", **k);
 	**k = 5;
 }
 
+fn get_b_location() -> pointer<int> {
+	return &b;
+}
+
 fn main() {
 	let i = &b;
-	a(&i);
+	print_and_change(&i);
+	printf("%i\n", b);
+
+	let b_location = get_b_location();
+	*b_location = 567;
+	printf("%i\n", b);
+
+	*get_b_location() = 777;
 	printf("%i\n", b);
 }

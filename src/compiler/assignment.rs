@@ -142,7 +142,7 @@ impl Program {
                     })
             }
             _ => {
-                todo!()
+                todo!("Unknown {:?}", assignment.left.kind)
             }
         };
 
