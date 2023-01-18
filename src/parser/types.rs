@@ -1,4 +1,7 @@
-use crate::{lexer::{Keyword, Token}, parser_todo};
+use crate::{
+    lexer::{Keyword, Token},
+    parser_todo,
+};
 
 use super::{error::ParserError, parser::Parser};
 
@@ -22,6 +25,12 @@ impl<'a> Parser<'a> {
             Token::Keyword(keyword) => match keyword {
                 Keyword::Int | Keyword::Bool | Keyword::Char | Keyword::Pointer => {
                     TypeIdentifier::Primitive(keyword.clone())
+                }
+                Keyword::Ampersand => {
+                    return Ok(Type {
+                        identifier: TypeIdentifier::Primitive(Keyword::Pointer),
+                        children: Some(vec![Box::new(self.parse_type()?)]),
+                    })
                 }
                 _ => return parser_todo!(next.pos.clone(), "Unknown type"),
             },

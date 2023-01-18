@@ -53,7 +53,7 @@ impl Code {
                         code.add(Row::Comment("Optimized: removed sub/add 0".into()));
                         continue;
                     }
-                },
+                }
                 Row::Move(a, b) => {
                     if a.eq(b) {
                         code.add(Row::Comment("Optimized: removed identical moves".into()));
@@ -81,7 +81,10 @@ impl Code {
                     (Row::Move(a1, a2), Row::Move(b1, b2)) => {
                         // Starting with '[' means it's an assignment
                         // Todo: make this information available
-                        if a1 == b2 && !a1.starts_with("[") {
+                        if a1 == b2
+                            && !a1.starts_with("[")
+                            && !(a2.starts_with("[") && b1.starts_with("["))
+                        {
                             code.add_with_comment(
                                 Row::Move(b1.clone(), a2.clone()),
                                 "Optimized: removed mov / mov, added mov".into(),

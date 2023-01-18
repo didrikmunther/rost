@@ -1,0 +1,12 @@
+fn main() {
+	let i = 123;
+	let b: &int = &i;
+	let c: &&int = &b;
+
+	let d: pointer<pointer<int>> = c;
+
+	printf("%i\n", i);
+	printf("%i\n", *b);
+	printf("%i\n", **c);
+	printf("%i\n", **d);
+}
