@@ -15,6 +15,8 @@ mod function_call;
 mod function_declaration;
 mod if_statement;
 mod return_statement;
+mod struct_construction;
+mod struct_declaration;
 mod util;
 mod while_statement;
 

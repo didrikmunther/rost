@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::{collections::HashMap, ops::Range};
 
 use crate::lexer::{Keyword, Literal};
 
@@ -15,7 +15,20 @@ pub struct Declaration {
 #[derive(Debug)]
 pub enum DeclarationKind {
     Statement(Statement),
+    StructDeclaration(StructDeclaration),
     FunctionDeclaration(FunctionDeclaration),
+}
+
+#[derive(Debug)]
+pub struct StructField {
+    pub typ: Type,
+    pub pos: Range<usize>,
+}
+
+#[derive(Debug)]
+pub struct StructDeclaration {
+    pub identifier: String,
+    pub fields: HashMap<String, StructField>,
 }
 
 #[derive(Debug, Clone)]
@@ -95,6 +108,7 @@ pub enum ExpressionKind {
     Unary(Unary),
     Binary(Binary),
     FunctionCall(FunctionCall),
+    StructConstruction(StructConstruction),
 }
 
 #[derive(Debug)]
@@ -106,10 +120,23 @@ pub struct FunctionCall {
 }
 
 #[derive(Debug)]
+pub struct StructConstructionField {
+    pub pos: Range<usize>,
+    pub expr: Expression,
+}
+
+#[derive(Debug)]
+pub struct StructConstruction {
+    pub identifier: String,
+    pub identifier_pos: Range<usize>,
+    pub fields: HashMap<String, StructConstructionField>,
+}
+
+#[derive(Debug)]
 pub struct Unary {
     pub expr: Box<Expression>,
     pub operator: Keyword,
-    pub operator_pos: Range<usize>
+    pub operator_pos: Range<usize>,
 }
 
 #[derive(Debug)]
@@ -117,7 +144,7 @@ pub struct Binary {
     pub left: Box<Expression>,
     pub right: Box<Expression>,
     pub operator: Keyword,
-    pub operator_pos: Range<usize>
+    pub operator_pos: Range<usize>,
 }
 
 #[derive(Debug)]

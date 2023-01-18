@@ -34,7 +34,11 @@ pub enum ParserErrorKind {
     Expected(&'static [Keyword]),
     ExpectedSemicolon,
     UnexpectedEOF,
-    UnterminatedParenthesis,
+    UnterminatedPair(Keyword),
+    FieldAlreadyDefined {
+        identifier: String,
+        identifier_pos: Range<usize>,
+    },
 }
 
 #[derive(Debug, PartialEq)]
@@ -56,11 +60,14 @@ impl ParserError {
                     self.pos.clone(),
                 )]
             }
-            ParserErrorKind::UnterminatedParenthesis => {
-                vec![("Unterminated parenthesis".to_string(), self.pos.clone())]
+            ParserErrorKind::UnterminatedPair(token) => {
+                vec![(format!("Unterminated pair {:?}", token), self.pos.clone())]
             }
             ParserErrorKind::ExpectedSemicolon => {
-                vec![("Expected terminating semicolon for statement".to_string(), self.pos.clone())]
+                vec![(
+                    "Expected terminating semicolon for statement".to_string(),
+                    self.pos.clone(),
+                )]
             }
             ParserErrorKind::UnexpectedEOF => {
                 vec![("Unexpected EOF".to_string(), self.pos.clone())]
@@ -70,6 +77,21 @@ impl ParserError {
             }
             ParserErrorKind::Expected(k) => vec![(format!("Expected: {:?}", k), self.pos.clone())],
             ParserErrorKind::Unknown => vec![("Unknown".to_string(), self.pos.clone())],
+            ParserErrorKind::FieldAlreadyDefined {
+                identifier,
+                identifier_pos,
+            } => {
+                vec![
+                    (
+                        format!("Field {} is redefined", identifier),
+                        self.pos.clone(),
+                    ),
+                    (
+                        "Field already defined here".to_string(),
+                        identifier_pos.clone(),
+                    ),
+                ]
+            }
         }
     }
 }

@@ -8,6 +8,7 @@ use super::{error::ParserError, parser::Parser};
 #[derive(Debug, Clone)]
 pub enum TypeIdentifier {
     Primitive(Keyword),
+    Struct(String),
 }
 
 #[derive(Debug, Clone)]
@@ -34,7 +35,7 @@ impl<'a> Parser<'a> {
                 }
                 _ => return parser_todo!(next.pos.clone(), "Unknown type"),
             },
-            Token::Identifier(_identifier) => todo!(),
+            Token::Identifier(identifier) => TypeIdentifier::Struct(identifier.clone()),
             _ => return parser_todo!(next.pos.clone(), "Unknown type"),
         };
 

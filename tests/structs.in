@@ -1,0 +1,13 @@
+struct MyStruct {
+	a: int,
+	b: int
+}
+
+fn main() {
+	let s: MyStruct = MyStruct {
+		a: 1,
+		b: 2
+	};
+
+	printf("%i\n", s.a);
+}

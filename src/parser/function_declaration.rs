@@ -28,7 +28,7 @@ impl<'a> Parser<'a> {
                 if self.is_end() {
                     return Err(ParserError::new(
                         par_open.pos.clone(),
-                        ParserErrorKind::UnterminatedParenthesis,
+                        ParserErrorKind::UnterminatedPair(Keyword::ParLeft),
                     ));
                 }
 

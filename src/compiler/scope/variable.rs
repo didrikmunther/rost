@@ -15,10 +15,17 @@ pub struct Variable {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct StructType {
+    pub id: usize,
+    pub size: usize // size in bytes
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum VariableType {
     Value(Keyword),
     Pointer(Box<VariableType>),
     Function(usize), // function id
+    Struct(StructType),
 }
 
 #[derive(Debug, Clone)]

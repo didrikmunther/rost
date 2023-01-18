@@ -24,23 +24,6 @@ impl Program {
         }
     }
 
-    // fn get_primitive_type_size(primitive: &Keyword) -> usize {
-    //     match primitive {
-    //         Keyword::Int => 8,
-    //         _ => todo!("Not supported"),
-    //     }
-    // }
-
-    // /// Return sizes in bytes
-    // // todo: maybe this is different depending on platform?
-    // fn get_type_size(&self, typ: &VariableType) -> usize {
-    //     match typ {
-    //         VariableType::Pointer(_) => 8,
-    //         VariableType::Value(typ) => Self::get_primitive_type_size(typ),
-    //         VariableType::Function(_) => todo!("Not supported"),
-    //     }
-    // }
-
     fn handle_unary(
         &mut self,
         expression: &Expression,
@@ -107,6 +90,7 @@ impl Program {
     pub fn handle_expression(&mut self, expression: &Expression) -> Result<Builder, CompilerError> {
         match &expression.kind {
             ExpressionKind::FunctionCall(fcall) => self.handle_function_call(expression, fcall),
+            ExpressionKind::StructConstruction(sconst) => self.handle_struct_construction(expression, sconst),
             ExpressionKind::Primary(primary) => self.handle_primary(expression, primary),
             ExpressionKind::Unary(unary) => self.handle_unary(expression, unary),
             ExpressionKind::Binary(binary) => self.handle_binary(expression, binary),

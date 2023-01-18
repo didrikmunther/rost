@@ -41,6 +41,24 @@ impl Program {
         }
     }
 
+    fn get_primitive_type_size(primitive: &Keyword) -> usize {
+        match primitive {
+            Keyword::Int => 8,
+            _ => todo!("Not supported"),
+        }
+    }
+
+    /// Return sizes in bytes
+    // todo: maybe this is different depending on platform?
+    pub fn get_type_size(typ: &VariableType) -> usize {
+        match typ {
+            VariableType::Pointer(_) => 8,
+            VariableType::Value(typ) => Self::get_primitive_type_size(typ),
+            VariableType::Function(_) => todo!("Not supported"),
+            VariableType::Struct(s) => s.size,
+        }
+    }
+
     pub fn infer_binary_result_type(
         &self,
         left: &VariableType,
@@ -110,6 +128,7 @@ impl Program {
                 VariableType::Pointer(Box::new(self.get_variable_type(inner)))
             }
             TypeIdentifier::Primitive(primitive) => VariableType::Value(primitive),
+            TypeIdentifier::Struct(ref s) => self.get_variable(s).unwrap().typ.clone(),
         }
     }
 
@@ -117,14 +136,14 @@ impl Program {
         match &expr.kind {
             ExpressionKind::Primary(primary) => match primary {
                 Primary::Identifier(ref identifier) => {
-                    if let Some(variable) = self.get_variable(identifier) {
-                        Ok(variable.typ.clone())
-                    } else {
+                    let Some(variable) = self.get_variable(identifier) else {
                         return Err(CompilerError::new(
                             expr.pos.clone(),
                             CompilerErrorKind::UndefinedVariable(identifier.clone()),
                         ));
-                    }
+                    };
+
+                    Ok(variable.typ.clone())
                 }
                 Primary::Literal(literal) => Ok(match literal {
                     Literal::Int(_) => VariableType::Value(Keyword::Int),
@@ -140,14 +159,14 @@ impl Program {
                 match unary.operator {
                     Keyword::Ampersand => return Ok(VariableType::Pointer(Box::new(expr_type))),
                     Keyword::Asterix => {
-                        if let VariableType::Pointer(typ) = expr_type {
-                            return Ok(*typ);
-                        } else {
+                        let VariableType::Pointer(typ) = expr_type else {
                             return Err(CompilerError::new(
                                 unary.operator_pos.clone(),
                                 CompilerErrorKind::DereferenceNonPointer(expr_type),
                             ));
-                        }
+                        };
+
+                        Ok(*typ)
                     }
                     _ => todo!("Not supported"),
                 }
@@ -156,9 +175,7 @@ impl Program {
                 let left = self.infer_type(&binary.left)?;
                 let right = self.infer_type(&binary.right)?;
 
-                if let Some(typ) = self.infer_binary_result_type(&left, &right, binary.operator) {
-                    return Ok(typ);
-                } else {
+                let Some(typ) = self.infer_binary_result_type(&left, &right, binary.operator) else {
                     return Err(CompilerError::new(
                         binary.left.pos.clone(),
                         CompilerErrorKind::WrongBinaryExpressionTypes {
@@ -169,7 +186,9 @@ impl Program {
                             operator_pos: binary.operator_pos.clone(),
                         },
                     ));
-                }
+                };
+
+                return Ok(typ);
             }
             ExpressionKind::FunctionCall(call) => {
                 let Some(function) = self.get_variable(&call.identifier) else {
@@ -188,6 +207,9 @@ impl Program {
                 };
 
                 Ok(return_type.clone())
+            }
+            ExpressionKind::StructConstruction(sconst) => {
+                Ok(self.get_variable(&sconst.identifier).unwrap().typ.clone())
             }
         }
     }

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use super::{
     builder::Builder,
-    definition::{Function, GlobalData, Procedure, ProcedureCall, ProcedureKind},
+    definition::{Function, GlobalData, Procedure, ProcedureCall, ProcedureKind, Struct},
     error::{CompilerError, CompilerErrorKind},
     scope::{
         function_scope::FunctionScope,
@@ -19,6 +19,7 @@ pub struct Program {
     pub scope: ProgramScope,
     pub global_data: HashMap<String, GlobalData>,
     pub functions: Vec<Function>,
+    pub structs: Vec<Struct>,
     pub procedures: Builder,
     pub stack_pos: usize,
 
@@ -33,6 +34,7 @@ impl Program {
             scope: ProgramScope::RootScope(RootScope::new()),
             global_data: HashMap::new(),
             functions: Vec::new(),
+            structs: Vec::new(),
             procedures: Builder::new(),
             stack_pos: 0,
             literal_index: 0,
@@ -131,7 +133,8 @@ impl Program {
                 match &variable.location {
                     VariableLocation::Global(label) => {
                         // Todo: currently only integers
-                        self.global_data.insert(label.clone(), GlobalData::Reserved(1));
+                        self.global_data
+                            .insert(label.clone(), GlobalData::Reserved(1));
                     }
                     _ => {}
                 };

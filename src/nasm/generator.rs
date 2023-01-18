@@ -113,7 +113,7 @@ impl<'a> Generator<'a> {
                     self.handle_procedure_call(procedure, procedure_call)?
                 }
                 ProcedureKind::Return => self.handle_function_return(procedure)?,
-                ProcedureKind::Assign(location) => self.handle_assign(location)?,
+                ProcedureKind::Assign(assign) => self.handle_assign(assign)?,
                 ProcedureKind::Push(operand) => self.handle_push(operand, false)?,
                 ProcedureKind::PushAddress(operand) => self.handle_push(operand, true)?,
                 ProcedureKind::Deref => self.handle_deref()?,

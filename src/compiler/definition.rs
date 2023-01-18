@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     fmt::{Display, Formatter},
     ops::Range,
 };
@@ -35,7 +36,7 @@ pub enum ProcedureKind {
     Deref,
     Push(OperandValue),
     PushAddress(OperandValue),
-    Assign(VariableLocation), // Stack position of the variable to assign
+    Assign(Assign), // Stack position of the variable to assign
     Arithmetic(Arithmetic),
     SystemCall(SystemCall),
     ProcedureCall(ProcedureCall),
@@ -55,6 +56,17 @@ impl Display for ProcedureKind {
             _ => fmt.write_fmt(format_args!("{:?}", self)),
         }
     }
+}
+
+#[derive(Debug)]
+pub struct Assign {
+    // The start location of
+    // the variable to assign to.
+    pub location: VariableLocation,
+
+    // The size of the object
+    // being assigned.
+    pub size: usize,
 }
 
 #[derive(Debug)]
@@ -95,6 +107,20 @@ pub struct Function {
 }
 
 #[derive(Debug)]
+pub struct StructField {
+    pub typ: VariableType,
+    pub offset: usize,
+    pub size: usize,
+    pub pos: Range<usize>,
+}
+
+#[derive(Debug)]
+pub struct Struct {
+    pub fields: HashMap<String, StructField>,
+    pub size: usize, // Size of struct in bytes
+}
+
+#[derive(Debug)]
 pub struct SystemCall {
     pub identifier: String,
     pub nargs: usize,
@@ -118,7 +144,7 @@ pub enum GlobalData {
     String(String),
 
     // Uninitialized .bss data
-    Reserved(usize)
+    Reserved(usize),
 }
 
 #[derive(Debug)]

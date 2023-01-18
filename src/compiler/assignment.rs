@@ -5,10 +5,10 @@ use crate::{
 
 use super::{
     builder::Builder,
-    definition::{Procedure, ProcedureKind},
+    definition::{Assign, Procedure, ProcedureKind},
     error::{CompilerError, CompilerErrorKind},
     program::Program,
-    scope::variable::{Variable, VariableLocation},
+    scope::variable::{Variable, VariableLocation, VariableType},
 };
 
 impl Program {
@@ -44,7 +44,8 @@ impl Program {
             }
         }
 
-        let variable_location = self.create_variable(
+        let size = Self::get_type_size(&infered);
+        let location = self.create_variable(
             declaration.identifier.clone(),
             Variable {
                 pos: declaration.identifier_pos.clone(),
@@ -67,7 +68,7 @@ impl Program {
         return Ok(builder.push(Procedure {
             pos: declaration.identifier_pos.start..declaration.right_pos.end,
             comment: Some(format!("Assign: {}", declaration.identifier)),
-            kind: ProcedureKind::Assign(variable_location.clone()),
+            kind: ProcedureKind::Assign(Assign { location, size }),
         }));
     }
 
@@ -98,14 +99,17 @@ impl Program {
                     ));
                 }
 
-                let var_location = variable.location.clone();
+                let location = variable.location.clone();
 
                 Builder::new()
                     .append(self.handle_expression(&assignment.right)?)
                     .push(Procedure {
                         pos: assignment.left_pos.start..assignment.right_pos.end,
                         comment: Some(format!("Reassign: {}", identifier)),
-                        kind: ProcedureKind::Assign(var_location),
+                        kind: ProcedureKind::Assign(Assign {
+                            location,
+                            size: Self::get_type_size(&infered_right),
+                        }),
                     })
             }
             ExpressionKind::Unary(Unary {
@@ -138,7 +142,10 @@ impl Program {
                     .push(Procedure {
                         pos: assignment.left_pos.start..assignment.right_pos.end,
                         comment: Some(format!("Reassign pointer value")),
-                        kind: ProcedureKind::Assign(VariableLocation::Address),
+                        kind: ProcedureKind::Assign(Assign {
+                            location: VariableLocation::Address,
+                            size: Self::get_type_size(&VariableType::Value(Keyword::Int)), // todo: maybe wrong size?
+                        }),
                     })
             }
             _ => {

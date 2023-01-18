@@ -8,7 +8,7 @@ use super::{
 
 impl<'a> Parser<'a> {
     pub fn multiplication(&mut self) -> Result<Expression, ParserError> {
-        let mut expr = self.reference()?;
+        let mut expr = self.struct_contruction()?;
 
         while let Some(block) = self.get(&[Keyword::Asterix, Keyword::Slash]) {
             let right = self.primary()?;

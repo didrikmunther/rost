@@ -23,6 +23,9 @@ impl Program {
             DeclarationKind::FunctionDeclaration(fn_declaration) => {
                 self.handle_function_declaration(declaration, fn_declaration)
             }
+            DeclarationKind::StructDeclaration(struct_declaration) => {
+                self.handle_struct_declaration(declaration, struct_declaration)
+            }
         }
     }
 }

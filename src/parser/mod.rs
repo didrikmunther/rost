@@ -19,9 +19,11 @@ mod parser;
 mod primary;
 mod reference;
 mod return_statement;
+mod struct_construction;
+mod struct_declaration;
 mod unexpected;
 mod while_statement;
 
-pub fn parse<'a>(document: &'a Vec<Block>) -> Result<AST, ParserError> {
+pub fn parse(document: &Vec<Block>) -> Result<AST, ParserError> {
     Parser::new(document).parse()
 }

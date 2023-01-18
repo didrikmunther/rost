@@ -32,6 +32,7 @@ pub enum Keyword {
     String,
     Char,
     Pointer,
+    Struct,
 
     // Abstract keywords
     EOF,

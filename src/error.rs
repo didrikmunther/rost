@@ -174,7 +174,8 @@ impl Display for RostError {
             .iter()
             .map(|row_group| row_group.iter().max().unwrap_or(&0))
             .max()
-            .unwrap_or(&0) as f32)
+            .unwrap_or(&0) as f32
+            + 1.0)
             .log10() as usize;
 
         for (i, row_group) in wanted_row_groups.into_iter().enumerate() {

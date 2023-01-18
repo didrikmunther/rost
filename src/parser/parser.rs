@@ -27,7 +27,7 @@ impl<'a> Parser<'a> {
     }
 
     pub fn declaration(&mut self) -> Result<Declaration, ParserError> {
-        self.function_declaration()
+        self.struct_declaration()
     }
 
     pub fn statement(&mut self) -> Result<Statement, ParserError> {
@@ -44,6 +44,10 @@ impl<'a> Parser<'a> {
 
     pub fn peek(&self) -> Option<&'a Block> {
         self.get_at(self.index)
+    }
+
+    pub fn peek_offset(&self, i: usize) -> Option<&'a Block> {
+        self.get_at(self.index + i)
     }
 
     pub fn peek_or_eof(&self) -> Result<&'a Block, ParserError> {
@@ -73,10 +77,24 @@ impl<'a> Parser<'a> {
         self.index += 1;
     }
 
+    pub fn advance_n(&mut self, i: usize) {
+        self.index += i;
+    }
+
     pub fn get(&mut self, tokens: &'static [Keyword]) -> Option<&'a Block> {
         for token in tokens {
             if let Some(block) = self.check(*token) {
                 self.advance();
+                return Some(block);
+            }
+        }
+
+        return None;
+    }
+
+    pub fn get_peek(&mut self, tokens: &'static [Keyword]) -> Option<&'a Block> {
+        for token in tokens {
+            if let Some(block) = self.check(*token) {
                 return Some(block);
             }
         }

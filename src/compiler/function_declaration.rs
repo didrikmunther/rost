@@ -59,12 +59,16 @@ impl Program {
                 unreachable!();
             };
 
-            let nvars = function_scope.variables.len();
+            let variable_sizes = function_scope
+                .variables
+                .iter()
+                .map(|(_, variable)| Self::get_type_size(&variable.typ))
+                .sum();
 
             let builder = Builder::new()
                 .push(Procedure::new(
                     statement.pos.clone(),
-                    ProcedureKind::Allocate(nvars),
+                    ProcedureKind::Allocate(variable_sizes),
                 ))
                 .append(procedures);
 
