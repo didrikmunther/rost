@@ -211,6 +211,7 @@ impl Program {
             ExpressionKind::StructConstruction(sconst) => {
                 Ok(self.get_variable(&sconst.identifier).unwrap().typ.clone())
             }
+            ExpressionKind::MemberAccess(access) => self.infer_type(&access.right),
         }
     }
 }

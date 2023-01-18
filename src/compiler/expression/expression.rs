@@ -90,7 +90,10 @@ impl Program {
     pub fn handle_expression(&mut self, expression: &Expression) -> Result<Builder, CompilerError> {
         match &expression.kind {
             ExpressionKind::FunctionCall(fcall) => self.handle_function_call(expression, fcall),
-            ExpressionKind::StructConstruction(sconst) => self.handle_struct_construction(expression, sconst),
+            ExpressionKind::StructConstruction(sconst) => {
+                self.handle_struct_construction(expression, sconst)
+            }
+            ExpressionKind::MemberAccess(access) => self.handle_member_access(expression, access),
             ExpressionKind::Primary(primary) => self.handle_primary(expression, primary),
             ExpressionKind::Unary(unary) => self.handle_unary(expression, unary),
             ExpressionKind::Binary(binary) => self.handle_binary(expression, binary),

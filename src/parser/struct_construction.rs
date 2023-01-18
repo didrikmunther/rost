@@ -22,7 +22,7 @@ impl<'a> Parser<'a> {
 
         self.advance_n(2);
 
-        let mut fields: HashMap<String, StructConstructionField> = HashMap::new();
+        let mut fields = HashMap::new();
 
         loop {
             if self.is_end() {

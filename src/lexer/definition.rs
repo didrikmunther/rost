@@ -25,6 +25,7 @@ pub enum Keyword {
     LessThan,
     GreaterThan,
     Equality,
+    Dot,
 
     // Types
     Int,

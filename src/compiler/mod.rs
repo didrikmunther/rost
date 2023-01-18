@@ -14,6 +14,7 @@ mod expression;
 mod function_call;
 mod function_declaration;
 mod if_statement;
+mod member_access;
 mod return_statement;
 mod struct_construction;
 mod struct_declaration;

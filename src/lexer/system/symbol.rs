@@ -20,6 +20,7 @@ static SYMBOLS: phf::Map<&'static str, Keyword> = phf_map! {
     "<" => Keyword::LessThan,
     ">" => Keyword::GreaterThan,
     "==" => Keyword::Equality,
+    "." => Keyword::Dot,
 };
 
 pub struct SymbolLexer;

@@ -107,8 +107,15 @@ pub enum ExpressionKind {
     Primary(Primary),
     Unary(Unary),
     Binary(Binary),
+    MemberAccess(MemberAccess),
     FunctionCall(FunctionCall),
     StructConstruction(StructConstruction),
+}
+
+#[derive(Debug)]
+pub struct MemberAccess {
+    pub left: Box<Expression>,
+    pub right: Box<Expression>,
 }
 
 #[derive(Debug)]
