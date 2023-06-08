@@ -12,7 +12,7 @@ impl<'a> Parser<'a> {
     pub fn struct_contruction(&mut self) -> Result<Expression, ParserError> {
         let (struct_identifier, open, identifier) = match (self.peek(), self.peek_offset(1)) {
             (Some(struct_identifier), Some(open)) => match (&struct_identifier.token, open.kind) {
-                (Token::Identifier(identifier), Keyword::BracketLeft) => {
+                (Token::Identifier(identifier), Keyword::BraceLeft) => {
                     (struct_identifier, open, identifier)
                 }
                 _ => return self.reference(),
@@ -28,7 +28,7 @@ impl<'a> Parser<'a> {
             if self.is_end() {
                 return Err(ParserError::new(
                     open.pos.clone(),
-                    ParserErrorKind::UnterminatedPair(Keyword::BracketLeft),
+                    ParserErrorKind::UnterminatedPair(Keyword::BraceLeft),
                 ));
             }
 
@@ -72,7 +72,7 @@ impl<'a> Parser<'a> {
             }
         }
 
-        let close = self.expect(&[Keyword::BracketRight])?;
+        let close = self.expect(&[Keyword::BraceRight])?;
 
         Ok(Expression {
             pos: struct_identifier.pos.start..close.pos.end,

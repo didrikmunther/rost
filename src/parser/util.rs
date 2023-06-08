@@ -27,7 +27,7 @@ pub fn get_block_identifier(block: &Block) -> Option<String> {
 
 impl<'a> Parser<'a> {
     pub fn get_body(&mut self) -> Result<(Vec<Declaration>, Range<usize>), ParserError> {
-        if let Some(open) = self.get(&[Keyword::BracketLeft]) {
+        if let Some(open) = self.get(&[Keyword::BraceLeft]) {
             let mut content: Vec<Declaration> = Vec::new();
 
             loop {
@@ -35,7 +35,7 @@ impl<'a> Parser<'a> {
                     return parser_todo!(open.pos.clone(), "error");
                 }
 
-                if let Some(close) = self.get(&[Keyword::BracketRight]) {
+                if let Some(close) = self.get(&[Keyword::BraceRight]) {
                     return Ok((content, open.pos.start..close.pos.end));
                 }
 

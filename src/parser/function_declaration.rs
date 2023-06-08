@@ -39,10 +39,10 @@ impl<'a> Parser<'a> {
                             .map(|_| self.parse_type())
                             .transpose()?;
 
-                        self.expect(&[Keyword::BracketLeft])?;
+                        self.expect(&[Keyword::BraceLeft])?;
                         let mut content: Vec<Declaration> = Vec::new();
 
-                        while self.get(&[Keyword::BracketRight]).is_none() {
+                        while self.get(&[Keyword::BraceRight]).is_none() {
                             content.push(self.declaration()?);
                         }
 

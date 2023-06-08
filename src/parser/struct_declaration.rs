@@ -23,14 +23,14 @@ impl<'a> Parser<'a> {
                 }
             };
 
-            let open = self.expect(&[Keyword::BracketLeft])?;
+            let open = self.expect(&[Keyword::BraceLeft])?;
             let mut fields = HashMap::new();
 
             loop {
                 if self.is_end() {
                     return Err(ParserError::new(
                         open.pos.clone(),
-                        ParserErrorKind::UnterminatedPair(Keyword::BracketLeft),
+                        ParserErrorKind::UnterminatedPair(Keyword::BraceLeft),
                     ));
                 }
 
@@ -67,12 +67,12 @@ impl<'a> Parser<'a> {
                 }
 
                 // Allow trailing colon.
-                if self.get_peek(&[Keyword::BracketRight]).is_some() {
+                if self.get_peek(&[Keyword::BraceRight]).is_some() {
                     break;
                 }
             }
 
-            let close = self.expect(&[Keyword::BracketRight])?;
+            let close = self.expect(&[Keyword::BraceRight])?;
 
             return Ok(Declaration {
                 pos: struct_identifier.pos.start..close.pos.end,
