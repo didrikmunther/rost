@@ -2,9 +2,7 @@
 
 Compiles the Rost language to NASM.
 
-## Running
-
-### Compile Rost program
+## Compile Rost program
 
 `./compile.sh input.rost [-no-optimize, -no-comments, -sl {0,1,2,3,4}]`
 
@@ -18,13 +16,13 @@ The `-sl` flag determines the compilation level, where the outputs are the follo
 |3|CodeRows (Nasm abstraction)|
 |4|No output, write nasm to `out.asm`|
 
-### Run the nasm code
+## Run the nasm code
 
-#### Build Docker file
+### Build Docker file
 
 `./build`
 
-#### Run the NASM code
+### Run the NASM code
 
 `./run.sh first-argument second-argument`
 
