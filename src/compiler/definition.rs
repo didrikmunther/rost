@@ -53,7 +53,7 @@ impl Display for ProcedureKind {
                 "While (n_declarations: {})",
                 while_statement.content.procedures.len()
             )),
-            _ => fmt.write_fmt(format_args!("{:?}", self)),
+            _ => fmt.write_fmt(format_args!("{self:?}")),
         }
     }
 }

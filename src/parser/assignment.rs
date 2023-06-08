@@ -6,9 +6,9 @@ use crate::{
 use super::{
     definition::{Expression, Statement, StatementKind, VariableDeclaration},
     error::{ParserError, ParserErrorKind},
-    parser::Parser,
     types::Type,
     util::get_block_identifier,
+    Parser,
 };
 
 impl<'a> Parser<'a> {
@@ -34,14 +34,14 @@ impl<'a> Parser<'a> {
                 ));
             };
 
-            let Some(identifier) = get_block_identifier(&left) else {
+            let Some(identifier) = get_block_identifier(left) else {
                 return Err(ParserError::new(
                     left.pos.clone(),
                     ParserErrorKind::Expected(&[Keyword::Identifier]),
                 ));
             };
 
-            return Ok(Statement {
+            Ok(Statement {
                 pos: left.pos.start..right.pos.end,
                 kind: StatementKind::VariableDeclaration(VariableDeclaration {
                     typ: assignment_type,
@@ -50,17 +50,17 @@ impl<'a> Parser<'a> {
                     right_pos: right.pos.clone(),
                     right: Box::new(right),
                 }),
-            });
+            })
         } else {
-            return Err(ParserError::new(
+            Err(ParserError::new(
                 self.peek_or_eof()?.pos.clone(),
                 ParserErrorKind::Expected(&[Keyword::Identifier]),
-            ));
+            ))
         }
     }
 
     pub fn assignment(&mut self) -> Result<Statement, ParserError> {
-        if let Some(_) = self.get(&[Keyword::Let]) {
+        if self.get(&[Keyword::Let]).is_some() {
             return self.new_assignment();
         }
 

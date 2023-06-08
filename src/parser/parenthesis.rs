@@ -3,20 +3,18 @@ use crate::lexer::Keyword;
 use super::{
     definition::Expression,
     error::{ParserError, ParserErrorKind},
-    parser::Parser,
+    Parser,
 };
 
 impl<'a> Parser<'a> {
     pub fn parenthesis(&mut self) -> Result<Expression, ParserError> {
         if let Some(parenthesis) = self.get(&[Keyword::ParLeft]) {
             let expr = self.expression()?;
-            if let None = self.get(&[Keyword::ParRight]) {
-                if self.is_end() {
-                    return Err(ParserError::new(
-                        parenthesis.pos.clone(),
-                        ParserErrorKind::UnterminatedPair(Keyword::ParLeft),
-                    ));
-                }
+            if self.get(&[Keyword::ParRight]).is_none() && self.is_end() {
+                return Err(ParserError::new(
+                    parenthesis.pos.clone(),
+                    ParserErrorKind::UnterminatedPair(Keyword::ParLeft),
+                ));
             }
 
             return Ok(expr);

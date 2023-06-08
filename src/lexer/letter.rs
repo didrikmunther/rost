@@ -1,4 +1,4 @@
-use super::{LexerError, error::LexerErrorKind};
+use super::{error::LexerErrorKind, LexerError};
 
 use std::iter;
 
@@ -6,9 +6,8 @@ pub type Letter = (usize, char, bool);
 
 pub static EOF: Letter = (0, ' ', true);
 
-pub fn get_letters<'a>(text: &'a str) -> Vec<Letter> {
-    text
-        .chars()
+pub fn get_letters(text: &str) -> Vec<Letter> {
+    text.chars()
         .enumerate()
         .map(|(i, v)| (i, v, false))
         .chain(iter::once(EOF))
@@ -21,6 +20,6 @@ pub trait UnexpectedToken {
 
 impl UnexpectedToken for Letter {
     fn unexpected_token(&self) -> LexerError {
-        LexerError::new(self.0..self.0+1, LexerErrorKind::UnexpectedToken(self.1))
+        LexerError::new(self.0..self.0 + 1, LexerErrorKind::UnexpectedToken(self.1))
     }
 }

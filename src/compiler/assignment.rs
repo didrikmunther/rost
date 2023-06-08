@@ -81,7 +81,7 @@ impl Program {
 
         let builder = match &assignment.left.kind {
             ExpressionKind::Primary(Primary::Identifier(identifier)) => {
-                let Some(variable) = self.get_variable(&identifier) else {
+                let Some(variable) = self.get_variable(identifier) else {
                     return Err(CompilerError::new(
                         assignment.left_pos.clone(),
                         CompilerErrorKind::UndefinedVariable(identifier.clone()),
@@ -105,7 +105,7 @@ impl Program {
                     .append(self.handle_expression(&assignment.right)?)
                     .push(Procedure {
                         pos: assignment.left_pos.start..assignment.right_pos.end,
-                        comment: Some(format!("Reassign: {}", identifier)),
+                        comment: Some(format!("Reassign: {identifier}")),
                         kind: ProcedureKind::Assign(Assign {
                             location,
                             size: Self::get_type_size(&infered_right),
@@ -135,13 +135,13 @@ impl Program {
                 Builder::new()
                     .push(Procedure::new(
                         assignment.left_pos.clone(),
-                        ProcedureKind::Comment(format!("Assignment: {:?}", expr)),
+                        ProcedureKind::Comment(format!("Assignment: {expr:?}")),
                     ))
-                    .append(self.handle_expression(&expr)?)
+                    .append(self.handle_expression(expr)?)
                     .append(self.handle_expression(&assignment.right)?)
                     .push(Procedure {
                         pos: assignment.left_pos.start..assignment.right_pos.end,
-                        comment: Some(format!("Reassign pointer value")),
+                        comment: Some("Reassign pointer value".to_string()),
                         kind: ProcedureKind::Assign(Assign {
                             location: VariableLocation::Address,
                             size: Self::get_type_size(&VariableType::Value(Keyword::Int)), // todo: maybe wrong size?
@@ -153,6 +153,6 @@ impl Program {
             }
         };
 
-        return Ok(builder);
+        Ok(builder)
     }
 }

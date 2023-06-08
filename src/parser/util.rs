@@ -8,15 +8,12 @@ use crate::{
 use super::{
     definition::{Declaration, Expression, ExpressionKind, Primary},
     error::ParserError,
-    parser::Parser,
+    Parser,
 };
 
 pub fn get_expr_identifier(expr: &Expression) -> Option<String> {
     match expr.kind {
-        ExpressionKind::Primary(ref primary) => match primary {
-            Primary::Identifier(identifier) => Some(identifier.clone()),
-            _ => None,
-        },
+        ExpressionKind::Primary(Primary::Identifier(ref identifier)) => Some(identifier.clone()),
         _ => None,
     }
 }
@@ -47,7 +44,8 @@ impl<'a> Parser<'a> {
         } else {
             let declaration = self.declaration()?;
             let pos = declaration.pos.clone();
-            return Ok((vec![declaration], pos));
+            
+            Ok((vec![declaration], pos))
         }
     }
 }

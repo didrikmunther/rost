@@ -6,7 +6,7 @@ fn is_number(word: &str) -> bool {
 
 fn get_literal_num(word: &str) -> Option<Literal> {
     if is_number(word) {
-        if let Some(number) = word.parse::<i32>().ok() {
+        if let Ok(number) = word.parse::<i32>() {
             return Some(Literal::Int(number));
         }
     }
@@ -17,18 +17,18 @@ fn get_literal_num(word: &str) -> Option<Literal> {
 pub struct LiteralNumberLexer;
 
 impl Lexer for LiteralNumberLexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, usize)>, LexerError> {
+    fn lex(&self, chars: &[Letter]) -> Result<Option<(Token, usize)>, LexerError> {
         let mut buf = Vec::<char>::new();
 
-        for (i, &(_pos, cur, eof)) in chars.into_iter().enumerate() {
+        for (i, &(_pos, cur, eof)) in chars.iter().enumerate() {
             if buf.is_empty() && cur.is_whitespace() {
                 continue;
             }
 
-            if !cur.is_digit(10) || cur.is_whitespace() || eof {
+            if !cur.is_ascii_digit() || cur.is_whitespace() || eof {
                 let word: String = buf.iter().collect();
 
-                if word.len() <= 0 {
+                if word.is_empty() {
                     return Ok(None);
                 }
 

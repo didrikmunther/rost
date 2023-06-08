@@ -46,17 +46,16 @@ impl<'a> Generator<'a> {
                 if push_address {
                     self.code.add(Row::LoadEffectiveAddress(
                         "rcx".into(),
-                        format!("[{}]", label),
+                        format!("[{label}]"),
                     ));
                 } else {
-                    self.code
-                        .add(Row::Move("rcx".into(), format!("[{}]", label)));
+                    self.code.add(Row::Move("rcx".into(), format!("[{label}]")));
                 }
 
                 self.code.add(Row::Push("rcx".into()))
             }
             OperandValue::DataPointerLocation(label) => {
-                self.code.add(Row::Push(format!("dword {}", label)))
+                self.code.add(Row::Push(format!("dword {label}")))
             }
         };
 

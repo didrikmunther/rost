@@ -5,15 +5,15 @@ use crate::lexer::{Keyword, Token};
 use super::{
     definition::{Declaration, DeclarationKind, StructDeclaration, StructField},
     error::{ParserError, ParserErrorKind},
-    parser::Parser,
     util::get_block_identifier,
+    Parser,
 };
 
 impl<'a> Parser<'a> {
     pub fn struct_declaration(&mut self) -> Result<Declaration, ParserError> {
-        if let Some(_) = self.get(&[Keyword::Struct]) {
+        if self.get(&[Keyword::Struct]).is_some() {
             let struct_identifier = self.expect(&[Keyword::Identifier])?;
-            let identifier = match get_block_identifier(&struct_identifier) {
+            let identifier = match get_block_identifier(struct_identifier) {
                 Some(identifier) => identifier,
                 _ => {
                     return Err(ParserError::new(
@@ -62,12 +62,12 @@ impl<'a> Parser<'a> {
                     },
                 );
 
-                if let None = self.get(&[Keyword::Comma]) {
+                if self.get(&[Keyword::Comma]).is_none() {
                     break;
                 }
 
                 // Allow trailing colon.
-                if let Some(_) = self.get_peek(&[Keyword::BracketRight]) {
+                if self.get_peek(&[Keyword::BracketRight]).is_some() {
                     break;
                 }
             }

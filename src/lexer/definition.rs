@@ -36,7 +36,7 @@ pub enum Keyword {
     Struct,
 
     // Abstract keywords
-    EOF,
+    Eof,
     Identifier,
     Literal,
     Comment,
@@ -55,7 +55,7 @@ pub enum Token {
     Identifier(String),
     Literal(Literal),
     Comment(String),
-    EOF,
+    Eof,
 }
 
 #[derive(Debug, PartialEq)]

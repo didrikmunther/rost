@@ -18,10 +18,10 @@ impl IdentifierLexer {
 }
 
 impl Lexer for IdentifierLexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, usize)>, LexerError> {
+    fn lex(&self, chars: &[Letter]) -> Result<Option<(Token, usize)>, LexerError> {
         let mut buf = Vec::<char>::new();
 
-        for (i, &(_pos, cur, eof)) in chars.into_iter().enumerate() {
+        for (i, &(_pos, cur, eof)) in chars.iter().enumerate() {
             if buf.is_empty() && cur.is_whitespace() {
                 continue;
             }
@@ -29,7 +29,7 @@ impl Lexer for IdentifierLexer {
             if !(cur.is_alphanumeric() || cur == '_') || cur.is_whitespace() || eof {
                 let word: String = buf.iter().collect();
 
-                if word.len() <= 0 || !is_identifier(&word) {
+                if word.is_empty() || !is_identifier(&word) {
                     return Ok(None);
                 }
 

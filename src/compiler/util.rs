@@ -17,7 +17,7 @@ use super::{
 };
 
 impl Program {
-    pub fn get_procedures(&mut self, content: &Vec<Declaration>) -> Result<Builder, CompilerError> {
+    pub fn get_procedures(&mut self, content: &[Declaration]) -> Result<Builder, CompilerError> {
         content
             .iter()
             .fold(Ok(Builder::new()), |builder, declaration| {
@@ -76,22 +76,22 @@ impl Program {
                     return None;
                 }
 
-                return match operator {
+                match operator {
                     Keyword::Plus | Keyword::Minus | Keyword::Slash | Keyword::Asterix => {
-                        Some(VariableType::Value(left.clone()))
+                        Some(VariableType::Value(*left))
                     }
                     Keyword::LessThan | Keyword::GreaterThan | Keyword::Equality => {
                         Some(VariableType::Value(Keyword::Bool))
                     }
                     _ => None,
-                };
+                }
             }
             (VariableType::Pointer(left), VariableType::Pointer(right)) => {
                 if left != right {
                     return None;
                 }
 
-                return match operator {
+                match operator {
                     Keyword::Plus | Keyword::Minus => {
                         if left == right {
                             Some(VariableType::Value(Keyword::Int))
@@ -107,7 +107,7 @@ impl Program {
                         }
                     }
                     _ => None,
-                };
+                }
             }
             _ => None,
         }
@@ -157,7 +157,7 @@ impl Program {
                 let expr_type = self.infer_type(&unary.expr)?;
 
                 match unary.operator {
-                    Keyword::Ampersand => return Ok(VariableType::Pointer(Box::new(expr_type))),
+                    Keyword::Ampersand => Ok(VariableType::Pointer(Box::new(expr_type))),
                     Keyword::Asterix => {
                         let VariableType::Pointer(typ) = expr_type else {
                             return Err(CompilerError::new(
@@ -188,7 +188,7 @@ impl Program {
                     ));
                 };
 
-                return Ok(typ);
+                Ok(typ)
             }
             ExpressionKind::FunctionCall(call) => {
                 let Some(function) = self.get_variable(&call.identifier) else {

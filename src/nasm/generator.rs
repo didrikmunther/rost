@@ -75,7 +75,7 @@ impl<'a> Generator<'a> {
         self.code.add_with_comment(
             Row::Add(
                 "rsp".into(),
-                format!("{}", (self.code.stack_pos - old_stack_pos) * 8).into(),
+                format!("{}", (self.code.stack_pos - old_stack_pos) * 8),
             ),
             "Restoring stack pointer".into(),
         );
@@ -91,7 +91,7 @@ impl<'a> Generator<'a> {
         label_prefix: &str,
     ) -> Result<&mut Code, NasmError> {
         for (i, procedure) in procedures.iter().enumerate() {
-            let label = format!("{}_{}", label_prefix, i);
+            let label = format!("{label_prefix}_{i}");
 
             self.code.add(Row::Comment(format!(
                 "[procedure {}]: {}",
@@ -135,7 +135,7 @@ impl<'a> Generator<'a> {
     }
 
     pub fn get_function_name(function_id: usize) -> String {
-        format!("_function_{}", function_id)
+        format!("_function_{function_id}")
     }
 
     pub fn get_absolute_stack_location(&self, loc: isize) -> String {

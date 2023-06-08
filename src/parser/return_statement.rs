@@ -3,7 +3,7 @@ use crate::lexer::Keyword;
 use super::{
     definition::{ReturnStatement, Statement, StatementKind},
     error::ParserError,
-    parser::Parser,
+    Parser,
 };
 
 impl<'a> Parser<'a> {

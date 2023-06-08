@@ -3,7 +3,7 @@ use crate::{
     parser_todo,
 };
 
-use super::{error::ParserError, parser::Parser};
+use super::{error::ParserError, Parser};
 
 #[derive(Debug, Clone)]
 pub enum TypeIdentifier {
@@ -14,7 +14,7 @@ pub enum TypeIdentifier {
 #[derive(Debug, Clone)]
 pub struct Type {
     pub identifier: TypeIdentifier,
-    pub children: Option<Vec<Box<Type>>>,
+    pub children: Option<Vec<Type>>,
 }
 
 impl<'a> Parser<'a> {
@@ -25,12 +25,12 @@ impl<'a> Parser<'a> {
         let identifier = match &next.token {
             Token::Keyword(keyword) => match keyword {
                 Keyword::Int | Keyword::Bool | Keyword::Char | Keyword::Pointer => {
-                    TypeIdentifier::Primitive(keyword.clone())
+                    TypeIdentifier::Primitive(*keyword)
                 }
                 Keyword::Ampersand => {
                     return Ok(Type {
                         identifier: TypeIdentifier::Primitive(Keyword::Pointer),
-                        children: Some(vec![Box::new(self.parse_type()?)]),
+                        children: Some(vec![self.parse_type()?]),
                     })
                 }
                 _ => return parser_todo!(next.pos.clone(), "Unknown type"),
@@ -40,12 +40,12 @@ impl<'a> Parser<'a> {
         };
 
         if let Some(lt) = self.get(&[Keyword::LessThan]) {
-            let mut children = vec![Box::new(self.parse_type()?)];
-            while let Some(_) = self.get(&[Keyword::Comma]) {
-                children.push(Box::new(self.parse_type()?));
+            let mut children = vec![self.parse_type()?];
+            while self.get(&[Keyword::Comma]).is_some() {
+                children.push(self.parse_type()?);
             }
 
-            if let None = self.get(&[Keyword::GreaterThan]) {
+            if self.get(&[Keyword::GreaterThan]).is_none() {
                 return parser_todo!(lt.pos.clone(), "Unclosed type");
             }
 

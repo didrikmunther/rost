@@ -56,25 +56,25 @@ impl CompilerError {
             //  todo: perhaps a builder pattern to be able to show errors on multiple lines.
             CompilerErrorKind::MissingMainFunction => vec![("Missing main function".into(), 0..0)],
             CompilerErrorKind::DereferenceNonPointer(typ) => vec![(
-                format!("Cannot dereference non-pointer value of type {}", typ),
+                format!("Cannot dereference non-pointer value of type {typ}"),
                 self.pos.clone(),
             )],
             CompilerErrorKind::RedeclaredVariable(identifier, pos) => vec![
                 (
-                    format!("Redeclared variable: {}", identifier),
+                    format!("Redeclared variable: {identifier}"),
                     self.pos.clone(),
                 ),
                 ("Already declared here".to_string(), pos.clone()),
             ],
             CompilerErrorKind::UndefinedVariable(identifier) => {
                 vec![(
-                    format!("Undefined variable: {}", identifier),
+                    format!("Undefined variable: {identifier}"),
                     self.pos.clone(),
                 )]
             }
             CompilerErrorKind::UndefinedFunction(identifier) => {
                 vec![(
-                    format!("Undefined function: {}", identifier),
+                    format!("Undefined function: {identifier}"),
                     self.pos.clone(),
                 )]
             }
@@ -87,14 +87,14 @@ impl CompilerError {
             } => {
                 vec![
                     (
-                        format!("Incompatible types in binary expression: {}", got),
+                        format!("Incompatible types in binary expression: {got}"),
                         self.pos.clone(),
                     ),
                     (
-                        format!("Operator {:?} is not defined for types.", operator),
+                        format!("Operator {operator:?} is not defined for types."),
                         operator_pos.clone(),
                     ),
-                    (format!("Other type is {}", expected), expected_pos.clone()),
+                    (format!("Other type is {expected}"), expected_pos.clone()),
                 ]
             }
             CompilerErrorKind::WrongAssignmentType {
@@ -104,20 +104,11 @@ impl CompilerError {
             } => {
                 if let Some(pos) = declaration_pos {
                     vec![
-                        (
-                            format!("Wrong type in assignment: {}", got),
-                            self.pos.clone(),
-                        ),
-                        (
-                            format!("Variable declared with type {}", typ),
-                            pos.clone(),
-                        ),
+                        (format!("Wrong type in assignment: {got}"), self.pos.clone()),
+                        (format!("Variable declared with type {typ}"), pos.clone()),
                     ]
                 } else {
-                    vec![(
-                        format!("Wrong type in assignment: {}", got),
-                        self.pos.clone(),
-                    )]
+                    vec![(format!("Wrong type in assignment: {got}"), self.pos.clone())]
                 }
             }
             CompilerErrorKind::WrongArgumentType {
@@ -127,18 +118,18 @@ impl CompilerError {
             } => {
                 vec![
                     (
-                        format!("Wrong type in argument: {}", argument),
+                        format!("Wrong type in argument: {argument}"),
                         self.pos.clone(),
                     ),
                     (
-                        format!("Function takes parameter of type: {}", parameter),
+                        format!("Function takes parameter of type: {parameter}"),
                         parameter_pos.clone(),
                     ),
                 ]
             }
             CompilerErrorKind::WrongType { got, expected } => {
                 vec![(
-                    format!("Wrong type: {}, expected: {}", got, expected),
+                    format!("Wrong type: {got}, expected: {expected}"),
                     self.pos.clone(),
                 )]
             }
@@ -146,11 +137,11 @@ impl CompilerError {
     }
 }
 
-impl Into<RostError> for CompilerError {
-    fn into(self) -> RostError {
+impl From<CompilerError> for RostError {
+    fn from(val: CompilerError) -> Self {
         RostError::new(
             "CompilerError".into(),
-            self.get_messages()
+            val.get_messages()
                 .iter()
                 .map(RostErrorElement::from)
                 .collect(),

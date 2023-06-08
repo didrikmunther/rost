@@ -3,7 +3,7 @@ use crate::lexer::{Keyword, Literal, Token};
 use super::{
     definition::{Expression, ExpressionKind, Primary},
     error::{ParserError, ParserErrorKind},
-    parser::Parser,
+    Parser,
 };
 
 impl<'a> Parser<'a> {

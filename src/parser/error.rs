@@ -56,12 +56,12 @@ impl ParserError {
         match &self.kind {
             ParserErrorKind::Todo { file, line, msg } => {
                 vec![(
-                    format!("Not yet implemented, {}. {}:{}", msg, file, line),
+                    format!("Not yet implemented, {msg}. {file}:{line}"),
                     self.pos.clone(),
                 )]
             }
             ParserErrorKind::UnterminatedPair(token) => {
-                vec![(format!("Unterminated pair {:?}", token), self.pos.clone())]
+                vec![(format!("Unterminated pair {token:?}"), self.pos.clone())]
             }
             ParserErrorKind::ExpectedSemicolon => {
                 vec![(
@@ -73,19 +73,16 @@ impl ParserError {
                 vec![("Unexpected EOF".to_string(), self.pos.clone())]
             }
             ParserErrorKind::UnexpectedToken(t) => {
-                vec![(format!("Unexpected token: {:?}", t), self.pos.clone())]
+                vec![(format!("Unexpected token: {t:?}"), self.pos.clone())]
             }
-            ParserErrorKind::Expected(k) => vec![(format!("Expected: {:?}", k), self.pos.clone())],
+            ParserErrorKind::Expected(k) => vec![(format!("Expected: {k:?}"), self.pos.clone())],
             ParserErrorKind::Unknown => vec![("Unknown".to_string(), self.pos.clone())],
             ParserErrorKind::FieldAlreadyDefined {
                 identifier,
                 identifier_pos,
             } => {
                 vec![
-                    (
-                        format!("Field {} is redefined", identifier),
-                        self.pos.clone(),
-                    ),
+                    (format!("Field {identifier} is redefined"), self.pos.clone()),
                     (
                         "Field already defined here".to_string(),
                         identifier_pos.clone(),
@@ -96,11 +93,11 @@ impl ParserError {
     }
 }
 
-impl Into<RostError> for ParserError {
-    fn into(self) -> RostError {
+impl From<ParserError> for RostError {
+    fn from(val: ParserError) -> Self {
         RostError::new(
             "ParserError".into(),
-            self.get_messages()
+            val.get_messages()
                 .iter()
                 .map(RostErrorElement::from)
                 .collect(),

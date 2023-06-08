@@ -4,7 +4,7 @@ use crate::lexer::{Keyword, Literal};
 
 use super::types::Type;
 
-pub type AST = Vec<Declaration>;
+pub type Ast = Vec<Declaration>;
 
 #[derive(Debug)]
 pub struct Declaration {
@@ -121,7 +121,7 @@ pub struct MemberAccess {
 #[derive(Debug)]
 pub struct FunctionCall {
     pub identifier: String,
-    pub args: Vec<Box<Expression>>,
+    pub args: Vec<Expression>,
     pub identifier_pos: Range<usize>,
     pub parameters_pos: Range<usize>,
 }

@@ -23,11 +23,8 @@ impl Code {
             rows: self
                 .rows
                 .iter()
-                .filter(|v| match v.row {
-                    Row::Comment(_) => false,
-                    _ => true,
-                })
-                .map(|v| v.clone())
+                .filter(|v| !matches!(v.row, Row::Comment(_)))
+                .cloned()
                 .collect(),
             stack_pos: self.stack_pos,
             function_start_pos: None,
@@ -78,20 +75,22 @@ impl Code {
                         prev = None;
                         continue;
                     }
-                    (Row::Move(a1, a2), Row::Move(b1, b2)) => {
-                        // Starting with '[' means it's an assignment
-                        // Todo: make this information available
-                        if a1 == b2
-                            && !a1.starts_with("[")
-                            && !(a2.starts_with("[") && b1.starts_with("["))
-                        {
-                            code.add_with_comment(
-                                Row::Move(b1.clone(), a2.clone()),
-                                "Optimized: removed mov / mov, added mov".into(),
-                            );
-                            prev = None;
-                            continue;
-                        }
+                    (Row::Move(_a1, _a2), Row::Move(_b1, _b2)) => {
+                        // Currently broken
+
+                        // // Starting with '[' means it's an assignment
+                        // // Todo: make this information available
+                        // if a1 == b2
+                        //     && !a1.starts_with('[')
+                        //     && !(a2.starts_with('[') && b1.starts_with('['))
+                        // {
+                        //     code.add_with_comment(
+                        //         Row::Move(b1.clone(), a2.clone()),
+                        //         "Optimized: removed mov / mov, added mov".into(),
+                        //     );
+                        //     prev = None;
+                        //     continue;
+                        // }
                     }
                     _ => {}
                 }
@@ -122,10 +121,7 @@ impl Code {
     pub fn instruction_len(&self) -> usize {
         self.rows
             .iter()
-            .filter(|row| match row.row {
-                Row::Comment(_) | Row::Label(_) => false,
-                _ => true,
-            })
+            .filter(|row| !matches!(row.row, Row::Comment(_) | Row::Label(_)))
             .count()
     }
 
@@ -171,7 +167,7 @@ impl Code {
 impl Display for Code {
     fn fmt(&self, fmt: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
         for row in &self.rows {
-            fmt.write_fmt(format_args!("{}", row))?
+            fmt.write_fmt(format_args!("{row}"))?
         }
 
         Ok(())

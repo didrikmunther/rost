@@ -128,8 +128,9 @@ impl Program {
         );
 
         // Add global variables to bss section
-        for (_, variable) in &root_scope.variables {
+        for variable in root_scope.variables.values() {
             if let VariableType::Value(_) = variable.typ {
+                #[allow(clippy::single_match)]
                 match &variable.location {
                     VariableLocation::Global(label) => {
                         // Todo: currently only integers

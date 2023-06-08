@@ -12,13 +12,13 @@ fn get_escaped(c: char) -> Result<char, LexerErrorKind> {
 }
 
 impl Lexer for StringLexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, usize)>, LexerError> {
+    fn lex(&self, chars: &[Letter]) -> Result<Option<(Token, usize)>, LexerError> {
         let mut buf = Vec::<char>::new();
         let mut is_string = false;
         let mut start = 0;
         let mut escaped = false;
 
-        for (i, &(pos, cur, eof)) in chars.into_iter().enumerate() {
+        for (i, &(pos, cur, eof)) in chars.iter().enumerate() {
             if !is_string && cur.is_whitespace() {
                 continue;
             }

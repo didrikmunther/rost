@@ -24,9 +24,9 @@ impl Program {
             let condition = if_statement
                 .condition
                 .as_ref()
-                .map_or(Ok(None), |condition| match self.infer_type(&condition)? {
+                .map_or(Ok(None), |condition| match self.infer_type(condition)? {
                     VariableType::Value(Keyword::Bool) => {
-                        Ok(Some(self.handle_expression(&condition)?))
+                        Ok(Some(self.handle_expression(condition)?))
                     }
                     _ => todo!("error"),
                 })?

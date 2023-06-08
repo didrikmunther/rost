@@ -43,7 +43,7 @@ impl Program {
             offset += size;
         }
 
-        let struct_size = fields.iter().map(|(_, field)| field.size).sum();
+        let struct_size = fields.values().map(|field| field.size).sum();
 
         self.structs.push(Struct {
             fields,

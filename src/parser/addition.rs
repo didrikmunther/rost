@@ -3,7 +3,7 @@ use crate::lexer::Keyword;
 use super::{
     definition::{Binary, Expression, ExpressionKind},
     error::ParserError,
-    parser::Parser,
+    Parser,
 };
 
 impl<'a> Parser<'a> {
@@ -20,7 +20,7 @@ impl<'a> Parser<'a> {
                     left: Box::new(expr),
                     right: Box::new(right),
                     operator: operator.kind,
-                    operator_pos: operator.pos.clone()
+                    operator_pos: operator.pos.clone(),
                 }),
             }
         }

@@ -23,17 +23,17 @@ impl From<&(String, Range<usize>)> for RostErrorElement {
 }
 
 fn red(msg: &str) -> String {
-    format!("\x1b[91m{}\x1b[0m", msg)
+    format!("\x1b[91m{msg}\x1b[0m")
 }
 
 #[allow(dead_code)]
 fn yellow(msg: &str) -> String {
-    format!("\x1b[93m{}\x1b[0m", msg)
+    format!("\x1b[93m{msg}\x1b[0m")
 }
 
 #[allow(dead_code)]
 fn green(msg: &str) -> String {
-    format!("\x1b[92m{}\x1b[0m", msg)
+    format!("\x1b[92m{msg}\x1b[0m")
 }
 
 pub struct RostError {
@@ -48,7 +48,7 @@ impl RostError {
     pub fn new(kind: String, elements: Vec<RostErrorElement>) -> Self {
         Self {
             elements,
-            kind: kind,
+            kind,
             file: None,
             code: None,
             margin: 1,
@@ -93,7 +93,7 @@ impl RostError {
             let line_pos = newlines
                 .clone()
                 .last()
-                .and_then(|i| Some(pos.start - i - 1))
+                .map(|i| pos.start - i - 1)
                 .unwrap_or(pos.start);
 
             (line, line_pos, width, message)
@@ -180,7 +180,7 @@ impl Display for RostError {
 
         for (i, row_group) in wanted_row_groups.into_iter().enumerate() {
             if i != 0 {
-                write!(fmt, "    {}...\n", " ".repeat(number_padding))?;
+                writeln!(fmt, "    {}...", " ".repeat(number_padding))?;
             }
 
             for row_index in row_group {
@@ -207,7 +207,7 @@ impl Display for RostError {
                     write!(fmt, "{}  | ", " ".repeat(number_padding))?;
 
                     let mut positions = messages
-                        .into_iter()
+                        .iter()
                         .map(|(_, line_pos, width, _)| (line_pos, width))
                         .collect::<Vec<_>>();
 
@@ -228,7 +228,7 @@ impl Display for RostError {
 
                     fmt.write_str("\n")?;
 
-                    for (i, &(_, line_pos, _, message)) in messages.into_iter().rev().enumerate() {
+                    for (i, &(_, line_pos, _, message)) in messages.iter().rev().enumerate() {
                         write!(fmt, "{}  | ", " ".repeat(number_padding))?;
 
                         let mut prev_pos = 0;
@@ -254,7 +254,7 @@ impl Display for RostError {
                             red("└─"),
                             red(message)
                         );
-                        fmt.write_fmt(format_args!("{}\n", msg))?;
+                        fmt.write_fmt(format_args!("{msg}\n"))?;
                     }
                 }
             }

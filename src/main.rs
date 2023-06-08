@@ -57,7 +57,7 @@ fn shell(settings: Settings) {
                 };
 
                 if settings.shell_level == ShellLevel::Lexed {
-                    println!("{:#?}", document);
+                    println!("{document:#?}");
                     continue;
                 }
 
@@ -70,7 +70,7 @@ fn shell(settings: Settings) {
                 });
 
                 if settings.shell_level == ShellLevel::Parsed {
-                    println!("{:#?}", parsed);
+                    println!("{parsed:#?}");
                     continue;
                 }
 
@@ -83,7 +83,7 @@ fn shell(settings: Settings) {
                 });
 
                 if settings.shell_level == ShellLevel::Compiled {
-                    println!("{:#?}", compiled);
+                    println!("{compiled:#?}");
                     continue;
                 }
 
@@ -98,7 +98,7 @@ fn shell(settings: Settings) {
                 });
 
                 if settings.shell_level == ShellLevel::Nasm {
-                    println!("{:#?}", nasm);
+                    println!("{nasm:#?}");
                     continue;
                 }
             }
@@ -134,7 +134,7 @@ fn run(settings: Settings) -> Option<Code> {
     };
 
     if settings.shell_level == ShellLevel::Lexed {
-        println!("{:#?}", document);
+        println!("{document:#?}");
         return None;
     }
 
@@ -147,7 +147,7 @@ fn run(settings: Settings) -> Option<Code> {
     });
 
     if settings.shell_level == ShellLevel::Parsed {
-        println!("{:#?}", parsed);
+        println!("{parsed:#?}");
         return None;
     }
 
@@ -160,7 +160,7 @@ fn run(settings: Settings) -> Option<Code> {
     });
 
     if settings.shell_level == ShellLevel::Compiled {
-        println!("{:#?}", compiled);
+        println!("{compiled:#?}");
         return None;
     }
 
@@ -175,11 +175,11 @@ fn run(settings: Settings) -> Option<Code> {
     });
 
     if settings.shell_level == ShellLevel::Nasm {
-        println!("{:#?}", nasm);
+        println!("{nasm:#?}");
         return None;
     }
 
-    return nasm;
+    nasm
 }
 
 struct Settings {
@@ -239,8 +239,8 @@ fn main() -> std::io::Result<()> {
                 }
             }
             arg => {
-                if arg.starts_with("-") {
-                    println!("Unknown argument: {}", arg);
+                if arg.starts_with('-') {
+                    println!("Unknown argument: {arg}");
                     exit(-1);
                 } else {
                     settings.file = Some(arg.to_string());
@@ -259,7 +259,7 @@ fn main() -> std::io::Result<()> {
     } else {
         let asm = run(settings);
         if let Some(asm) = asm {
-            fs::write("out.asm", format!("{}", asm)).expect("Unable to write file");
+            fs::write("out.asm", format!("{asm}")).expect("Unable to write file");
             exit(0);
         }
 

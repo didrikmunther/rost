@@ -21,21 +21,18 @@ impl NasmError {
     fn get_messages(&self) -> Vec<(String, Range<usize>)> {
         match self.kind {
             NasmErrorKind::TooManyArguments(a) => vec![(
-                format!(
-                    "Too many arguments ({}) to function (no more than 6 supported)",
-                    a
-                ),
+                format!("Too many arguments ({a}) to function (no more than 6 supported)"),
                 self.pos.clone(),
             )],
         }
     }
 }
 
-impl Into<RostError> for NasmError {
-    fn into(self) -> RostError {
+impl From<NasmError> for RostError {
+    fn from(val: NasmError) -> Self {
         RostError::new(
             "NasmError".into(),
-            self.get_messages()
+            val.get_messages()
                 .iter()
                 .map(RostErrorElement::from)
                 .collect(),

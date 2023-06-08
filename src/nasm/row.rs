@@ -1,7 +1,7 @@
 use std::fmt::{Arguments, Display, Formatter};
 
 fn get_bytes(s: &String) -> String {
-    if s.len() <= 0 {
+    if s.is_empty() {
         return "0".into();
     }
 
@@ -82,29 +82,29 @@ impl Display for Row {
 
         match self {
             Row::Comment(comment) => w(format_args!("\t; {}", *comment)),
-            Row::Extern(ext) => w(format_args!("\textern {}", ext)),
-            Row::Move(to, from) => w(format_args!("\tmov {}, {}", to, from)),
-            Row::LoadEffectiveAddress(to, from) => w(format_args!("\tlea {}, {}", to, from)),
-            Row::And(to, from) => w(format_args!("\tand {}, {}", to, from)),
-            Row::Xor(to, from) => w(format_args!("\txor {}, {}", to, from)),
-            Row::Section(section) => w(format_args!("\n\tsection .{}", section)),
-            Row::Label(label) => w(format_args!("{}:", label)),
-            Row::Push(operand) => w(format_args!("\tpush {}", operand)),
-            Row::Pop(operand) => w(format_args!("\tpop {}", operand)),
-            Row::Add(to, from) => w(format_args!("\tadd {}, {}", to, from)),
-            Row::Compare(to, from) => w(format_args!("\tcmp {}, {}", to, from)),
-            Row::Jump(label) => w(format_args!("\tjmp {}", label)),
-            Row::JumpIfEquals(label) => w(format_args!("\tje {}", label)),
-            Row::JumpIfNotEquals(label) => w(format_args!("\tjne {}", label)),
-            Row::JumpIfLessThan(label) => w(format_args!("\tjl {}", label)),
-            Row::JumpIfGreaterThan(label) => w(format_args!("\tjg {}", label)),
-            Row::Subtract(to, from) => w(format_args!("\tsub {}, {}", to, from)),
-            Row::Multiply(to) => w(format_args!("\tmul {}", to)),
-            Row::Divide(divisor) => w(format_args!("\tidiv {}", divisor)),
-            Row::Global(global) => w(format_args!("\tglobal {}", global)),
-            Row::Call(function) => w(format_args!("\tcall {}", function)),
+            Row::Extern(ext) => w(format_args!("\textern {ext}")),
+            Row::Move(to, from) => w(format_args!("\tmov {to}, {from}")),
+            Row::LoadEffectiveAddress(to, from) => w(format_args!("\tlea {to}, {from}")),
+            Row::And(to, from) => w(format_args!("\tand {to}, {from}")),
+            Row::Xor(to, from) => w(format_args!("\txor {to}, {from}")),
+            Row::Section(section) => w(format_args!("\n\tsection .{section}")),
+            Row::Label(label) => w(format_args!("{label}:")),
+            Row::Push(operand) => w(format_args!("\tpush {operand}")),
+            Row::Pop(operand) => w(format_args!("\tpop {operand}")),
+            Row::Add(to, from) => w(format_args!("\tadd {to}, {from}")),
+            Row::Compare(to, from) => w(format_args!("\tcmp {to}, {from}")),
+            Row::Jump(label) => w(format_args!("\tjmp {label}")),
+            Row::JumpIfEquals(label) => w(format_args!("\tje {label}")),
+            Row::JumpIfNotEquals(label) => w(format_args!("\tjne {label}")),
+            Row::JumpIfLessThan(label) => w(format_args!("\tjl {label}")),
+            Row::JumpIfGreaterThan(label) => w(format_args!("\tjg {label}")),
+            Row::Subtract(to, from) => w(format_args!("\tsub {to}, {from}")),
+            Row::Multiply(to) => w(format_args!("\tmul {to}")),
+            Row::Divide(divisor) => w(format_args!("\tidiv {divisor}")),
+            Row::Global(global) => w(format_args!("\tglobal {global}")),
+            Row::Call(function) => w(format_args!("\tcall {function}")),
             Row::DeclareStaticString(s) => w(format_args!("\tdb {}, 0", get_bytes(s))),
-            Row::ReserveBytes(i) => w(format_args!("\tresb {}", i)),
+            Row::ReserveBytes(i) => w(format_args!("\tresb {i}")),
             Row::Ret => w(format_args!("\tret")),
         }
     }

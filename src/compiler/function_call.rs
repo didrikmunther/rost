@@ -8,7 +8,7 @@ use super::{
     scope::variable::VariableType,
 };
 
-static BUILT_IN: &[&'static str] = &["printf"];
+static BUILT_IN: &[&str] = &["printf"];
 
 impl Program {
     pub fn handle_function_call(

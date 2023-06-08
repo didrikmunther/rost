@@ -8,7 +8,7 @@ use super::{
     row::Row,
 };
 
-static ARG_REG: &[&'static str] = &["rdi", "rsi", "rdx", "rcx", "r8", "r9"];
+static ARG_REG: &[&str] = &["rdi", "rsi", "rdx", "rcx", "r8", "r9"];
 
 impl<'a> Generator<'a> {
     fn push_args(&mut self, nargs: usize, pos: Range<usize>) -> Result<(), NasmError> {

@@ -3,7 +3,7 @@ use crate::lexer::Keyword;
 use super::{
     definition::{Statement, StatementKind, WhileStatement},
     error::{ParserError, ParserErrorKind},
-    parser::Parser,
+    Parser,
 };
 
 impl<'a> Parser<'a> {
@@ -23,9 +23,9 @@ impl<'a> Parser<'a> {
 
         let statement = self.return_statement()?;
 
-        if let None = self.get(&[Keyword::Semicolon]) {
+        if self.get(&[Keyword::Semicolon]).is_none() {
             return Err(ParserError::new(
-                statement.pos.clone(),
+                statement.pos,
                 ParserErrorKind::ExpectedSemicolon,
             ));
         }

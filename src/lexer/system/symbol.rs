@@ -26,10 +26,10 @@ static SYMBOLS: phf::Map<&'static str, Keyword> = phf_map! {
 pub struct SymbolLexer;
 
 impl Lexer for SymbolLexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, usize)>, LexerError> {
+    fn lex(&self, chars: &[Letter]) -> Result<Option<(Token, usize)>, LexerError> {
         let mut buf = Vec::<char>::new();
 
-        for (mut i, &(_pos, cur, eof)) in chars.into_iter().enumerate() {
+        for (mut i, &(_pos, cur, eof)) in chars.iter().enumerate() {
             if buf.is_empty() && cur.is_whitespace() {
                 continue;
             }
@@ -41,10 +41,10 @@ impl Lexer for SymbolLexer {
                 .filter(|k| word.len() <= k.len() && k.starts_with(&word));
 
             // Backtrack through word to find a symbol
-            if eof || potential_symbols.count() <= 0 {
+            if eof || potential_symbols.count() == 0 {
                 i += 1;
                 word += " "; // Add padding for a do-while loop-style thing here
-                while let Some(_) = word.pop() {
+                while word.pop().is_some() {
                     i -= 1;
                     if let Some(&symbol) = SYMBOLS.get(&word) {
                         return Ok(Some((Token::Keyword(symbol), i)));

@@ -3,8 +3,8 @@ use crate::lexer::Keyword;
 use super::{
     definition::{Expression, ExpressionKind, FunctionCall},
     error::{ParserError, ParserErrorKind},
-    parser::Parser,
     util::get_expr_identifier,
+    Parser,
 };
 
 impl<'a> Parser<'a> {
@@ -23,7 +23,7 @@ impl<'a> Parser<'a> {
                         ));
                     }
 
-                    if let None = self.get(&[Keyword::Comma]) {
+                    if self.get(&[Keyword::Comma]).is_none() {
                         if let Some(close) = self.get(&[Keyword::ParRight]) {
                             return Ok(Expression {
                                 pos: expr.pos.start..close.pos.end,
@@ -37,7 +37,7 @@ impl<'a> Parser<'a> {
                         }
                     }
 
-                    args.push(Box::new(self.expression()?));
+                    args.push(self.expression()?);
                 }
             }
         }

@@ -17,7 +17,7 @@ pub struct Variable {
 #[derive(Debug, Clone, PartialEq)]
 pub struct StructType {
     pub id: usize,
-    pub size: usize // size in bytes
+    pub size: usize, // size in bytes
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -68,12 +68,12 @@ impl Display for VariableType {
                 let v = match value {
                     Keyword::Int => "int",
                     Keyword::Bool => "bool",
-                    _ => return write!(f, "{:?}", value),
+                    _ => return write!(f, "{value:?}"),
                 };
 
-                write!(f, "{}", v)
+                write!(f, "{v}")
             }
-            _ => write!(f, "{:?}", self),
+            _ => write!(f, "{self:?}"),
         }
     }
 }

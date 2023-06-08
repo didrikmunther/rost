@@ -6,15 +6,15 @@ impl<'a> Generator<'a> {
     pub fn handle_if_statement(
         &mut self,
         procedure: &str,
-        if_statements: &Vec<If>,
+        if_statements: &[If],
     ) -> Result<(), NasmError> {
         let label_end = Self::get_procedure_name(procedure, Some("if_end"));
 
         for (i, if_statement) in if_statements.iter().enumerate() {
             let label_condition =
-                Self::get_procedure_name(procedure, Some(&format!("if_condition_{}", i)));
+                Self::get_procedure_name(procedure, Some(&format!("if_condition_{i}")));
             let label_content =
-                Self::get_procedure_name(procedure, Some(&format!("if_content_{}", i)));
+                Self::get_procedure_name(procedure, Some(&format!("if_content_{i}")));
 
             if let Some(condition) = &if_statement.condition {
                 // If / else-if statement

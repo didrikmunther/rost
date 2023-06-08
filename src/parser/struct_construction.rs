@@ -5,7 +5,7 @@ use crate::lexer::{Keyword, Token};
 use super::{
     definition::{Expression, ExpressionKind, StructConstruction, StructConstructionField},
     error::{ParserError, ParserErrorKind},
-    parser::Parser,
+    Parser,
 };
 
 impl<'a> Parser<'a> {
@@ -62,12 +62,12 @@ impl<'a> Parser<'a> {
                     field_identifier_pos.clone(),
                     ParserErrorKind::FieldAlreadyDefined {
                         identifier: field_identifier.clone(),
-                        identifier_pos: existing_field.pos.clone(),
+                        identifier_pos: existing_field.pos,
                     },
                 ));
             }
 
-            if let None = self.get(&[Keyword::Comma]) {
+            if self.get(&[Keyword::Comma]).is_none() {
                 break;
             }
         }

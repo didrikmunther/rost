@@ -29,15 +29,11 @@ impl KeywordLexer {
 }
 
 impl Lexer for KeywordLexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, usize)>, LexerError> {
+    fn lex(&self, chars: &[Letter]) -> Result<Option<(Token, usize)>, LexerError> {
         match self.identifier_lexer.lex(chars) {
-            Ok(Some((Token::Identifier(identifier), pos))) => {
-                Ok(if let Some(keyword) = KEYWORDS.get(&identifier) {
-                    Some((Token::Keyword(*keyword), pos))
-                } else {
-                    None
-                })
-            }
+            Ok(Some((Token::Identifier(identifier), pos))) => Ok(KEYWORDS
+                .get(&identifier)
+                .map(|keyword| (Token::Keyword(*keyword), pos))),
             _ => Ok(None),
         }
     }

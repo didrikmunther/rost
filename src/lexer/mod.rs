@@ -31,7 +31,7 @@ pub fn lex(text: &str) -> Result<Vec<Block>, LexerError> {
     ];
 
     loop {
-        if chars.len() <= 0 {
+        if chars.is_empty() {
             break;
         }
 
@@ -48,7 +48,7 @@ pub fn lex(text: &str) -> Result<Vec<Block>, LexerError> {
                 let kind = match token {
                     Token::Identifier(_) => Keyword::Identifier,
                     Token::Keyword(keyword) => keyword,
-                    Token::EOF => Keyword::EOF,
+                    Token::Eof => Keyword::Eof,
                     Token::Literal(_) => Keyword::Literal,
                     Token::Comment(_) => Keyword::Comment,
                 };
@@ -76,8 +76,8 @@ pub fn lex(text: &str) -> Result<Vec<Block>, LexerError> {
 
     res.push(Block {
         pos: pos..pos,
-        token: Token::EOF,
-        kind: Keyword::EOF,
+        token: Token::Eof,
+        kind: Keyword::Eof,
     });
 
     Ok(res)
@@ -152,8 +152,8 @@ mod tests {
                 },
                 Block {
                     pos: 63..63,
-                    token: EOF,
-                    kind: super::Keyword::EOF,
+                    token: Eof,
+                    kind: super::Keyword::Eof,
                 }
             ])
         );

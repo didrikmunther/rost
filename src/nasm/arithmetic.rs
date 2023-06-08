@@ -38,7 +38,7 @@ impl<'a> Generator<'a> {
                 Self::get_equality_operations(procedure, arithmetic)
             }
             #[allow(unreachable_patterns)]
-            _ => panic!("Unimplemented: {:?}", arithmetic),
+            _ => panic!("Unimplemented: {arithmetic:?}"),
         };
 
         self.code

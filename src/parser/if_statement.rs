@@ -3,7 +3,7 @@ use crate::lexer::Keyword;
 use super::{
     definition::{IfStatement, Statement, StatementKind},
     error::ParserError,
-    parser::Parser,
+    Parser,
 };
 
 impl<'a> Parser<'a> {
@@ -19,8 +19,8 @@ impl<'a> Parser<'a> {
                 content,
             });
 
-            while let Some(_) = self.get(&[Keyword::Else]) {
-                if let Some(_) = self.get(&[Keyword::If]) {
+            while self.get(&[Keyword::Else]).is_some() {
+                if self.get(&[Keyword::If]).is_some() {
                     statements.push(IfStatement {
                         condition: Some(Box::new(self.expression()?)),
                         content: self.get_body()?.0,

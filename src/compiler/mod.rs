@@ -21,6 +21,6 @@ mod struct_declaration;
 mod util;
 mod while_statement;
 
-pub fn compile<'a>(parsed: Vec<Declaration>) -> Result<Program, CompilerError> {
+pub fn compile(parsed: Vec<Declaration>) -> Result<Program, CompilerError> {
     Program::new().compile(parsed)
 }

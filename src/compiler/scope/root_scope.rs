@@ -1,8 +1,8 @@
 use std::{collections::HashMap, rc::Rc};
 
 use super::{
-    scope::Scope,
     variable::{StoredVariable, Variable, VariableLocation},
+    Scope,
 };
 
 #[derive(Debug)]

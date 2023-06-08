@@ -22,10 +22,7 @@ impl Program {
         };
 
         let old_stack_pos = self.stack_pos;
-        let return_type = fdec
-            .return_type
-            .as_ref()
-            .map(|t| self.get_variable_type(&t));
+        let return_type = fdec.return_type.as_ref().map(|t| self.get_variable_type(t));
 
         let body = self.with_function_scope(return_type.clone(), |this| {
             let parameters = fdec
@@ -61,8 +58,8 @@ impl Program {
 
             let variable_sizes = function_scope
                 .variables
-                .iter()
-                .map(|(_, variable)| Self::get_type_size(&variable.typ))
+                .values()
+                .map(|variable| Self::get_type_size(&variable.typ))
                 .sum();
 
             let builder = Builder::new()

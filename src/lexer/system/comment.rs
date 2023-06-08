@@ -3,11 +3,11 @@ use super::{Letter, Lexer, LexerError, Token};
 pub struct CommentLexer;
 
 impl Lexer for CommentLexer {
-    fn lex<'a>(&self, chars: &'a [Letter]) -> Result<Option<(Token, usize)>, LexerError> {
+    fn lex(&self, chars: &[Letter]) -> Result<Option<(Token, usize)>, LexerError> {
         let mut buf = Vec::<char>::new();
         let mut is_comment = false;
 
-        for (i, &(_pos, cur, eof)) in chars.into_iter().enumerate() {
+        for (i, &(_pos, cur, eof)) in chars.iter().enumerate() {
             if buf.is_empty() && cur.is_whitespace() {
                 continue;
             }
