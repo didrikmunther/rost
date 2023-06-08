@@ -11,11 +11,9 @@ use crate::{
 impl Program {
     pub fn handle_ref(
         &mut self,
-        complete_expression: &Expression,
+        // complete_expression: &Expression,
         expression: &Expression,
     ) -> Result<Builder, CompilerError> {
-        let _typ = self.infer_type(complete_expression)?;
-
         match &expression.kind {
             ExpressionKind::Primary(primary) => match &primary {
                 Primary::Identifier(identifier) => Ok(
@@ -32,8 +30,6 @@ impl Program {
         complete_expression: &Expression,
         expression: &Expression,
     ) -> Result<Builder, CompilerError> {
-        let _typ = self.infer_type(complete_expression)?;
-
         Ok(Builder::new()
             .append(self.handle_expression(expression)?)
             .push(Procedure::new(

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use crate::parser::definition::{Declaration, StructDeclaration};
 
@@ -23,10 +23,11 @@ impl Program {
             todo!("Must declare struct in a root scope");
         };
 
-        let mut fields = HashMap::new();
+        let mut fields = BTreeMap::new();
         let mut offset = 0;
 
-        for (identifier, field) in &sdec.fields {
+        // Do it in reverse since the stack grows that way
+        for (identifier, field) in sdec.fields.iter().rev() {
             let typ = self.get_variable_type(&field.typ);
             let size = Self::get_type_size(&typ);
 
@@ -59,6 +60,7 @@ impl Program {
                 pos: statement.pos.clone(),
                 typ: VariableType::Struct(StructType {
                     id: struct_id,
+                    identifier: sdec.identifier.clone(),
                     size: struct_size,
                 }),
             },

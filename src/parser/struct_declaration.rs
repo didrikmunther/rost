@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 use crate::lexer::{Keyword, Token};
 
@@ -24,7 +24,7 @@ impl<'a> Parser<'a> {
             };
 
             let open = self.expect(&[Keyword::BraceLeft])?;
-            let mut fields = HashMap::new();
+            let mut fields = BTreeMap::new();
 
             loop {
                 if self.is_end() {

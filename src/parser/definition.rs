@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ops::Range};
+use std::{collections::{HashMap, BTreeMap}, ops::Range};
 
 use crate::lexer::{Keyword, Literal};
 
@@ -28,7 +28,7 @@ pub struct StructField {
 #[derive(Debug)]
 pub struct StructDeclaration {
     pub identifier: String,
-    pub fields: HashMap<String, StructField>,
+    pub fields: BTreeMap<String, StructField>,
 }
 
 #[derive(Debug, Clone)]
@@ -117,7 +117,7 @@ pub enum ExpressionKind {
 #[derive(Debug)]
 pub struct MemberAccess {
     pub left: Box<Expression>,
-    pub right: Box<Expression>,
+    pub member: String,
 }
 
 #[derive(Debug)]

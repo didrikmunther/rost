@@ -25,7 +25,7 @@ impl Program {
             ));
         };
 
-        let VariableType::Struct(StructType {id, size: _size}) = variable.typ else {
+        let VariableType::Struct(StructType {id, size: _size, ..}) = variable.typ else {
             todo!("Variable is not a struct")
         };
 

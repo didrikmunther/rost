@@ -35,7 +35,7 @@ impl Program {
         unary: &Unary,
     ) -> Result<Builder, CompilerError> {
         match unary.operator {
-            Keyword::Ampersand => self.handle_ref(expression, &unary.expr),
+            Keyword::Ampersand => self.handle_ref(&unary.expr),
             Keyword::Asterix => self.handle_deref(expression, &unary.expr),
             _ => todo!("Not supported"),
         }

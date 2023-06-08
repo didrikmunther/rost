@@ -17,6 +17,7 @@ pub struct Variable {
 #[derive(Debug, Clone, PartialEq)]
 pub struct StructType {
     pub id: usize,
+    pub identifier: String,
     pub size: usize, // size in bytes
 }
 

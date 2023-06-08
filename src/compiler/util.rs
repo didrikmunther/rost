@@ -158,12 +158,10 @@ impl Program {
 
                 match expr_type {
                     VariableType::Pointer(pointer_type) => Ok(*pointer_type),
-                    _ => {
-                        return Err(CompilerError::new(
-                            index.left.pos.clone(),
-                            CompilerErrorKind::DereferenceNonPointer(expr_type),
-                        ))
-                    }
+                    _ => Err(CompilerError::new(
+                        index.left.pos.clone(),
+                        CompilerErrorKind::DereferenceNonPointer(expr_type),
+                    )),
                 }
             }
             ExpressionKind::Unary(unary) => {
@@ -224,7 +222,21 @@ impl Program {
             ExpressionKind::StructConstruction(sconst) => {
                 Ok(self.get_variable(&sconst.identifier).unwrap().typ.clone())
             }
-            ExpressionKind::MemberAccess(access) => self.infer_type(&access.right),
+            ExpressionKind::MemberAccess(access) => {
+                let VariableType::Struct(struct_type) = self.infer_type(&access.left)? else {
+                    todo!("Struct does not exist");
+                };
+
+                let Some(struct_declaration) = self.structs.get(struct_type.id) else {
+                    todo!("Struct was not found in structs field");
+                };
+
+                let Some(field_type) = struct_declaration.fields.get(&access.member) else {
+                    todo!("Field was not found");
+                };
+
+                Ok(field_type.typ.clone())
+            }
         }
     }
 }

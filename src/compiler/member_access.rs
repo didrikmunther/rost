@@ -1,47 +1,45 @@
-use crate::parser::definition::{Expression, MemberAccess};
+use crate::{
+    compiler::{
+        definition::{Arithmetic, OperandValue, Procedure, ProcedureKind},
+        scope::variable::VariableType,
+    },
+    parser::definition::{Expression, MemberAccess},
+};
 
 use super::{builder::Builder, error::CompilerError, program::Program};
 
 impl Program {
     pub fn handle_member_access(
         &mut self,
-        _expression: &Expression,
+        expression: &Expression,
         access: &MemberAccess,
     ) -> Result<Builder, CompilerError> {
         let mut builder = Builder::new();
 
-        todo!()
+        let VariableType::Struct(struct_type) = self.infer_type(&access.left)? else {
+            todo!("Struct does not exist");
+        };
 
-        // let Some(variable) = self.get_variable(&access.left) else {
-        //     return Err(CompilerError::new(
-        //         sconst.identifier_pos.clone(),
-        //         CompilerErrorKind::UndefinedFunction(sconst.identifier.clone()),
-        //     ));
-        // };
+        let Some(struct_declaration) = self.structs.get(struct_type.id) else {
+            todo!("Struct was not found");
+        };
 
-        // let VariableType::Struct(StructType {id, size: _size}) = variable.typ else {
-        //     todo!("Variable is not a struct")
-        // };
+        let Some(field_offset) = struct_declaration.fields.get(&access.member).map(|v| v.offset as i32) else {
+            todo!("Field does not exist");
+        };
 
-        // let sdec = self.structs.get(id).unwrap();
-        // let mut field_content = Vec::with_capacity(sdec.fields.len());
+        builder = builder
+            .append(self.handle_ref(&access.left)?)
+            .push(Procedure::new(
+                expression.pos.clone(),
+                ProcedureKind::Push(OperandValue::Int(-field_offset)),
+            ))
+            .push(Procedure::new(
+                expression.pos.clone(),
+                ProcedureKind::Arithmetic(Arithmetic::Add),
+            ))
+            .push(Procedure::new(expression.pos.clone(), ProcedureKind::Deref));
 
-        // for (field_identifier, field_dec) in &sdec.fields {
-        //     let Some(field_const) = sconst.fields.get(field_identifier) else {
-        //         todo!("Missing field: {}", field_identifier);
-        //     };
-
-        //     if field_dec.typ != self.infer_type(&field_const.expr)? {
-        //         todo!("Field wrong type");
-        //     }
-
-        //     field_content.push((field_identifier.clone(), field_const));
-        // }
-
-        // for (_field_identifier, field_const) in field_content {
-        //     builder = builder.append(self.handle_expression(&field_const.expr)?);
-        // }
-
-        // Ok(builder)
+        Ok(builder)
     }
 }

@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::{HashMap, BTreeMap},
     fmt::{Display, Formatter},
     ops::Range,
 };
@@ -117,7 +117,7 @@ pub struct StructField {
 
 #[derive(Debug)]
 pub struct Struct {
-    pub fields: HashMap<String, StructField>,
+    pub fields: BTreeMap<String, StructField>,
     pub size: usize, // Size of struct in bytes
 }
 
