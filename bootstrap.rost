@@ -1,0 +1,7 @@
+// This program is supposed to be the initial bootstrapping of the language.
+
+fn main(argc: int, argv: &&char) {
+	printf("0x%x\n", argc);
+	printf("0x%x\n", argv);
+	printf("%s\n", *argv);
+}

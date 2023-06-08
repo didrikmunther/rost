@@ -76,6 +76,7 @@ impl Program {
             body,
             parameters: fdec.parameters.clone(),
             return_type,
+            identifier_pos: fdec.identifier_pos.clone(),
         });
 
         let function_location = self.functions.len() - 1;

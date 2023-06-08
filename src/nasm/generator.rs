@@ -152,6 +152,9 @@ impl<'a> Generator<'a> {
             .add(Row::Comment("Save base pointer".into()))
             .add(Row::Push("rbp".into()))
             .add(Row::Move("rbp".into(), "rsp".into()))
+            .add(Row::Push("rdi".into())) // argc
+            .add(Row::Push("rsi".into())) // argv
+
     }
 
     fn add_exit(&mut self) -> &mut Code {

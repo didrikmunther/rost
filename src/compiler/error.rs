@@ -35,7 +35,29 @@ pub enum CompilerErrorKind {
         typ: VariableType,
         declaration_pos: Option<Range<usize>>,
     },
+    Todo {
+        msg: String,
+        file: &'static str,
+        line: u32,
+    },
 }
+
+#[macro_export]
+macro_rules! compiler_todo {
+    ($pos: expr, $msg: expr) => {{
+        use super::error::{CompilerError, CompilerErrorKind};
+        Err(CompilerError::new(
+            $pos,
+            CompilerErrorKind::Todo {
+                msg: format!("{}", $msg),
+                file: file!(),
+                line: line!(),
+            },
+        ))
+    }};
+}
+
+pub use compiler_todo;
 
 #[derive(Debug, PartialEq)]
 pub struct CompilerError {
@@ -52,6 +74,10 @@ impl CompilerError {
 
     fn get_messages(&self) -> Vec<(String, Range<usize>)> {
         match &self.kind {
+            CompilerErrorKind::Todo { file, line, msg } => vec![(
+                format!("Not yet implemented, {msg}. {file}:{line}"),
+                self.pos.clone(),
+            )],
             // todo: get_message should be a closure, accepting a document containing helper functions for getting lines.
             //  todo: perhaps a builder pattern to be able to show errors on multiple lines.
             CompilerErrorKind::MissingMainFunction => vec![("Missing main function".into(), 0..0)],

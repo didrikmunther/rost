@@ -2,7 +2,9 @@ use std::collections::HashMap;
 
 use super::{
     builder::Builder,
-    definition::{Function, GlobalData, Procedure, ProcedureCall, ProcedureKind, Struct},
+    definition::{
+        Function, GlobalData, OperandValue, Procedure, ProcedureCall, ProcedureKind, Struct,
+    },
     error::{CompilerError, CompilerErrorKind},
     scope::{
         function_scope::FunctionScope,
@@ -12,7 +14,7 @@ use super::{
     },
 };
 
-use crate::parser::definition::Declaration;
+use crate::{compiler_todo, parser::definition::Declaration};
 
 #[derive(Debug)]
 pub struct Program {
@@ -114,15 +116,49 @@ impl Program {
         // Find main function in root scope
         // Todo: maybe main function shouldn't be required?
         let Some(&VariableType::Function(main_func_id)) = root_scope.scope.variables.get("main").map(|var| &var.typ) else {
-            return Err(CompilerError::new(0..0, CompilerErrorKind::MissingMainFunction))
+            return Err(CompilerError::new(parsed.last().map(|v| v.pos.clone()).unwrap_or(0..0), CompilerErrorKind::MissingMainFunction))
+        };
+
+        let main_func = self
+            .functions
+            .get(main_func_id)
+            .expect("Main function should exist in functions vec");
+
+        // nargs represents the amount of parameters which are
+        // requested by the main function (where parameters are argc, argv)
+        // 0: []
+        // 1: [int]
+        // 2: [int, &&char]
+        let nargs = match &main_func.parameters[..] {
+            [] => 0,
+            [_, _, third, ..] => {
+                return compiler_todo!(
+                    third.pos.clone(),
+                    format!("Too many parameters for main function, expected maximum of 2")
+                )
+            }
+            [first, ..] if !first.typ.is_type("int") => {
+                return compiler_todo!(
+                    first.typ.pos.clone(),
+                    format!("Unexpected type of first parameter to main, expected int")
+                )
+            }
+            [_] => 1,
+            [_, second] if !second.typ.is_type("&&char") => {
+                return compiler_todo!(
+                    second.typ.pos.clone(),
+                    format!("Unexpected type of second parameter to main, expected &&char")
+                )
+            }
+            [_, _] => 2,
         };
 
         // Create the call to the main function
         let call_main_func = Procedure::new(
-            0..0,
+            main_func.identifier_pos.clone(),
             ProcedureKind::ProcedureCall(ProcedureCall {
                 function_id: main_func_id,
-                nargs: 0,
+                nargs,
                 returns: false,
             }),
         );

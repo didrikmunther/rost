@@ -41,6 +41,7 @@ pub struct FunctionDeclarationParameter {
 #[derive(Debug)]
 pub struct FunctionDeclaration {
     pub identifier: String,
+    pub identifier_pos: Range<usize>,
     pub parameters: Vec<FunctionDeclarationParameter>,
     pub content: Vec<Declaration>,
     pub return_type: Option<Type>,

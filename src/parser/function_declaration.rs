@@ -50,6 +50,7 @@ impl<'a> Parser<'a> {
                             pos: fn_identifier.pos.start..close.pos.end,
                             kind: DeclarationKind::FunctionDeclaration(FunctionDeclaration {
                                 identifier,
+                                identifier_pos: fn_identifier.pos.clone(),
                                 parameters,
                                 content,
                                 return_type,

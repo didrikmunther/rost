@@ -101,6 +101,7 @@ pub struct FunctionDefinition {
 
 #[derive(Debug)]
 pub struct Function {
+    pub identifier_pos: Range<usize>,
     pub return_type: Option<VariableType>,
     pub parameters: Vec<FunctionDeclarationParameter>,
     pub body: Builder,
