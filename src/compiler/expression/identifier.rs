@@ -22,10 +22,7 @@ impl Program {
             let operand_value = match &variable.location {
                 VariableLocation::Stack(loc) => OperandValue::StackLocation(*loc),
                 VariableLocation::Global(label) => {
-                    let is_pointer = match &variable.typ {
-                        VariableType::Pointer(_) => true,
-                        _ => false,
-                    };
+                    let is_pointer = matches!(&variable.typ, VariableType::Pointer(_));
 
                     if is_pointer {
                         OperandValue::DataPointerLocation(label.clone())
@@ -46,10 +43,10 @@ impl Program {
 
             Ok(Builder::new().push(Procedure::new(expression.pos.clone(), operation)))
         } else {
-            return Err(CompilerError::new(
+            Err(CompilerError::new(
                 expression.pos.clone(),
                 CompilerErrorKind::UndefinedVariable(identifier.clone()),
-            ));
+            ))
         }
     }
 }

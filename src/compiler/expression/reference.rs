@@ -18,13 +18,9 @@ impl Program {
 
         match &expression.kind {
             ExpressionKind::Primary(primary) => match &primary {
-                Primary::Identifier(identifier) => {
-                    return Ok(Builder::new().append(self.handle_identifier(
-                        expression,
-                        &identifier,
-                        true,
-                    )?));
-                }
+                Primary::Identifier(identifier) => Ok(
+                    Builder::new().append(self.handle_identifier(expression, identifier, true)?)
+                ),
                 _ => todo!("Not supported"),
             },
             _ => todo!("Not supported"),

@@ -13,13 +13,13 @@ impl Program {
     fn handle_string_literal(
         &mut self,
         expression: &Expression,
-        string: &String,
+        string: &str,
     ) -> Result<Builder, CompilerError> {
         let label = format!("_literal_{}", self.literal_index);
         self.literal_index += 1;
 
         self.global_data
-            .insert(label.clone(), GlobalData::String(string.clone()));
+            .insert(label.clone(), GlobalData::String(string.to_string()));
 
         Ok(Builder::new().push(Procedure::new(
             expression.pos.clone(),

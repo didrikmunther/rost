@@ -1,10 +1,7 @@
-use std::{
-    fmt::{Debug, Display},
-    ops::Range,
-};
+use std::{fmt::Debug, ops::Range};
 
 use crate::{
-    lexer::{lex, Keyword, Token},
+    lexer::{Keyword, Token},
     parser_todo,
 };
 

@@ -43,7 +43,7 @@ impl Program {
 
     fn get_primitive_type_size(primitive: &Keyword) -> usize {
         match primitive {
-            Keyword::Int => 8,
+            Keyword::Int | Keyword::Char => 8,
             _ => todo!("Not supported"),
         }
     }
