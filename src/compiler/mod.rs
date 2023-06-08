@@ -7,6 +7,7 @@ pub mod definition;
 pub mod program;
 pub mod scope;
 
+mod array_index;
 mod assignment;
 mod declaration;
 mod error;

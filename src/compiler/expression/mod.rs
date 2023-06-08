@@ -113,6 +113,7 @@ impl Program {
             ExpressionKind::StructConstruction(sconst) => {
                 self.handle_struct_construction(expression, sconst)
             }
+            ExpressionKind::ArrayIndex(index) => self.handle_array_index(expression, index),
             ExpressionKind::MemberAccess(access) => self.handle_member_access(expression, access),
             ExpressionKind::Primary(primary) => self.handle_primary(expression, primary),
             ExpressionKind::Unary(unary) => self.handle_unary(expression, unary),

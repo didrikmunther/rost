@@ -14,7 +14,7 @@ for file in ./tests/*.in; do
 	echo "[Running test ${file}]" | tee -a tests.log
 	name=$(echo $file | sed 's/.*\///;s/\.in//')
 	./target/debug/rost ./tests/${name}.in "$@" >> tests.log || echo "Compiler error for test ${name}, check logs" | tee -a tests.log || exit
-	output=$(docker run -v $(PWD):/app rost)
+	output=$(docker run -v $(PWD):/app rost first second)
 	expected=$(cat ./tests/${name}.out)
 	if [ "$output" != "$expected" ]; then
 		echo "Got unexpected output for test ${name}. Got:" | tee -a tests.log

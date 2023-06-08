@@ -11,7 +11,7 @@ impl<'a> Parser<'a> {
         let mut expr = self.struct_contruction()?;
 
         while let Some(block) = self.get(&[Keyword::Asterix, Keyword::Slash]) {
-            let right = self.primary()?;
+            let right = self.struct_contruction()?;
             let pos = expr.pos.start..right.pos.end;
 
             expr = Expression {

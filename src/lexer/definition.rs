@@ -20,6 +20,8 @@ pub enum Keyword {
     ParRight,
     BraceLeft,
     BraceRight,
+    BracketLeft,
+    BracketRight,
     Comma,
     Colon,
     LessThan,

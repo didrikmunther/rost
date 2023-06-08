@@ -153,6 +153,19 @@ impl Program {
                     }
                 }),
             },
+            ExpressionKind::ArrayIndex(index) => {
+                let expr_type = self.infer_type(&index.left)?;
+
+                match expr_type {
+                    VariableType::Pointer(pointer_type) => Ok(*pointer_type),
+                    _ => {
+                        return Err(CompilerError::new(
+                            index.left.pos.clone(),
+                            CompilerErrorKind::DereferenceNonPointer(expr_type),
+                        ))
+                    }
+                }
+            }
             ExpressionKind::Unary(unary) => {
                 let expr_type = self.infer_type(&unary.expr)?;
 

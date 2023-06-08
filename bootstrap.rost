@@ -1,10 +1,5 @@
 // This program is supposed to be the initial bootstrapping of the language.
 
 fn main(argc: int, argv: &&char) {
-	let first = argv[1];
-	// let first = 8 + argv;
-
-	printf("0x%x\n", argv);
-	printf("0x%x\n", first);
-	printf("%s\n", *first);
+	
 }

@@ -9,7 +9,7 @@ use super::{
 
 impl<'a> Parser<'a> {
     pub fn function_call(&mut self) -> Result<Expression, ParserError> {
-        let expr = self.primary()?;
+        let expr = self.index()?;
 
         if let Some(identifier) = get_expr_identifier(&expr) {
             if let Some(open) = self.get(&[Keyword::ParLeft]) {

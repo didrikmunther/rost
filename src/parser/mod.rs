@@ -16,6 +16,7 @@ mod error;
 mod function_call;
 mod function_declaration;
 mod if_statement;
+mod index;
 mod member;
 mod multiplication;
 mod parenthesis;

@@ -1,0 +1,8 @@
+fn main(argc: int, argv: &&char) {
+	let first: &char = argv[1];
+	let second = argv[2];
+
+	printf("%s\n", argv[0]);
+	printf("%s\n", first);
+	printf("%s\n", second);
+}

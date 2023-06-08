@@ -110,6 +110,7 @@ pub enum ExpressionKind {
     Binary(Binary),
     MemberAccess(MemberAccess),
     FunctionCall(FunctionCall),
+    ArrayIndex(ArrayIndex),
     StructConstruction(StructConstruction),
 }
 
@@ -117,6 +118,12 @@ pub enum ExpressionKind {
 pub struct MemberAccess {
     pub left: Box<Expression>,
     pub right: Box<Expression>,
+}
+
+#[derive(Debug)]
+pub struct ArrayIndex {
+    pub left: Box<Expression>,
+    pub index: Box<Expression>,
 }
 
 #[derive(Debug)]
