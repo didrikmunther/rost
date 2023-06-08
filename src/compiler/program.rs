@@ -2,9 +2,7 @@ use std::collections::HashMap;
 
 use super::{
     builder::Builder,
-    definition::{
-        Function, GlobalData, OperandValue, Procedure, ProcedureCall, ProcedureKind, Struct,
-    },
+    definition::{Function, GlobalData, Procedure, ProcedureCall, ProcedureKind, Struct},
     error::{CompilerError, CompilerErrorKind},
     scope::{
         function_scope::FunctionScope,
@@ -14,7 +12,7 @@ use super::{
     },
 };
 
-use crate::{compiler_todo, parser::definition::Declaration};
+use crate::{lexer::Keyword, parser::definition::Declaration};
 
 #[derive(Debug)]
 pub struct Program {
@@ -24,6 +22,9 @@ pub struct Program {
     pub structs: Vec<Struct>,
     pub procedures: Builder,
     pub stack_pos: usize,
+
+    // How many parameters does the main function take? Between 0 and 2
+    pub main_func_nparams: usize,
 
     // Keep track of how many literal
     // values there are in global data section.
@@ -40,6 +41,7 @@ impl Program {
             procedures: Builder::new(),
             stack_pos: 0,
             literal_index: 0,
+            main_func_nparams: 0,
         }
     }
 
@@ -124,31 +126,49 @@ impl Program {
             .get(main_func_id)
             .expect("Main function should exist in functions vec");
 
-        // nargs represents the amount of parameters which are
+        // main_func_nparams represents the amount of parameters which are
         // requested by the main function (where parameters are argc, argv)
         // 0: []
         // 1: [int]
         // 2: [int, &&char]
-        let nargs = match &main_func.parameters[..] {
+        let first_type = VariableType::Value(Keyword::Int);
+        let second_type = VariableType::Pointer(Box::new(VariableType::Pointer(Box::new(
+            VariableType::Value(Keyword::Char),
+        ))));
+
+        // Parameters for the main function as slices of the type and the position of the type.
+        let params = &main_func
+            .parameters
+            .iter()
+            .map(|v| (self.get_variable_type(&v.typ), v.pos.clone()))
+            .collect::<Vec<_>>()[..];
+
+        self.main_func_nparams = match params {
             [] => 0,
-            [_, _, third, ..] => {
-                return compiler_todo!(
-                    third.pos.clone(),
-                    format!("Too many parameters for main function, expected maximum of 2")
-                )
+            [_, _, (_, pos), ..] => {
+                return Err(CompilerError::new(
+                    pos.clone(),
+                    CompilerErrorKind::TooManyParametersInMainFunction,
+                ))
             }
-            [first, ..] if !first.typ.is_type("int") => {
-                return compiler_todo!(
-                    first.typ.pos.clone(),
-                    format!("Unexpected type of first parameter to main, expected int")
-                )
+            [(first, pos), ..] if *first != first_type => {
+                return Err(CompilerError::new(
+                    pos.clone(),
+                    CompilerErrorKind::WrongType {
+                        got: first.clone(),
+                        expected: first_type,
+                    },
+                ))
             }
             [_] => 1,
-            [_, second] if !second.typ.is_type("&&char") => {
-                return compiler_todo!(
-                    second.typ.pos.clone(),
-                    format!("Unexpected type of second parameter to main, expected &&char")
-                )
+            [_, (second, pos)] if *second != second_type => {
+                return Err(CompilerError::new(
+                    pos.clone(),
+                    CompilerErrorKind::WrongType {
+                        got: second.clone(),
+                        expected: second_type,
+                    },
+                ))
             }
             [_, _] => 2,
         };
@@ -158,7 +178,7 @@ impl Program {
             main_func.identifier_pos.clone(),
             ProcedureKind::ProcedureCall(ProcedureCall {
                 function_id: main_func_id,
-                nargs,
+                nargs: self.main_func_nparams,
                 returns: false,
             }),
         );

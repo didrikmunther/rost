@@ -143,7 +143,8 @@ impl<'a> Generator<'a> {
     }
 
     fn add_header(&mut self) -> &mut Code {
-        self.code
+        let mut code = self
+            .code
             .add(Row::Comment("[header]".into()))
             .add(Row::Global("main".into()))
             .add(Row::Extern("printf".into()))
@@ -151,10 +152,17 @@ impl<'a> Generator<'a> {
             .add(Row::Label("main".into()))
             .add(Row::Comment("Save base pointer".into()))
             .add(Row::Push("rbp".into()))
-            .add(Row::Move("rbp".into(), "rsp".into()))
-            .add(Row::Push("rdi".into())) // argc
-            .add(Row::Push("rsi".into())) // argv
+            .add(Row::Move("rbp".into(), "rsp".into()));
 
+        if self.program.main_func_nparams >= 1 {
+            code = code.add(Row::Push("rdi".into())); // argc
+        }
+
+        if self.program.main_func_nparams >= 2 {
+            code = code.add(Row::Push("rsi".into())); // argv
+        }
+
+        code
     }
 
     fn add_exit(&mut self) -> &mut Code {

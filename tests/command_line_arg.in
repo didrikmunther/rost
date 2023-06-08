@@ -1,0 +1,4 @@
+fn main(argc: int, argv: &&char) {
+	printf("%d\n", argc);
+	printf("%s\n", *argv);
+}

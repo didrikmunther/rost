@@ -1,0 +1,3 @@
+fn main(argc: int) {
+	printf("%d\n", argc);
+}

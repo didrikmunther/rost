@@ -1,0 +1,5 @@
+  --> ./tests/error_command_line_arg_too_many.in:1:34 => CompilerError
+1 | fn main(argc: int, argv: &&char, error_here: int) {
+  |                                  ^^^^^^^^^^
+  |                                  └─ Too many parameters for main function, expected maximum of 2
+2 | 

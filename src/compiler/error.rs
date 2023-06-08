@@ -14,6 +14,7 @@ pub enum CompilerErrorKind {
     RedeclaredVariable(String, Range<usize>),
     DereferenceNonPointer(VariableType),
     MissingMainFunction,
+    TooManyParametersInMainFunction,
     WrongBinaryExpressionTypes {
         got: VariableType,
         expected: VariableType,
@@ -35,6 +36,8 @@ pub enum CompilerErrorKind {
         typ: VariableType,
         declaration_pos: Option<Range<usize>>,
     },
+    
+    #[allow(dead_code)]
     Todo {
         msg: String,
         file: &'static str,
@@ -81,6 +84,10 @@ impl CompilerError {
             // todo: get_message should be a closure, accepting a document containing helper functions for getting lines.
             //  todo: perhaps a builder pattern to be able to show errors on multiple lines.
             CompilerErrorKind::MissingMainFunction => vec![("Missing main function".into(), 0..0)],
+            CompilerErrorKind::TooManyParametersInMainFunction => vec![(
+                "Too many parameters for main function, expected maximum of 2".into(),
+                self.pos.clone(),
+            )],
             CompilerErrorKind::DereferenceNonPointer(typ) => vec![(
                 format!("Cannot dereference non-pointer value of type {typ}"),
                 self.pos.clone(),
