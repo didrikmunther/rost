@@ -21,6 +21,9 @@ impl Program {
             ExpressionKind::MemberAccess(access) => {
                 self.handle_member_access_without_deref(expression, access)
             }
+            ExpressionKind::ArrayIndex(index) => {
+                self.handle_array_index_without_deref(expression, index)
+            }
             ExpressionKind::Unary(unary) => match unary.operator {
                 Keyword::Asterix => Ok(self
                     .handle_ref(&unary.expr)?

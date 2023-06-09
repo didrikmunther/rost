@@ -12,7 +12,7 @@ use super::{
 };
 
 impl Program {
-    pub fn handle_array_index(
+    pub fn handle_array_index_without_deref(
         &mut self,
         expression: &Expression,
         index: &ArrayIndex,
@@ -42,7 +42,18 @@ impl Program {
             .push(Procedure::new(
                 expression.pos.clone(),
                 ProcedureKind::Arithmetic(Arithmetic::Add),
-            ))
+            ));
+
+        Ok(builder)
+    }
+
+    pub fn handle_array_index(
+        &mut self,
+        expression: &Expression,
+        index: &ArrayIndex,
+    ) -> Result<Builder, CompilerError> {
+        let builder = self
+            .handle_array_index_without_deref(expression, index)?
             .push(Procedure::new(expression.pos.clone(), ProcedureKind::Deref));
 
         Ok(builder)

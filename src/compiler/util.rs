@@ -203,10 +203,12 @@ impl Program {
                 Ok(typ)
             }
             ExpressionKind::FunctionCall(call) => {
-                let Some(function) = self.get_variable(&call.identifier) else {
+                let identifier = call.left.get_string().unwrap().to_string();
+
+                let Some(function) = self.get_variable(&identifier) else {
                     return Err(CompilerError::new(
-                        call.identifier_pos.clone(),
-                        CompilerErrorKind::UndefinedFunction(call.identifier.clone()),
+                        call.left.pos.clone(),
+                        CompilerErrorKind::UndefinedFunction(identifier),
                     ));
                 };
 

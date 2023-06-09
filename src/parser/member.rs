@@ -22,7 +22,12 @@ impl<'a> Parser<'a> {
                         member: identifier,
                     }),
                 };
+            } else {
+                todo!("Member must be a string literal");
             }
+
+            expr = self.index_from(expr)?;
+            expr = self.function_call_from(expr)?;
         }
 
         Ok(expr)

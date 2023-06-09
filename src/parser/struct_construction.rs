@@ -43,8 +43,9 @@ impl<'a> Parser<'a> {
                         ));
                     }
                 } else {
+                    println!("here: {struct_identifier:#?}");
                     return Err(ParserError::new(
-                        struct_identifier.pos.clone(),
+                        self.peek().unwrap().pos.clone(),
                         ParserErrorKind::Expected(&[Keyword::Identifier]),
                     ));
                 };
@@ -67,7 +68,9 @@ impl<'a> Parser<'a> {
                 ));
             }
 
-            if self.get(&[Keyword::Comma]).is_none() {
+            if self.get(&[Keyword::Comma]).is_none()
+                || self.get_peek(&[Keyword::BraceRight]).is_some()
+            {
                 break;
             }
         }

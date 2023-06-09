@@ -1,4 +1,7 @@
-use std::{collections::{HashMap, BTreeMap}, ops::Range};
+use std::{
+    collections::{BTreeMap, HashMap},
+    ops::Range,
+};
 
 use crate::lexer::{Keyword, Literal};
 
@@ -103,6 +106,15 @@ pub struct Expression {
     pub kind: ExpressionKind,
 }
 
+impl Expression {
+    pub fn get_string(&self) -> Option<&str> {
+        match self.kind {
+            ExpressionKind::Primary(Primary::Identifier(ref string)) => Some(string),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum ExpressionKind {
     Primary(Primary),
@@ -128,10 +140,9 @@ pub struct ArrayIndex {
 
 #[derive(Debug)]
 pub struct FunctionCall {
-    pub identifier: String,
+    pub left: Box<Expression>,
     pub args: Vec<Expression>,
-    pub identifier_pos: Range<usize>,
-    pub parameters_pos: Range<usize>,
+    pub args_pos: Range<usize>,
 }
 
 #[derive(Debug)]

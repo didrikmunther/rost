@@ -23,20 +23,21 @@ impl Program {
             builder = builder.append(expr);
         }
 
-        if BUILT_IN.contains(&fcall.identifier.as_str()) {
+        let identifier = fcall.left.get_string().unwrap().to_string();
+        if BUILT_IN.contains(&identifier.as_str()) {
             return Ok(builder.push(Procedure::new(
                 expression.pos.clone(),
                 ProcedureKind::SystemCall(SystemCall {
                     nargs: fcall.args.len(),
-                    identifier: fcall.identifier.clone(),
+                    identifier,
                 }),
             )));
         }
 
-        let Some(variable) = self.get_variable(&fcall.identifier) else {
+        let Some(variable) = self.get_variable(&identifier) else {
             return Err(CompilerError::new(
-                fcall.identifier_pos.clone(),
-                CompilerErrorKind::UndefinedFunction(fcall.identifier.clone()),
+                fcall.left.pos.clone(),
+                CompilerErrorKind::UndefinedFunction(identifier),
             ));
         };
 

@@ -7,9 +7,7 @@ use super::{
 };
 
 impl<'a> Parser<'a> {
-    pub fn index(&mut self) -> Result<Expression, ParserError> {
-        let expr = self.primary()?;
-
+    pub fn index_from(&mut self, expr: Expression) -> Result<Expression, ParserError> {
         if let Some(open) = self.get(&[Keyword::BracketLeft]) {
             let index = self.expression()?;
 
@@ -30,5 +28,11 @@ impl<'a> Parser<'a> {
         }
 
         Ok(expr)
+    }
+
+    pub fn index(&mut self) -> Result<Expression, ParserError> {
+        let expr = self.primary()?;
+
+        self.index_from(expr)
     }
 }
