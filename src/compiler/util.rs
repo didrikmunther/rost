@@ -223,10 +223,10 @@ impl Program {
             ExpressionKind::StructConstruction(sconst) => {
                 Ok(self.get_variable(&sconst.identifier).unwrap().typ.clone())
             }
-            ExpressionKind::MemberAccess(access) => {
-                let field_type = self.get_struct_field_type(&access.left, &access.member)?;
-                Ok(field_type.typ.clone())
-            }
+            ExpressionKind::MemberAccess(access) => Ok(self
+                .get_struct_field_type(&access.left, &access.member)?
+                .typ
+                .clone()),
         }
     }
 
@@ -236,7 +236,7 @@ impl Program {
         member: &str,
     ) -> Result<&StructField, CompilerError> {
         let VariableType::Struct(struct_type) = self.infer_type(struct_value)? else {
-            todo!("Struct does not exist");
+            todo!("Struct does not exist: {:#?}\n{:#?}", struct_value, self.infer_type(struct_value)?);
         };
 
         let Some(struct_declaration) = self.structs.get(struct_type.id) else {

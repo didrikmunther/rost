@@ -1,4 +1,10 @@
+// This program is the test program
+
 struct MyOtherStruct {
+	k: int,
+}
+
+struct MyOtherStruct2 {
 	k: int,
 }
 
@@ -6,25 +12,33 @@ struct MyStruct {
 	a: int,
 	b: int,
 	c: int,
-	o: MyOtherStruct
+	o: &MyOtherStruct,
+	o2: MyOtherStruct
 }
 
 fn main(argc: int, argv: &&char) {
+
+	let o = MyOtherStruct {
+		k: 123
+	};
 
 	let s: MyStruct = MyStruct {
 		a: 1,
 		b: 2,
 		c: 3,
-		o: MyOtherStruct {
-			k: 123
+		o: &o,
+		o2: MyOtherStruct {
+			k: 321
 		}
 	};
 
-	s.a = s.o.k + 10;
-	s.o.k = 666;
+	s.a = (*s.o).k + 10;
+	(*s.o).k = 666;
+	s.o2.k = s.a + 5;
 
 	printf("%i\n", s.a);
 	printf("%i\n", s.b);
 	printf("%i\n", s.c);
-	printf("%i\n", s.o.k);
+	printf("%i\n", (*s.o).k);
+	printf("%i\n", s.o2.k);
 }

@@ -37,8 +37,16 @@ impl Program {
                 todo!("Missing field: {}", field_identifier);
             };
 
-            if field_dec.typ != self.infer_type(&field_const.expr)? {
-                todo!("Field wrong type");
+            let const_typ = self.infer_type(&field_const.expr)?;
+            if field_dec.typ != const_typ {
+                return Err(CompilerError {
+                    pos: field_const.pos.clone(),
+                    kind: CompilerErrorKind::WrongAssignmentType {
+                        got: const_typ,
+                        typ: field_dec.typ.clone(),
+                        declaration_pos: Some(field_dec.pos.clone()),
+                    },
+                });
             }
 
             field_content.push((field_identifier.clone(), field_const));

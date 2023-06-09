@@ -5,6 +5,7 @@ use crate::{
         error::CompilerError,
         program::Program,
     },
+    lexer::Keyword,
     parser::definition::{Expression, ExpressionKind, Primary},
 };
 
@@ -20,8 +21,14 @@ impl Program {
             ExpressionKind::MemberAccess(access) => {
                 self.handle_member_access_without_deref(expression, access)
             }
+            ExpressionKind::Unary(unary) => match unary.operator {
+                Keyword::Asterix => Ok(self
+                    .handle_ref(&unary.expr)?
+                    .push(Procedure::new(unary.expr.pos.clone(), ProcedureKind::Deref))),
+                _ => todo!("Unary operator not supported {:?}", unary.operator),
+            },
             _ => {
-                todo!("Not supported {:?}", expression.kind);
+                todo!("Not supported {:#?}", expression.kind);
             }
         }
     }

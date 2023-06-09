@@ -9,7 +9,7 @@ use super::{
 
 impl<'a> Parser<'a> {
     pub fn member(&mut self) -> Result<Expression, ParserError> {
-        let mut expr = self.index()?;
+        let mut expr = self.function_call()?;
 
         while self.get(&[Keyword::Dot]).is_some() {
             let next = self.primary()?;

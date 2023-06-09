@@ -23,6 +23,6 @@ impl<'a> Parser<'a> {
             });
         }
 
-        self.function_call()
+        self.member()
     }
 }
