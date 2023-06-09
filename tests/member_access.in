@@ -1,0 +1,30 @@
+struct MyOtherStruct {
+	k: int,
+}
+
+struct MyStruct {
+	a: int,
+	b: int,
+	c: int,
+	o: MyOtherStruct
+}
+
+fn main(argc: int, argv: &&char) {
+
+	let s: MyStruct = MyStruct {
+		a: 1,
+		b: 2,
+		c: 3,
+		o: MyOtherStruct {
+			k: 123
+		}
+	};
+
+	s.a = s.o.k + 10;
+	s.o.k = 666;
+
+	printf("%i\n", s.a);
+	printf("%i\n", s.b);
+	printf("%i\n", s.c);
+	printf("%i\n", s.o.k);
+}

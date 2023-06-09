@@ -9,11 +9,7 @@ use crate::{
 };
 
 impl Program {
-    pub fn handle_ref(
-        &mut self,
-        // complete_expression: &Expression,
-        expression: &Expression,
-    ) -> Result<Builder, CompilerError> {
+    pub fn handle_ref(&mut self, expression: &Expression) -> Result<Builder, CompilerError> {
         match &expression.kind {
             ExpressionKind::Primary(primary) => match &primary {
                 Primary::Identifier(identifier) => Ok(
@@ -21,7 +17,12 @@ impl Program {
                 ),
                 _ => todo!("Not supported"),
             },
-            _ => todo!("Not supported"),
+            ExpressionKind::MemberAccess(access) => {
+                self.handle_member_access_without_deref(expression, access)
+            }
+            _ => {
+                todo!("Not supported {:?}", expression.kind);
+            }
         }
     }
 

@@ -8,6 +8,7 @@ use crate::{
 
 use super::{
     builder::Builder,
+    definition::StructField,
     error::{CompilerError, CompilerErrorKind},
     program::Program,
     scope::{
@@ -223,20 +224,29 @@ impl Program {
                 Ok(self.get_variable(&sconst.identifier).unwrap().typ.clone())
             }
             ExpressionKind::MemberAccess(access) => {
-                let VariableType::Struct(struct_type) = self.infer_type(&access.left)? else {
-                    todo!("Struct does not exist");
-                };
-
-                let Some(struct_declaration) = self.structs.get(struct_type.id) else {
-                    todo!("Struct was not found in structs field");
-                };
-
-                let Some(field_type) = struct_declaration.fields.get(&access.member) else {
-                    todo!("Field was not found");
-                };
-
+                let field_type = self.get_struct_field_type(&access.left, &access.member)?;
                 Ok(field_type.typ.clone())
             }
         }
+    }
+
+    pub fn get_struct_field_type(
+        &self,
+        struct_value: &Expression,
+        member: &str,
+    ) -> Result<&StructField, CompilerError> {
+        let VariableType::Struct(struct_type) = self.infer_type(struct_value)? else {
+            todo!("Struct does not exist");
+        };
+
+        let Some(struct_declaration) = self.structs.get(struct_type.id) else {
+            todo!("Struct was not found in structs field");
+        };
+
+        let Some(field_type) = struct_declaration.fields.get(member) else {
+            todo!("Field was not found");
+        };
+
+        Ok(field_type)
     }
 }

@@ -9,19 +9,19 @@ use super::{
 
 impl<'a> Parser<'a> {
     pub fn member(&mut self) -> Result<Expression, ParserError> {
-        let expr = self.index()?;
+        let mut expr = self.index()?;
 
-        if self.get(&[Keyword::Dot]).is_some() {
-            let next = self.index()?;
+        while self.get(&[Keyword::Dot]).is_some() {
+            let next = self.primary()?;
 
             if let Some(identifier) = get_expr_identifier(&next) {
-                return Ok(Expression {
+                expr = Expression {
                     pos: expr.pos.start..next.pos.end,
                     kind: ExpressionKind::MemberAccess(MemberAccess {
                         left: Box::new(expr),
                         member: identifier,
                     }),
-                });
+                };
             }
         }
 

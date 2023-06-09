@@ -1,0 +1,258 @@
+Some(
+    [
+        Declaration {
+            pos: 44..70,
+            kind: StructDeclaration(
+                StructDeclaration {
+                    identifier: "MyOtherStruct",
+                    fields: {
+                        "k": StructField {
+                            typ: Type {
+                                identifier: Primitive(
+                                    Int,
+                                ),
+                                pos: 64..67,
+                                children: None,
+                            },
+                            pos: 61..62,
+                        },
+                    },
+                },
+            ),
+        },
+        Declaration {
+            pos: 79..142,
+            kind: StructDeclaration(
+                StructDeclaration {
+                    identifier: "MyStruct",
+                    fields: {
+                        "a": StructField {
+                            typ: Type {
+                                identifier: Primitive(
+                                    Int,
+                                ),
+                                pos: 94..97,
+                                children: None,
+                            },
+                            pos: 91..92,
+                        },
+                        "o": StructField {
+                            typ: Type {
+                                identifier: Struct(
+                                    "MyOtherStruct",
+                                ),
+                                pos: 127..140,
+                                children: None,
+                            },
+                            pos: 124..125,
+                        },
+                    },
+                },
+            ),
+        },
+        Declaration {
+            pos: 147..176,
+            kind: FunctionDeclaration(
+                FunctionDeclaration {
+                    identifier: "main",
+                    identifier_pos: 147..151,
+                    parameters: [
+                        FunctionDeclarationParameter {
+                            identifier: "argc",
+                            typ: Type {
+                                identifier: Primitive(
+                                    Int,
+                                ),
+                                pos: 158..161,
+                                children: None,
+                            },
+                            pos: 152..156,
+                        },
+                        FunctionDeclarationParameter {
+                            identifier: "argv",
+                            typ: Type {
+                                identifier: Primitive(
+                                    Pointer,
+                                ),
+                                pos: 169..175,
+                                children: Some(
+                                    [
+                                        Type {
+                                            identifier: Primitive(
+                                                Pointer,
+                                            ),
+                                            pos: 170..175,
+                                            children: Some(
+                                                [
+                                                    Type {
+                                                        identifier: Primitive(
+                                                            Char,
+                                                        ),
+                                                        pos: 171..175,
+                                                        children: None,
+                                                    },
+                                                ],
+                                            ),
+                                        },
+                                    ],
+                                ),
+                            },
+                            pos: 163..167,
+                        },
+                    ],
+                    content: [
+                        Declaration {
+                            pos: 185..277,
+                            kind: Statement(
+                                Statement {
+                                    pos: 185..277,
+                                    kind: VariableDeclaration(
+                                        VariableDeclaration {
+                                            typ: Some(
+                                                Type {
+                                                    identifier: Struct(
+                                                        "MyStruct",
+                                                    ),
+                                                    pos: 188..196,
+                                                    children: None,
+                                                },
+                                            ),
+                                            identifier: "s",
+                                            identifier_pos: 185..186,
+                                            right: Expression {
+                                                pos: 199..277,
+                                                kind: StructConstruction(
+                                                    StructConstruction {
+                                                        identifier: "MyStruct",
+                                                        identifier_pos: 199..207,
+                                                        fields: {
+                                                            "a": StructConstructionField {
+                                                                pos: 212..213,
+                                                                expr: Expression {
+                                                                    pos: 215..216,
+                                                                    kind: Primary(
+                                                                        Literal(
+                                                                            Int(
+                                                                                1,
+                                                                            ),
+                                                                        ),
+                                                                    ),
+                                                                },
+                                                            },
+                                                            "o": StructConstructionField {
+                                                                pos: 242..243,
+                                                                expr: Expression {
+                                                                    pos: 245..274,
+                                                                    kind: StructConstruction(
+                                                                        StructConstruction {
+                                                                            identifier: "MyOtherStruct",
+                                                                            identifier_pos: 245..258,
+                                                                            fields: {
+                                                                                "k": StructConstructionField {
+                                                                                    pos: 264..265,
+                                                                                    expr: Expression {
+                                                                                        pos: 267..270,
+                                                                                        kind: Primary(
+                                                                                            Literal(
+                                                                                                Int(
+                                                                                                    123,
+                                                                                                ),
+                                                                                            ),
+                                                                                        ),
+                                                                                    },
+                                                                                },
+                                                                            },
+                                                                        },
+                                                                    ),
+                                                                },
+                                                            },
+                                                        },
+                                                    },
+                                                ),
+                                            },
+                                            right_pos: 199..277,
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                        Declaration {
+                            pos: 281..297,
+                            kind: Statement(
+                                Statement {
+                                    pos: 281..297,
+                                    kind: VariableAssignment(
+                                        VariableAssignment {
+                                            left: Expression {
+                                                pos: 281..284,
+                                                kind: MemberAccess(
+                                                    MemberAccess {
+                                                        left: Expression {
+                                                            pos: 281..282,
+                                                            kind: Primary(
+                                                                Identifier(
+                                                                    "s",
+                                                                ),
+                                                            ),
+                                                        },
+                                                        member: "a",
+                                                    },
+                                                ),
+                                            },
+                                            left_pos: 281..284,
+                                            right: Expression {
+                                                pos: 287..297,
+                                                kind: Binary(
+                                                    Binary {
+                                                        left: Expression {
+                                                            pos: 287..292,
+                                                            kind: MemberAccess(
+                                                                MemberAccess {
+                                                                    left: Expression {
+                                                                        pos: 287..290,
+                                                                        kind: MemberAccess(
+                                                                            MemberAccess {
+                                                                                left: Expression {
+                                                                                    pos: 287..288,
+                                                                                    kind: Primary(
+                                                                                        Identifier(
+                                                                                            "s",
+                                                                                        ),
+                                                                                    ),
+                                                                                },
+                                                                                member: "o",
+                                                                            },
+                                                                        ),
+                                                                    },
+                                                                    member: "k",
+                                                                },
+                                                            ),
+                                                        },
+                                                        right: Expression {
+                                                            pos: 295..297,
+                                                            kind: Primary(
+                                                                Literal(
+                                                                    Int(
+                                                                        10,
+                                                                    ),
+                                                                ),
+                                                            ),
+                                                        },
+                                                        operator: Plus,
+                                                        operator_pos: 293..294,
+                                                    },
+                                                ),
+                                            },
+                                            right_pos: 287..297,
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    ],
+                    return_type: None,
+                },
+            ),
+        },
+    ],
+)

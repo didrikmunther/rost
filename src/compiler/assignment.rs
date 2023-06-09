@@ -148,6 +148,32 @@ impl Program {
                         }),
                     })
             }
+            ExpressionKind::MemberAccess(access) => {
+                let field_type = self.get_struct_field_type(&access.left, &access.member)?;
+
+                if infered_left != infered_right {
+                    return Err(CompilerError::new(
+                        assignment.right_pos.clone(),
+                        CompilerErrorKind::WrongAssignmentType {
+                            got: infered_right,
+                            typ: infered_left,
+                            declaration_pos: Some(field_type.pos.clone()),
+                        },
+                    ));
+                }
+
+                Builder::new()
+                    .append(self.handle_member_access_without_deref(&assignment.left, access)?)
+                    .append(self.handle_expression(&assignment.right)?)
+                    .push(Procedure {
+                        pos: assignment.left_pos.start..assignment.right_pos.end,
+                        comment: Some(format!("Reassign member: {}", access.member)),
+                        kind: ProcedureKind::Assign(Assign {
+                            location: VariableLocation::Address,
+                            size: Self::get_type_size(&infered_right),
+                        }),
+                    })
+            }
             _ => {
                 todo!("Unknown {:?}", assignment.left.kind)
             }

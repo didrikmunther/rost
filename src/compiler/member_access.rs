@@ -1,34 +1,21 @@
 use crate::{
-    compiler::{
-        definition::{Arithmetic, OperandValue, Procedure, ProcedureKind},
-        scope::variable::VariableType,
-    },
+    compiler::definition::{Arithmetic, OperandValue, Procedure, ProcedureKind},
     parser::definition::{Expression, MemberAccess},
 };
 
 use super::{builder::Builder, error::CompilerError, program::Program};
 
 impl Program {
-    pub fn handle_member_access(
+    pub fn handle_member_access_without_deref(
         &mut self,
         expression: &Expression,
         access: &MemberAccess,
     ) -> Result<Builder, CompilerError> {
-        let mut builder = Builder::new();
+        let field_offset = self
+            .get_struct_field_type(&access.left, &access.member)?
+            .offset as i32;
 
-        let VariableType::Struct(struct_type) = self.infer_type(&access.left)? else {
-            todo!("Struct does not exist");
-        };
-
-        let Some(struct_declaration) = self.structs.get(struct_type.id) else {
-            todo!("Struct was not found");
-        };
-
-        let Some(field_offset) = struct_declaration.fields.get(&access.member).map(|v| v.offset as i32) else {
-            todo!("Field does not exist");
-        };
-
-        builder = builder
+        let builder = Builder::new()
             .append(self.handle_ref(&access.left)?)
             .push(Procedure::new(
                 expression.pos.clone(),
@@ -37,7 +24,18 @@ impl Program {
             .push(Procedure::new(
                 expression.pos.clone(),
                 ProcedureKind::Arithmetic(Arithmetic::Add),
-            ))
+            ));
+
+        Ok(builder)
+    }
+
+    pub fn handle_member_access(
+        &mut self,
+        expression: &Expression,
+        access: &MemberAccess,
+    ) -> Result<Builder, CompilerError> {
+        let builder = self
+            .handle_member_access_without_deref(expression, access)?
             .push(Procedure::new(expression.pos.clone(), ProcedureKind::Deref));
 
         Ok(builder)
