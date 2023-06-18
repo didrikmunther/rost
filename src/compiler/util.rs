@@ -44,7 +44,8 @@ impl Program {
 
     fn get_primitive_type_size(primitive: &Keyword) -> usize {
         match primitive {
-            Keyword::Int | Keyword::Char => 8,
+            Keyword::Int => 8,
+            Keyword::Char | Keyword::Bool => 1,
             _ => todo!("Not supported"),
         }
     }
@@ -72,44 +73,41 @@ impl Program {
                 Keyword::Plus => Some(right.clone()),
                 _ => None,
             },
-            (VariableType::Value(left), VariableType::Value(right)) => {
-                if left != right {
-                    return None;
-                }
-
-                match operator {
-                    Keyword::Plus | Keyword::Minus | Keyword::Slash | Keyword::Asterix => {
+            (VariableType::Value(left), VariableType::Value(right)) => match operator {
+                Keyword::Plus | Keyword::Minus | Keyword::Slash | Keyword::Asterix => {
+                    if left == right {
                         Some(VariableType::Value(*left))
+                    } else {
+                        None
                     }
-                    Keyword::LessThan | Keyword::GreaterThan | Keyword::Equality => {
-                        Some(VariableType::Value(Keyword::Bool))
-                    }
-                    _ => None,
                 }
-            }
-            (VariableType::Pointer(left), VariableType::Pointer(right)) => {
-                if left != right {
-                    return None;
-                }
-
-                match operator {
-                    Keyword::Plus | Keyword::Minus => {
-                        if left == right {
-                            Some(VariableType::Value(Keyword::Int))
-                        } else {
-                            None
-                        }
-                    }
-                    Keyword::LessThan | Keyword::GreaterThan | Keyword::Equality => {
-                        if left == right {
+                Keyword::LessThan | Keyword::GreaterThan | Keyword::Equality => {
+                    match (*left, *right) {
+                        (Keyword::Int | Keyword::Char, Keyword::Int | Keyword::Char) => {
                             Some(VariableType::Value(Keyword::Bool))
-                        } else {
-                            None
                         }
+                        _ => None,
                     }
-                    _ => None,
                 }
-            }
+                _ => None,
+            },
+            (VariableType::Pointer(left), VariableType::Pointer(right)) => match operator {
+                Keyword::Plus | Keyword::Minus => {
+                    if left == right {
+                        Some(VariableType::Value(Keyword::Int))
+                    } else {
+                        None
+                    }
+                }
+                Keyword::LessThan | Keyword::GreaterThan | Keyword::Equality => {
+                    if left == right {
+                        Some(VariableType::Value(Keyword::Bool))
+                    } else {
+                        None
+                    }
+                }
+                _ => None,
+            },
             _ => None,
         }
     }

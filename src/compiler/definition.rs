@@ -29,7 +29,6 @@ impl Procedure {
 }
 
 #[derive(Debug)]
-#[allow(dead_code)] // todo: remove
 pub enum ProcedureKind {
     Comment(String),
     Allocate(usize), // Allocate a certain amount of variables on the stack
@@ -37,7 +36,7 @@ pub enum ProcedureKind {
     Push(OperandValue),
     PushAddress(OperandValue),
     Assign(Assign), // Stack position of the variable to assign
-    Arithmetic(Arithmetic),
+    Arithmetic(Arithmetic, RegisterSize),
     SystemCall(SystemCall),
     ProcedureCall(ProcedureCall),
     Return,
@@ -54,6 +53,56 @@ impl Display for ProcedureKind {
                 while_statement.content.procedures.len()
             )),
             _ => fmt.write_fmt(format_args!("{self:?}")),
+        }
+    }
+}
+
+#[derive(Debug)]
+#[allow(dead_code)]
+pub enum RegisterSize {
+    B64,
+    B32,
+    B16,
+    B8
+}
+
+impl RegisterSize {
+    pub fn get_register_name(&self, register: &str) -> String {
+        use RegisterSize::*;
+        match self {
+            B64 => format!("R{register}X"),
+            B32 => format!("E{register}X"),
+            B16 => format!("{register}X"),
+            B8 => format!("{register}L"),
+        }
+    }
+
+    pub fn get_register(type_size: usize) -> Self {
+        use RegisterSize::*;
+        match type_size {
+            1 => B8,
+            2 => B16,
+            4 => B32,
+            8 => B64,
+            _ => todo!("Cannot create register from size {type_size}")
+        }
+    }
+
+    fn get_ordering(&self) -> usize {
+        use RegisterSize::*;
+        match self {
+            B64 => 3,
+            B32 => 2,
+            B16 => 1,
+            B8 => 0,
+        }
+    }
+
+    pub fn get_smallest(self, register: RegisterSize) -> RegisterSize {
+        if self.get_ordering() < register.get_ordering() {
+            self
+        } else {
+            register
         }
     }
 }

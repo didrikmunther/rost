@@ -6,7 +6,7 @@ use crate::{
 
 use super::{
     builder::Builder,
-    definition::{Arithmetic, OperandValue, Procedure, ProcedureKind},
+    definition::{Arithmetic, OperandValue, Procedure, ProcedureKind, RegisterSize},
     error::CompilerError,
     program::Program,
 };
@@ -23,9 +23,8 @@ impl Program {
         }
 
         let pointer_type = self.infer_type(&index.left)?;
-        let value_type = match pointer_type {
-            VariableType::Pointer(typ) => typ,
-            _ => todo!("Cannot index into non pointer value"),
+        let VariableType::Pointer(value_type) = pointer_type else {
+            todo!("Cannot index into non pointer value")
         };
 
         let builder = Builder::new()
@@ -37,11 +36,11 @@ impl Program {
             ))
             .push(Procedure::new(
                 expression.pos.clone(),
-                ProcedureKind::Arithmetic(Arithmetic::Multiply),
+                ProcedureKind::Arithmetic(Arithmetic::Multiply, RegisterSize::B64),
             ))
             .push(Procedure::new(
                 expression.pos.clone(),
-                ProcedureKind::Arithmetic(Arithmetic::Add),
+                ProcedureKind::Arithmetic(Arithmetic::Add, RegisterSize::B64),
             ));
 
         Ok(builder)

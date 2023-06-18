@@ -10,6 +10,8 @@ use crate::{
     parser::definition::{Binary, Expression, ExpressionKind, Unary},
 };
 
+use super::definition::RegisterSize;
+
 mod identifier;
 mod literal;
 mod primary;
@@ -70,16 +72,28 @@ impl Program {
                     .append(self.handle_expression(&binary.left)?)
                     .push(Procedure::new(
                         expression.pos.clone(),
-                        ProcedureKind::Arithmetic(operation),
+                        ProcedureKind::Arithmetic(operation, RegisterSize::B64),
                     )))
             }
-            (VariableType::Value(Keyword::Int), VariableType::Value(Keyword::Int), _) => {
+            (
+                VariableType::Value(Keyword::Int | Keyword::Char),
+                VariableType::Value(Keyword::Int | Keyword::Char),
+                _,
+            ) => {
+                let register_size_left = RegisterSize::get_register(Self::get_type_size(
+                    &self.infer_type(&binary.left)?,
+                ));
+                let register_size_right = RegisterSize::get_register(Self::get_type_size(
+                    &self.infer_type(&binary.right)?,
+                ));
+                let register_size = register_size_left.get_smallest(register_size_right);
+
                 Ok(Builder::new()
                     .append(self.handle_expression(&binary.right)?)
                     .append(self.handle_expression(&binary.left)?)
                     .push(Procedure::new(
                         expression.pos.clone(),
-                        ProcedureKind::Arithmetic(operation),
+                        ProcedureKind::Arithmetic(operation, register_size),
                     )))
             }
             (
@@ -96,12 +110,12 @@ impl Program {
                 ))
                 .push(Procedure::new(
                     expression.pos.clone(),
-                    ProcedureKind::Arithmetic(Arithmetic::Multiply),
+                    ProcedureKind::Arithmetic(Arithmetic::Multiply, RegisterSize::B64),
                 ))
                 .append(self.handle_expression(&binary.left)?)
                 .push(Procedure::new(
                     expression.pos.clone(),
-                    ProcedureKind::Arithmetic(operation),
+                    ProcedureKind::Arithmetic(operation, RegisterSize::B64),
                 ))),
             _ => todo!("Not supported"),
         }

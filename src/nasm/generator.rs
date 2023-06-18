@@ -117,8 +117,8 @@ impl<'a> Generator<'a> {
                 ProcedureKind::Push(operand) => self.handle_push(operand, false)?,
                 ProcedureKind::PushAddress(operand) => self.handle_push(operand, true)?,
                 ProcedureKind::Deref => self.handle_deref()?,
-                ProcedureKind::Arithmetic(arithmetic) => {
-                    self.handle_arithmetic(&label, arithmetic)?
+                ProcedureKind::Arithmetic(arithmetic, size) => {
+                    self.handle_arithmetic(&label, arithmetic, size)?
                 }
                 ProcedureKind::If(ifs) => self.handle_if_statement(&label, ifs)?,
                 ProcedureKind::While(while_statement) => {

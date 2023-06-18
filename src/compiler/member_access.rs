@@ -3,7 +3,7 @@ use crate::{
     parser::definition::{Expression, MemberAccess},
 };
 
-use super::{builder::Builder, error::CompilerError, program::Program};
+use super::{builder::Builder, error::CompilerError, program::Program, definition::RegisterSize};
 
 impl Program {
     pub fn handle_member_access_without_deref(
@@ -23,7 +23,7 @@ impl Program {
             ))
             .push(Procedure::new(
                 expression.pos.clone(),
-                ProcedureKind::Arithmetic(Arithmetic::Add),
+                ProcedureKind::Arithmetic(Arithmetic::Add, RegisterSize::B64),
             ));
 
         Ok(builder)

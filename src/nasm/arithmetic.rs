@@ -1,9 +1,13 @@
-use crate::compiler::definition::Arithmetic;
+use crate::compiler::definition::{Arithmetic, RegisterSize};
 
 use super::{error::NasmError, generator::Generator, row::Row};
 
 impl<'a> Generator<'a> {
-    fn get_equality_operations(procedure: &str, arithmetic: &Arithmetic) -> Vec<Row> {
+    fn get_equality_operations(
+        procedure: &str,
+        arithmetic: &Arithmetic,
+        size: &RegisterSize,
+    ) -> Vec<Row> {
         let label = Self::get_procedure_name(procedure, Some("equality"));
         let jump = match arithmetic {
             Arithmetic::Equality => Row::JumpIfEquals(label.clone()),
@@ -14,6 +18,7 @@ impl<'a> Generator<'a> {
 
         vec![
             Row::Compare("rax".into(), "rbx".into()),
+            Row::Compare(size.get_register_name("a"), size.get_register_name("b")),
             Row::Move("rax".into(), "1".into()),
             jump,
             Row::Move("rax".into(), "0".into()),
@@ -25,6 +30,7 @@ impl<'a> Generator<'a> {
         &mut self,
         procedure: &str,
         arithmetic: &Arithmetic,
+        size: &RegisterSize,
     ) -> Result<(), NasmError> {
         let operations = match arithmetic {
             Arithmetic::Add => vec![Row::Add("rax".into(), "rbx".into())],
@@ -35,7 +41,7 @@ impl<'a> Generator<'a> {
                 Row::Divide("rbx".into()),
             ],
             Arithmetic::Equality | Arithmetic::LessThan | Arithmetic::GreaterThan => {
-                Self::get_equality_operations(procedure, arithmetic)
+                Self::get_equality_operations(procedure, arithmetic, size)
             }
             #[allow(unreachable_patterns)]
             _ => panic!("Unimplemented: {arithmetic:?}"),
