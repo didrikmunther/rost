@@ -1,0 +1,12 @@
+fn main(argc: int, argv: &&char) {
+	let i = 0;
+	while(i < argc) {
+		let j = 0;
+		while (argv[i][j] > 0) {
+			printf("%c", argv[i][j]);
+			j = j + 1;
+		}
+		printf("\n");
+		i = i + 1;
+	}
+}
