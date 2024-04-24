@@ -174,6 +174,7 @@ pub struct Struct {
 pub struct SystemCall {
     pub identifier: String,
     pub nargs: usize,
+    pub returns: bool
 }
 
 #[derive(Debug)]

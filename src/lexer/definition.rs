@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::{fmt::Display, ops::Range};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Keyword {
@@ -42,6 +42,18 @@ pub enum Keyword {
     Identifier,
     Literal,
     Comment,
+}
+
+impl Display for Keyword {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let v = match self {
+            Keyword::Int => "int",
+            Keyword::Bool => "bool",
+            _ => return write!(f, "{self:?}"),
+        };
+
+        write!(f, "{v}")
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]

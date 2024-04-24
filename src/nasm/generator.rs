@@ -148,6 +148,7 @@ impl<'a> Generator<'a> {
             .add(Row::Comment("[header]".into()))
             .add(Row::Global("main".into()))
             .add(Row::Extern("printf".into()))
+            .add(Row::Extern("malloc".into()))
             .add(Row::Section("text".into()))
             .add(Row::Label("main".into()))
             .add(Row::Comment("Save base pointer".into()))

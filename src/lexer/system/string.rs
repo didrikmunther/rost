@@ -7,6 +7,7 @@ fn get_escaped(c: char) -> Result<char, LexerErrorKind> {
         'n' => '\n',
         't' => '\t',
         '\\' => '\\',
+        '"' => '\"',
         _ => return Err(LexerErrorKind::UnknownEscapeSequence(c)),
     })
 }
@@ -34,7 +35,7 @@ impl Lexer for StringLexer {
                 ));
             }
 
-            if is_string && cur == '"' {
+            if is_string && cur == '"' && !escaped {
                 return Ok(Some((
                     Token::Literal(Literal::String(buf.iter().collect())),
                     i + 1,

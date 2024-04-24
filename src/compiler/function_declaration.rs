@@ -22,7 +22,11 @@ impl Program {
         };
 
         let old_stack_pos = self.stack_pos;
-        let return_type = fdec.return_type.as_ref().map(|t| self.get_variable_type(t));
+        let return_type = fdec
+            .return_type
+            .as_ref()
+            .map(|t| self.get_variable_type(t))
+            .transpose()?;
 
         let body = self.with_function_scope(return_type.clone(), |this| {
             let parameters = fdec
@@ -30,13 +34,13 @@ impl Program {
                 .iter()
                 .rev()
                 .map(|parameter| {
-                    (
+                    Ok((
                         parameter.identifier.clone(),
                         parameter.pos.clone(),
-                        this.get_variable_type(&parameter.typ),
-                    )
+                        this.get_variable_type(&parameter.typ)?,
+                    ))
                 })
-                .collect::<Vec<_>>();
+                .collect::<Result<Vec<_>, CompilerError>>()?;
 
             let ProgramScope::FunctionScope(function_scope) = &mut this.scope else {
                 unreachable!();

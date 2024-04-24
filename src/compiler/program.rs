@@ -1,3 +1,4 @@
+use phf::phf_map;
 use std::collections::HashMap;
 
 use super::{
@@ -12,7 +13,26 @@ use super::{
     },
 };
 
-use crate::{lexer::Keyword, parser::definition::Declaration};
+use crate::{
+    lexer::Keyword,
+    parser::{
+        definition::Declaration,
+        types::{Type, TypeIdentifier},
+    },
+};
+
+pub struct SystemCallDefinition {
+    pub returns: Option<Type>,
+}
+
+pub static SYSTEM_CALLS: phf::Map<&'static str, SystemCallDefinition> = phf_map! {
+    "printf" => SystemCallDefinition {
+        returns: None,
+    },
+    "malloc" => SystemCallDefinition {
+        returns: Some(Type { identifier: TypeIdentifier::Primitive(Keyword::Pointer), identifier_pos: 0..0, pos: 0..0, children: None })
+    },
+};
 
 #[derive(Debug)]
 pub struct Program {
@@ -106,7 +126,33 @@ impl Program {
         Ok(result)
     }
 
+    fn add_system_calls(&mut self) {
+        for system_call in SYSTEM_CALLS.into_iter() {
+
+        }
+
+        self.functions.push(Function {
+            body,
+            parameters: fdec.parameters.clone(),
+            return_type,
+            identifier_pos: fdec.identifier_pos.clone(),
+        });
+
+        let function_location = self.functions.len() - 1;
+
+        // Pseudo-type-ish variable, does not exist on the stack.
+        self.create_variable(
+            fdec.identifier.clone(),
+            Variable {
+                pos: statement.pos.clone(),
+                typ: VariableType::Function(function_location),
+            },
+        );
+    }
+
     pub fn compile(mut self, parsed: Vec<Declaration>) -> Result<Program, CompilerError> {
+        self.add_system_calls();
+
         // Compile main program
         let procedures = self.get_procedures(&parsed)?;
 
@@ -140,8 +186,8 @@ impl Program {
         let params = &main_func
             .parameters
             .iter()
-            .map(|v| (self.get_variable_type(&v.typ), v.pos.clone()))
-            .collect::<Vec<_>>()[..];
+            .map(|v| Ok((self.get_variable_type(&v.typ)?, v.pos.clone())))
+            .collect::<Result<Vec<_>, CompilerError>>()?[..];
 
         self.main_func_nparams = match params {
             [] => 0,

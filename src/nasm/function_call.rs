@@ -36,6 +36,10 @@ impl<'a> Generator<'a> {
                 .add(Row::Call(call.identifier.clone()))
         });
 
+        if call.returns {
+            self.code.add(Row::Push("rax".into()));
+        }
+
         Ok(())
     }
 

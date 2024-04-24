@@ -11,6 +11,7 @@ use super::scope::variable::VariableType;
 pub enum CompilerErrorKind {
     UndefinedVariable(String),
     UndefinedFunction(String),
+    UnknownType(String),
     RedeclaredVariable(String, Range<usize>),
     DereferenceNonPointer(VariableType),
     MissingMainFunction,
@@ -108,6 +109,12 @@ impl CompilerError {
             CompilerErrorKind::UndefinedFunction(identifier) => {
                 vec![(
                     format!("Undefined function: {identifier}"),
+                    self.pos.clone(),
+                )]
+            }
+            CompilerErrorKind::UnknownType(identifier) => {
+                vec![(
+                    format!("Unknown type: {identifier}"),
                     self.pos.clone(),
                 )]
             }

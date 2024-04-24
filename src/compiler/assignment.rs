@@ -30,7 +30,8 @@ impl Program {
         let typ = declaration
             .typ
             .as_ref()
-            .map(|typ| self.get_variable_type(typ));
+            .map(|typ| self.get_variable_type(typ))
+            .transpose()?;
 
         if let Some(typ) = typ {
             if typ != infered {

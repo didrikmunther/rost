@@ -1,4 +1,10 @@
-use crate::parser::definition::{Expression, FunctionCall};
+use crate::{
+    lexer::Keyword,
+    parser::{
+        definition::{Expression, FunctionCall},
+        types::{Type, TypeIdentifier},
+    },
+};
 
 use super::{
     builder::Builder,
@@ -8,9 +14,24 @@ use super::{
     scope::variable::VariableType,
 };
 
-static BUILT_IN: &[&str] = &["printf"];
-
 impl Program {
+    fn handle_system_call(
+        &mut self,
+        system_call: &SystemCallDefinition,
+        expression: &Expression,
+        fcall: &FunctionCall,
+        identifier: String,
+    ) -> Result<Builder, CompilerError> {
+        Ok(Builder::new().push(Procedure::new(
+            expression.pos.clone(),
+            ProcedureKind::SystemCall(SystemCall {
+                nargs: fcall.args.len(),
+                identifier,
+                returns: system_call.returns.is_some(),
+            }),
+        )))
+    }
+
     pub fn handle_function_call(
         &mut self,
         expression: &Expression,
@@ -24,14 +45,13 @@ impl Program {
         }
 
         let identifier = fcall.left.get_string().unwrap().to_string();
-        if BUILT_IN.contains(&identifier.as_str()) {
-            return Ok(builder.push(Procedure::new(
-                expression.pos.clone(),
-                ProcedureKind::SystemCall(SystemCall {
-                    nargs: fcall.args.len(),
-                    identifier,
-                }),
-            )));
+        if let Some(system_call) = SYSTEM_CALL.get(&identifier) {
+            return Ok(builder.append(self.handle_system_call(
+                system_call,
+                expression,
+                fcall,
+                identifier,
+            )?));
         }
 
         let Some(variable) = self.get_variable(&identifier) else {
@@ -57,7 +77,7 @@ impl Program {
 
         for (par, arg) in function.parameters.iter().zip(&fcall.args) {
             let arg_type = self.infer_type(arg)?;
-            let par_type = self.get_variable_type(&par.typ);
+            let par_type = self.get_variable_type(&par.typ)?;
 
             if arg_type != par_type {
                 return Err(CompilerError::new(
