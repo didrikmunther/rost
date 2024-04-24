@@ -5,23 +5,25 @@ use crate::lexer::{Keyword, Token};
 use super::{
     definition::{Declaration, DeclarationKind, StructDeclaration, StructField},
     error::{ParserError, ParserErrorKind},
-    util::get_block_identifier,
     Parser,
 };
 
 impl<'a> Parser<'a> {
     pub fn struct_declaration(&mut self) -> Result<Declaration, ParserError> {
         if self.get(&[Keyword::Struct]).is_some() {
-            let struct_identifier = self.expect(&[Keyword::Identifier])?;
-            let identifier = match get_block_identifier(struct_identifier) {
-                Some(identifier) => identifier,
-                _ => {
-                    return Err(ParserError::new(
-                        struct_identifier.pos.clone(),
-                        ParserErrorKind::Expected(&[Keyword::Identifier]),
-                    ))
-                }
-            };
+            // let struct_identifier = self.expect(&[Keyword::Identifier])?;
+
+            let typ = self.parse_type()?;
+
+            // let identifier = match get_block_identifier(struct_identifier) {
+            //     Some(identifier) => identifier,
+            //     _ => {
+            //         return Err(ParserError::new(
+            //             struct_identifier.pos.clone(),
+            //             ParserErrorKind::Expected(&[Keyword::Identifier]),
+            //         ))
+            //     }
+            // };
 
             let open = self.expect(&[Keyword::BraceLeft])?;
             let mut fields = BTreeMap::new();
@@ -40,13 +42,13 @@ impl<'a> Parser<'a> {
                             (s, &identifier.pos)
                         } else {
                             return Err(ParserError::new(
-                                struct_identifier.pos.clone(),
+                                typ.pos,
                                 ParserErrorKind::Expected(&[Keyword::Identifier]),
                             ));
                         }
                     } else {
                         return Err(ParserError::new(
-                            struct_identifier.pos.clone(),
+                            typ.pos,
                             ParserErrorKind::Expected(&[Keyword::Identifier]),
                         ));
                     };
@@ -75,8 +77,8 @@ impl<'a> Parser<'a> {
             let close = self.expect(&[Keyword::BraceRight])?;
 
             return Ok(Declaration {
-                pos: struct_identifier.pos.start..close.pos.end,
-                kind: DeclarationKind::StructDeclaration(StructDeclaration { identifier, fields }),
+                pos: typ.pos.start..close.pos.end,
+                kind: DeclarationKind::StructDeclaration(StructDeclaration { typ, fields }),
             });
         }
 

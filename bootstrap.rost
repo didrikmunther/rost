@@ -1,5 +1,21 @@
 // This program is supposed to be the initial bootstrapping of the language.
 
-fn main(argc: int, argv: &&char) {
+struct Vec<T> {
 	
+}
+
+fn main(argc: int, argv: &&char) {
+	if(argc < 2) {
+		printf("Insufficient arguments, usage: %s <program input>\n", argv[0]);
+	}
+
+	let input = argv[1];
+	let tokens: Vec<int> = Vec::new();
+	tokens.push(5);
+
+	// let i = 0;
+
+	// while(input[i]) {
+
+	// }
 }

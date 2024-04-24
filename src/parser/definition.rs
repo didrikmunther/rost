@@ -30,7 +30,8 @@ pub struct StructField {
 
 #[derive(Debug)]
 pub struct StructDeclaration {
-    pub identifier: String,
+    // pub identifier: String,
+    pub typ: Type,
     pub fields: BTreeMap<String, StructField>,
 }
 

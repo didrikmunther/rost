@@ -3,7 +3,7 @@ use std::{
     ops::{Deref, Range},
 };
 
-use crate::lexer::Keyword;
+use crate::{lexer::Keyword, parser::types::Type};
 
 /// Intermediate representation of a variable.
 /// This type represents what the user wants to save,
@@ -17,7 +17,7 @@ pub struct Variable {
 #[derive(Debug, Clone, PartialEq)]
 pub struct StructType {
     pub id: usize,
-    pub identifier: String,
+    pub typ: Type,
     pub size: usize, // size in bytes
 }
 
@@ -27,6 +27,20 @@ pub enum VariableType {
     Pointer(Box<VariableType>),
     Function(usize), // function id
     Struct(StructType),
+}
+
+impl Display for VariableType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            VariableType::Pointer(pointer) => {
+                write!(f, "*")?;
+                pointer.fmt(f)
+            }
+            VariableType::Value(keyword) => keyword.fmt(f),
+            VariableType::Struct(struc) => struc.typ.fmt(f),
+            _ => write!(f, "{self:?}"),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -55,26 +69,5 @@ impl Deref for StoredVariable {
 
     fn deref(&self) -> &Self::Target {
         &self.variable
-    }
-}
-
-impl Display for VariableType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            VariableType::Pointer(pointer) => {
-                write!(f, "*")?;
-                pointer.fmt(f)
-            }
-            VariableType::Value(value) => {
-                let v = match value {
-                    Keyword::Int => "int",
-                    Keyword::Bool => "bool",
-                    _ => return write!(f, "{value:?}"),
-                };
-
-                write!(f, "{v}")
-            }
-            _ => write!(f, "{self:?}"),
-        }
     }
 }

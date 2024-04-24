@@ -28,7 +28,7 @@ impl Program {
 
         // Do it in reverse since the stack grows that way
         for (identifier, field) in sdec.fields.iter().rev() {
-            let typ = self.get_variable_type(&field.typ);
+            let typ = self.get_variable_type(&field.typ)?;
             let size = Self::get_type_size(&typ);
 
             fields.insert(
@@ -55,12 +55,13 @@ impl Program {
 
         // Pseudo-type-ish variable, does not exist on the stack.
         self.create_variable(
-            sdec.identifier.clone(),
+            sdec.typ.get_identifier().unwrap().into(),
             Variable {
                 pos: statement.pos.clone(),
                 typ: VariableType::Struct(StructType {
                     id: struct_id,
-                    identifier: sdec.identifier.clone(),
+                    typ: sdec.typ.clone(),
+                    // identifier: sdec.identifier.clone(),
                     size: struct_size,
                 }),
             },

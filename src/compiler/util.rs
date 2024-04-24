@@ -112,7 +112,7 @@ impl Program {
         }
     }
 
-    pub fn get_variable_type(&self, typ: &Type) -> VariableType {
+    pub fn get_variable_type(&self, typ: &Type) -> Result<VariableType, CompilerError> {
         match typ.identifier {
             TypeIdentifier::Primitive(Keyword::Pointer) => {
                 let Some(children) = &typ.children else {
@@ -124,10 +124,18 @@ impl Program {
                 }
 
                 let inner = children.get(0).unwrap();
-                VariableType::Pointer(Box::new(self.get_variable_type(inner)))
+                Ok(VariableType::Pointer(Box::new(
+                    self.get_variable_type(inner)?,
+                )))
             }
-            TypeIdentifier::Primitive(primitive) => VariableType::Value(primitive),
-            TypeIdentifier::Struct(ref s) => self.get_variable(s).unwrap().typ.clone(),
+            TypeIdentifier::Primitive(primitive) => Ok(VariableType::Value(primitive)),
+            TypeIdentifier::Struct(ref s) => {
+                let Some(variable) = self.get_variable(s) else {
+                    return Err(CompilerError::new(typ.identifier_pos.clone(), CompilerErrorKind::UnknownType(s.into())));
+                };
+
+                Ok(variable.typ.clone())
+            }
         }
     }
 
