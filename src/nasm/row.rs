@@ -38,6 +38,7 @@ impl Display for CodeRow {
 
 #[derive(Debug, Clone)]
 pub enum Row {
+    Raw(String),
     Comment(String),
     Extern(String),
     Move(String, String), // todo: types for numbers, registers, or labels
@@ -81,6 +82,7 @@ impl Display for Row {
         let mut w = |args: Arguments| fmt.write_fmt(args);
 
         match self {
+            Row::Raw(raw) => w(format_args!("{}", raw)),
             Row::Comment(comment) => w(format_args!("\t; {}", *comment)),
             Row::Extern(ext) => w(format_args!("\textern {ext}")),
             Row::Move(to, from) => w(format_args!("\tmov {to}, {from}")),
