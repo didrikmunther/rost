@@ -4,4 +4,4 @@
   |     └─ Variable declared with type int
 2 | a = "b";
   |     ^^^
-  |     └─ Wrong type in assignment: *Char
+  |     └─ Wrong type in assignment: string

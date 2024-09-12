@@ -62,8 +62,13 @@ impl Display for VariableType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             VariableType::Pointer(pointer) => {
-                write!(f, "*")?;
-                pointer.fmt(f)
+                match **pointer {
+                    VariableType::Value(Keyword::Char) => write!(f, "string"),
+                    _ => {
+                        write!(f, "*")?;
+                        pointer.fmt(f)
+                    }
+                }
             }
             VariableType::Value(value) => {
                 let v = match value {
