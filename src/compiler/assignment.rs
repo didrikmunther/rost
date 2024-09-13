@@ -65,11 +65,11 @@ impl Program {
             ))
             .append(value);
 
-        return Ok(builder.push(Procedure {
+        Ok(builder.push(Procedure {
             pos: declaration.identifier_pos.start..declaration.right_pos.end,
             comment: Some(format!("Assign: {}", declaration.identifier)),
             kind: ProcedureKind::Assign(Assign { location, size }),
-        }));
+        }))
     }
 
     pub fn handle_variable_assignment(

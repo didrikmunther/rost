@@ -11,7 +11,7 @@ import {
 let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
-  const rpcScriptModule = context.asAbsolutePath(path.join("..", "target", 'debug', 'language_server'));
+  const rpcScriptModule = context.asAbsolutePath(path.join("..", "target", 'debug', 'lsp'));
 
   const serverOptions: ServerOptions = {
     command: rpcScriptModule,

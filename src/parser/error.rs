@@ -20,6 +20,7 @@ macro_rules! parser_todo {
     }};
 }
 
+#[allow(unused_imports)]
 pub use parser_todo;
 
 #[derive(Debug, PartialEq)]

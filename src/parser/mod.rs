@@ -10,13 +10,13 @@ pub mod types;
 pub mod util;
 
 mod addition;
+mod array_index;
 mod assignment;
 mod comparison;
 mod error;
 mod function_call;
 mod function_declaration;
 mod if_statement;
-mod array_index;
 mod member;
 mod multiplication;
 mod parenthesis;
@@ -136,9 +136,9 @@ impl<'a> Parser<'a> {
             }
         }
 
-        return Err(ParserError::new(
+        Err(ParserError::new(
             self.peek_or_eof()?.pos.clone(),
             ParserErrorKind::Expected(tokens),
-        ));
+        ))
     }
 }

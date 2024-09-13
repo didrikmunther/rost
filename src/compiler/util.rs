@@ -21,8 +21,8 @@ impl Program {
     pub fn get_procedures(&mut self, content: &[Declaration]) -> Result<Builder, CompilerError> {
         content
             .iter()
-            .fold(Ok(Builder::new()), |builder, declaration| {
-                Ok(builder?.append(self.handle_declaration(declaration)?))
+            .try_fold(Builder::new(), |builder, declaration| {
+                Ok(builder.append(self.handle_declaration(declaration)?))
             })
     }
 
@@ -123,7 +123,7 @@ impl Program {
                     todo!("Wrong amount of type arguments for pointer type");
                 }
 
-                let inner = children.get(0).unwrap();
+                let inner = children.first().unwrap();
                 VariableType::Pointer(Box::new(self.get_variable_type(inner)))
             }
             TypeIdentifier::Primitive(primitive) => VariableType::Value(primitive),
@@ -185,7 +185,8 @@ impl Program {
                 let left = self.infer_type(&binary.left)?;
                 let right = self.infer_type(&binary.right)?;
 
-                let Some(typ) = self.infer_binary_result_type(&left, &right, binary.operator) else {
+                let inferred = self.infer_binary_result_type(&left, &right, binary.operator);
+                let Some(typ) = inferred else {
                     return Err(CompilerError::new(
                         binary.left.pos.clone(),
                         CompilerErrorKind::WrongBinaryExpressionTypes {
@@ -214,7 +215,8 @@ impl Program {
                     todo!("Variable is not a function");
                 };
 
-                let Some(return_type) = &self.functions.get(function_id).unwrap().return_type else {
+                let Some(return_type) = &self.functions.get(function_id).unwrap().return_type
+                else {
                     todo!("No return type for function");
                 };
 
@@ -236,7 +238,11 @@ impl Program {
         member: &str,
     ) -> Result<&StructField, CompilerError> {
         let VariableType::Struct(struct_type) = self.infer_type(struct_value)? else {
-            todo!("Struct does not exist: {:#?}\n{:#?}", struct_value, self.infer_type(struct_value)?);
+            todo!(
+                "Struct does not exist: {:#?}\n{:#?}",
+                struct_value,
+                self.infer_type(struct_value)?
+            );
         };
 
         let Some(struct_declaration) = self.structs.get(struct_type.id) else {
