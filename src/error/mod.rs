@@ -166,7 +166,7 @@ impl Display for RostError {
             .enumerate()
             .group_by(|(i, v)| v - i)
             .into_iter()
-            .map(|v| v.1.into_iter().map(|(_, v)| v).collect())
+            .map(|v| v.1.map(|(_, v)| v).collect())
             .collect::<Vec<Vec<usize>>>();
 
         // Get the largest width of line numbers

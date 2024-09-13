@@ -7,7 +7,6 @@ use crate::error::RostError;
 
 mod compiler;
 mod error;
-mod language_server;
 mod lexer;
 mod nasm;
 mod parser;
