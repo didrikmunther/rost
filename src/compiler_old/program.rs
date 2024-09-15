@@ -31,8 +31,8 @@ pub struct Program {
     pub literal_index: usize,
 }
 
-impl Program {
-    pub fn new() -> Self {
+impl Default for Program {
+    fn default() -> Self {
         Self {
             scope: ProgramScope::RootScope(RootScope::new()),
             global_data: HashMap::new(),
@@ -43,6 +43,12 @@ impl Program {
             literal_index: 0,
             main_func_nparams: 0,
         }
+    }
+}
+
+impl Program {
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// Used when entering a new function scope.
@@ -117,8 +123,13 @@ impl Program {
 
         // Find main function in root scope
         // Todo: maybe main function shouldn't be required?
-        let Some(&VariableType::Function(main_func_id)) = root_scope.scope.variables.get("main").map(|var| &var.typ) else {
-            return Err(CompilerError::new(parsed.last().map(|v| v.pos.clone()).unwrap_or(0..0), CompilerErrorKind::MissingMainFunction))
+        let Some(&VariableType::Function(main_func_id)) =
+            root_scope.scope.variables.get("main").map(|var| &var.typ)
+        else {
+            return Err(CompilerError::new(
+                parsed.last().map(|v| v.pos.clone()).unwrap_or(0..0),
+                CompilerErrorKind::MissingMainFunction,
+            ));
         };
 
         let main_func = self

@@ -286,19 +286,19 @@ async fn handle_params(
 
             match (block.kind, &block.token) {
                 (Keyword::Identifier, Token::Identifier(identifier)) => {
-                    let Some(variable) = program.get_variable(identifier) else {
-                        write_empty_response(writer, request.id).await?;
-                        return Ok(());
-                    };
+                    // let Some(variable) = program.get_variable(identifier) else {
+                    //     write_empty_response(writer, request.id).await?;
+                    //     return Ok(());
+                    // };
 
-                    let variable_pos = pos_to_row_col(text, &variable.pos);
+                    // let variable_pos = pos_to_row_col(text, &variable.pos);
 
-                    let result = GotoDefinitionResponse::Scalar(Location {
-                        uri,
-                        range: variable_pos,
-                    });
+                    // let result = GotoDefinitionResponse::Scalar(Location {
+                    //     uri,
+                    //     range: variable_pos,
+                    // });
 
-                    write_lsp_message(writer, request.id, &result).await?;
+                    // write_lsp_message(writer, request.id, &result).await?;
                 }
                 _ => write_empty_response(writer, request.id).await?,
             }

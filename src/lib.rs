@@ -1,53 +1,37 @@
 use ::std::io::Write;
 use std::{fs, process::exit};
 
+use clap::Subcommand;
+use compiler::program::Program;
+
 use crate::error::RostError;
-use nasm::code::Code;
 
 pub mod compiler;
 pub mod error;
 pub mod lexer;
-pub mod nasm;
 pub mod parser;
 
-pub struct Settings {
-    pub optimize: bool,
-    pub remove_comments: bool,
-    pub lsp: bool,
-    pub file: Option<String>,
-    pub shell_level: ShellLevel,
-    pub run_shell: bool,
+#[derive(Subcommand, PartialEq, Clone, Debug)]
+pub enum CompilationLevel {
+    Lexed,
+    Parsed,
+    Compiled
 }
 
-impl Default for Settings {
-    fn default() -> Self {
-        Self {
-            optimize: true,
-            remove_comments: false,
-            file: None,
-            shell_level: ShellLevel::End,
-            run_shell: false,
-            lsp: false,
-        }
-    }
+pub struct ShellSettings {
+    pub level: CompilationLevel,
 }
 
-#[derive(PartialEq)]
-pub enum ShellLevel {
-    Lexed = 0,
-    Parsed = 1,
-    Compiled = 2,
-    Nasm = 3,
-
-    // Not used
-    End = 4,
+pub struct RunSettings {
+    pub file_name: Option<String>,
+    pub level: CompilationLevel,
 }
 
 fn flush() {
     std::io::stdout().flush().expect("Flush failed.");
 }
 
-pub fn shell(settings: Settings) {
+pub fn shell(settings: ShellSettings) {
     let mut code = String::new();
 
     loop {
@@ -76,7 +60,7 @@ pub fn shell(settings: Settings) {
                     }
                 };
 
-                if settings.shell_level == ShellLevel::Lexed {
+                if settings.level == CompilationLevel::Lexed {
                     println!("{document:#?}");
                     continue;
                 }
@@ -89,7 +73,7 @@ pub fn shell(settings: Settings) {
                     }
                 });
 
-                if settings.shell_level == ShellLevel::Parsed {
+                if settings.level == CompilationLevel::Parsed {
                     println!("{parsed:#?}");
                     continue;
                 }
@@ -102,23 +86,8 @@ pub fn shell(settings: Settings) {
                     }
                 });
 
-                if settings.shell_level == ShellLevel::Compiled {
+                if settings.level == CompilationLevel::Compiled {
                     println!("{compiled:#?}");
-                    continue;
-                }
-
-                let nasm = compiled.and_then(|compiled| {
-                    match nasm::generate(&compiled, !settings.remove_comments, settings.optimize) {
-                        Ok(code) => Some(code),
-                        Err(err) => {
-                            print_error(err.into());
-                            None
-                        }
-                    }
-                });
-
-                if settings.shell_level == ShellLevel::Nasm {
-                    println!("{nasm:#?}");
                     continue;
                 }
             }
@@ -127,8 +96,8 @@ pub fn shell(settings: Settings) {
 }
 
 #[allow(dead_code)]
-pub fn run(settings: Settings) -> Option<Code> {
-    let file = if let Some(file) = settings.file {
+pub fn run(settings: RunSettings) -> Option<Program> {
+    let file = if let Some(file) = settings.file_name {
         file
     } else {
         println!("No input file provided");
@@ -153,7 +122,7 @@ pub fn run(settings: Settings) -> Option<Code> {
         }
     };
 
-    if settings.shell_level == ShellLevel::Lexed {
+    if settings.level == CompilationLevel::Lexed {
         println!("{document:#?}");
         return None;
     }
@@ -166,7 +135,7 @@ pub fn run(settings: Settings) -> Option<Code> {
         }
     });
 
-    if settings.shell_level == ShellLevel::Parsed {
+    if settings.level == CompilationLevel::Parsed {
         println!("{parsed:#?}");
         return None;
     }
@@ -179,25 +148,10 @@ pub fn run(settings: Settings) -> Option<Code> {
         }
     });
 
-    if settings.shell_level == ShellLevel::Compiled {
+    if settings.level == CompilationLevel::Compiled {
         println!("{compiled:#?}");
         return None;
     }
 
-    let nasm = compiled.and_then(|compiled| {
-        match nasm::generate(&compiled, !settings.remove_comments, settings.optimize) {
-            Ok(code) => Some(code),
-            Err(err) => {
-                print_error(err.into());
-                None
-            }
-        }
-    });
-
-    if settings.shell_level == ShellLevel::Nasm {
-        println!("{nasm:#?}");
-        return None;
-    }
-
-    nasm
+    compiled
 }

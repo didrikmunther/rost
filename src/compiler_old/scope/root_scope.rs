@@ -11,6 +11,12 @@ pub struct RootScope {
     pub variables: HashMap<String, Rc<StoredVariable>>,
 }
 
+impl Default for RootScope {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RootScope {
     pub fn new() -> Self {
         Self {

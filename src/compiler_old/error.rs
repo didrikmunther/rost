@@ -1,18 +1,42 @@
 use std::ops::Range;
 
-use crate::error::{RostError, RostErrorElement};
+use crate::{
+    error::{RostError, RostErrorElement},
+    lexer::Keyword,
+};
 
-// use super::scope::variable::VariableType;
+use super::scope::variable::VariableType;
 
 #[derive(Debug, PartialEq)]
 pub enum CompilerErrorKind {
     UndefinedVariable(String),
     UndefinedFunction(String),
     RedeclaredVariable(String, Range<usize>),
-    // DereferenceNonPointer(VariableType),
+    DereferenceNonPointer(VariableType),
     MissingMainFunction,
     TooManyParametersInMainFunction,
-
+    WrongBinaryExpressionTypes {
+        got: VariableType,
+        expected: VariableType,
+        expected_pos: Range<usize>,
+        operator: Keyword,
+        operator_pos: Range<usize>,
+    },
+    WrongType {
+        got: VariableType,
+        expected: VariableType,
+    },
+    WrongArgumentType {
+        parameter: VariableType,
+        argument: VariableType,
+        parameter_pos: Range<usize>,
+    },
+    WrongAssignmentType {
+        got: VariableType,
+        typ: VariableType,
+        declaration_pos: Option<Range<usize>>,
+    },
+    
     #[allow(dead_code)]
     Todo {
         msg: String,
@@ -65,10 +89,10 @@ impl CompilerError {
                 "Too many parameters for main function, expected maximum of 2".into(),
                 self.pos.clone(),
             )],
-            // CompilerErrorKind::DereferenceNonPointer(typ) => vec![(
-            //     format!("Cannot dereference non-pointer value of type {typ}"),
-            //     self.pos.clone(),
-            // )],
+            CompilerErrorKind::DereferenceNonPointer(typ) => vec![(
+                format!("Cannot dereference non-pointer value of type {typ}"),
+                self.pos.clone(),
+            )],
             CompilerErrorKind::RedeclaredVariable(identifier, pos) => vec![
                 (
                     format!("Redeclared variable: {identifier}"),
@@ -85,6 +109,61 @@ impl CompilerError {
             CompilerErrorKind::UndefinedFunction(identifier) => {
                 vec![(
                     format!("Undefined function: {identifier}"),
+                    self.pos.clone(),
+                )]
+            }
+            CompilerErrorKind::WrongBinaryExpressionTypes {
+                got,
+                expected,
+                expected_pos,
+                operator,
+                operator_pos,
+            } => {
+                vec![
+                    (
+                        format!("Incompatible types in binary expression: {got}"),
+                        self.pos.clone(),
+                    ),
+                    (
+                        format!("Operator {operator:?} is not defined for types."),
+                        operator_pos.clone(),
+                    ),
+                    (format!("Other type is {expected}"), expected_pos.clone()),
+                ]
+            }
+            CompilerErrorKind::WrongAssignmentType {
+                got,
+                typ,
+                declaration_pos,
+            } => {
+                if let Some(pos) = declaration_pos {
+                    vec![
+                        (format!("Wrong type in assignment: {got}"), self.pos.clone()),
+                        (format!("Variable declared with type {typ}"), pos.clone()),
+                    ]
+                } else {
+                    vec![(format!("Wrong type in assignment: {got}"), self.pos.clone())]
+                }
+            }
+            CompilerErrorKind::WrongArgumentType {
+                argument,
+                parameter,
+                parameter_pos,
+            } => {
+                vec![
+                    (
+                        format!("Wrong type in argument: {argument}"),
+                        self.pos.clone(),
+                    ),
+                    (
+                        format!("Function takes parameter of type: {parameter}"),
+                        parameter_pos.clone(),
+                    ),
+                ]
+            }
+            CompilerErrorKind::WrongType { got, expected } => {
+                vec![(
+                    format!("Wrong type: {got}, expected: {expected}"),
                     self.pos.clone(),
                 )]
             }
