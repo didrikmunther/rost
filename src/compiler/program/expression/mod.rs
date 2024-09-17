@@ -13,10 +13,14 @@
 use crate::{
     compiler::error::CompilerError,
     lexer::Keyword,
-    parser::definition::{Binary, Expression, ExpressionKind, Unary},
+    parser::definition::{Binary, Expression, ExpressionKind},
 };
 
-use super::{builder::Builder, ir::Arithmetic, Program};
+use super::{
+    builder::Builder,
+    ir::{Arithmetic, Instruction, InstructionKind},
+    Program,
+};
 
 mod identifier;
 mod literal;
@@ -49,96 +53,108 @@ impl Program {
     //     }
     // }
 
-    // fn handle_binary(
-    //     &mut self,
-    //     expression: &Expression,
-    //     binary: &Binary,
-    // ) -> Result<Builder, CompilerError> {
-    //     let operation = Self::get_arithmetic_operation(binary.operator);
-    //     let _ = self.infer_type(expression)?;
-    //     let right = self.infer_type(&binary.right)?;
-    //     let left = self.infer_type(&binary.left)?;
+    fn handle_binary(
+        &mut self,
+        expression: &Expression,
+        binary: &Binary,
+    ) -> Result<Builder, CompilerError> {
+        let operation = Self::get_arithmetic_operation(binary.operator);
 
-    //     match (left, right, &operation) {
-    //         (
-    //             VariableType::Pointer(p_left),
-    //             VariableType::Pointer(p_right),
-    //             Arithmetic::Add
-    //             | Arithmetic::Subtract
-    //             | Arithmetic::Equality
-    //             | Arithmetic::GreaterThan
-    //             | Arithmetic::LessThan,
-    //         ) => {
-    //             if p_left != p_right {
-    //                 todo!("Not supported")
-    //             }
+        let instruction_kind = match operation {
+            Arithmetic::Add => InstructionKind::IntAdd,
+            Arithmetic::Multiply => InstructionKind::IntMul,
+            _ => todo!(),
+        };
 
-    //             Ok(Builder::new()
-    //                 .append(self.handle_expression(&binary.right)?)
-    //                 .append(self.handle_expression(&binary.left)?)
-    //                 .push(Procedure::new(
-    //                     expression.pos.clone(),
-    //                     ProcedureKind::Arithmetic(operation, RegisterSize::B64),
-    //                 )))
-    //         }
-    //         (
-    //             VariableType::Value(Keyword::Int | Keyword::Char),
-    //             VariableType::Value(Keyword::Int | Keyword::Char),
-    //             _,
-    //         ) => {
-    //             // let register_size_left = RegisterSize::get_register(Self::get_type_size(
-    //             //     &self.infer_type(&binary.left)?,
-    //             // ));
-    //             // let register_size_right = RegisterSize::get_register(Self::get_type_size(
-    //             //     &self.infer_type(&binary.right)?,
-    //             // ));
-    //             // let register_size = register_size_left.get_smallest(register_size_right);
+        Ok(Builder::new()
+            .append(self.handle_expression(&binary.right)?)
+            .append(self.handle_expression(&binary.left)?)
+            .push(Instruction::new(expression.pos.clone(), instruction_kind)))
 
-    //             Ok(Builder::new()
-    //                 .append(self.handle_expression(&binary.right)?)
-    //                 .append(self.handle_expression(&binary.left)?)
-    //                 .push(Procedure::new(
-    //                     expression.pos.clone(),
-    //                     ProcedureKind::Arithmetic(operation, register_size),
-    //                 )))
-    //         }
-    //         (
-    //             VariableType::Pointer(pointer_type),
-    //             VariableType::Value(Keyword::Int),
-    //             Arithmetic::Add | Arithmetic::Subtract,
-    //         ) => Ok(Builder::new()
-    //             .append(self.handle_expression(&binary.right)?)
-    //             .push(Procedure::new(
-    //                 expression.pos.clone(),
-    //                 ProcedureKind::Push(OperandValue::Int(
-    //                     Self::get_type_size(&pointer_type) as i32
-    //                 )),
-    //             ))
-    //             .push(Procedure::new(
-    //                 expression.pos.clone(),
-    //                 ProcedureKind::Arithmetic(Arithmetic::Multiply, RegisterSize::B64),
-    //             ))
-    //             .append(self.handle_expression(&binary.left)?)
-    //             .push(Procedure::new(
-    //                 expression.pos.clone(),
-    //                 ProcedureKind::Arithmetic(operation, RegisterSize::B64),
-    //             ))),
-    //         _ => todo!("Not supported"),
-    //     }
-    // }
+        // let _ = self.infer_type(expression)?;
+        // let right = self.infer_type(&binary.right)?;
+        // let left = self.infer_type(&binary.left)?;
 
-    // pub fn handle_expression(&mut self, expression: &Expression) -> Result<Builder, CompilerError> {
-    //     match &expression.kind {
-    //         // ExpressionKind::FunctionCall(fcall) => self.handle_function_call(expression, fcall),
-    //         // ExpressionKind::StructConstruction(sconst) => {
-    //         //     self.handle_struct_construction(expression, sconst)
-    //         // }
-    //         // ExpressionKind::ArrayIndex(index) => self.handle_array_index(expression, index),
-    //         // ExpressionKind::MemberAccess(access) => self.handle_member_access(expression, access),
-    //         ExpressionKind::Primary(primary) => self.handle_primary(expression, primary),
-    //         ExpressionKind::Unary(unary) => self.handle_unary(expression, unary),
-    //         ExpressionKind::Binary(binary) => self.handle_binary(expression, binary),
-    //         _ => todo!()
-    //     }
-    // }
+        // match (left, right, &operation) {
+        //     // (
+        //     //     VariableType::Pointer(p_left),
+        //     //     VariableType::Pointer(p_right),
+        //     //     Arithmetic::Add
+        //     //     | Arithmetic::Subtract
+        //     //     | Arithmetic::Equality
+        //     //     | Arithmetic::GreaterThan
+        //     //     | Arithmetic::LessThan,
+        //     // ) => {
+        //     //     if p_left != p_right {
+        //     //         todo!("Not supported")
+        //     //     }
+
+        //     //     Ok(Builder::new()
+        //     //         .append(self.handle_expression(&binary.right)?)
+        //     //         .append(self.handle_expression(&binary.left)?)
+        //     //         .push(Procedure::new(
+        //     //             expression.pos.clone(),
+        //     //             ProcedureKind::Arithmetic(operation, RegisterSize::B64),
+        //     //         )))
+        //     // }
+        //     (
+        //         VariableType::Value(Keyword::Int | Keyword::Char),
+        //         VariableType::Value(Keyword::Int | Keyword::Char),
+        //         _,
+        //     ) => {
+        //         // let register_size_left = RegisterSize::get_register(Self::get_type_size(
+        //         //     &self.infer_type(&binary.left)?,
+        //         // ));
+        //         // let register_size_right = RegisterSize::get_register(Self::get_type_size(
+        //         //     &self.infer_type(&binary.right)?,
+        //         // ));
+        //         // let register_size = register_size_left.get_smallest(register_size_right);
+
+        //         Ok(Builder::new()
+        //             .append(self.handle_expression(&binary.right)?)
+        //             .append(self.handle_expression(&binary.left)?)
+        //             .push(Procedure::new(
+        //                 expression.pos.clone(),
+        //                 ProcedureKind::Arithmetic(operation, register_size),
+        //             )))
+        //     }
+        //     // (
+        //     //     VariableType::Pointer(pointer_type),
+        //     //     VariableType::Value(Keyword::Int),
+        //     //     Arithmetic::Add | Arithmetic::Subtract,
+        //     // ) => Ok(Builder::new()
+        //     //     .append(self.handle_expression(&binary.right)?)
+        //     //     .push(Procedure::new(
+        //     //         expression.pos.clone(),
+        //     //         ProcedureKind::Push(OperandValue::Int(
+        //     //             Self::get_type_size(&pointer_type) as i32
+        //     //         )),
+        //     //     ))
+        //     //     .push(Procedure::new(
+        //     //         expression.pos.clone(),
+        //     //         ProcedureKind::Arithmetic(Arithmetic::Multiply, RegisterSize::B64),
+        //     //     ))
+        //     //     .append(self.handle_expression(&binary.left)?)
+        //     //     .push(Procedure::new(
+        //     //         expression.pos.clone(),
+        //     //         ProcedureKind::Arithmetic(operation, RegisterSize::B64),
+        //     //     ))),
+        //     _ => todo!("Not supported"),
+        // }
+    }
+
+    pub fn handle_expression(&mut self, expression: &Expression) -> Result<Builder, CompilerError> {
+        match &expression.kind {
+            ExpressionKind::FunctionCall(fcall) => self.handle_function_call(expression, fcall),
+            // ExpressionKind::StructConstruction(sconst) => {
+            //     self.handle_struct_construction(expression, sconst)
+            // }
+            // ExpressionKind::ArrayIndex(index) => self.handle_array_index(expression, index),
+            // ExpressionKind::MemberAccess(access) => self.handle_member_access(expression, access),
+            ExpressionKind::Primary(primary) => self.handle_primary(expression, primary),
+            // ExpressionKind::Unary(unary) => self.handle_unary(expression, unary),
+            ExpressionKind::Binary(binary) => self.handle_binary(expression, binary),
+            _ => todo!(),
+        }
+    }
 }

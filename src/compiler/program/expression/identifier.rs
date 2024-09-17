@@ -1,51 +1,33 @@
 use crate::{
     compiler::{
-        error::CompilerError,
-        program::{builder::Builder, Program},
+        error::{CompilerError, CompilerErrorKind},
+        program::{
+            builder::Builder,
+            ir::{Instruction, InstructionKind, ValueKind},
+            Program,
+        },
     },
     parser::definition::Expression,
 };
 
 impl Program {
     /// Pushes the value of the identifier to the stack.
-    /// If `load_address`, uses `LEA` instead of `MOV`
     pub fn handle_identifier(
         &mut self,
-        _expression: &Expression,
-        _identifier: &String,
+        expression: &Expression,
+        identifier: &str,
         _load_address: bool,
     ) -> Result<Builder, CompilerError> {
-        todo!()
+        let Some(variable_id) = self.get_variable(identifier) else {
+            return Err(CompilerError::new(
+                expression.pos.clone(),
+                CompilerErrorKind::UndefinedVariable(identifier.to_string()),
+            ));
+        };
 
-        // if let Some(variable) = self.get_variable(identifier) {
-        //     let operand_value = match &variable.location {
-        //         VariableLocation::Stack(loc) => OperandValue::StackLocation(*loc),
-        //         VariableLocation::Global(label) => {
-        //             let is_pointer = matches!(&variable.typ, VariableType::Pointer(_));
-
-        //             if is_pointer {
-        //                 OperandValue::DataPointerLocation(label.clone())
-        //             } else {
-        //                 OperandValue::DataLocation(label.clone())
-        //             }
-        //         }
-        //         VariableLocation::Address => {
-        //             todo!()
-        //         }
-        //     };
-
-        //     let operation = if load_address {
-        //         ProcedureKind::PushAddress(operand_value)
-        //     } else {
-        //         ProcedureKind::Push(operand_value)
-        //     };
-
-        //     Ok(Builder::default().push(Procedure::new(expression.pos.clone(), operation)))
-        // } else {
-        //     Err(CompilerError::new(
-        //         expression.pos.clone(),
-        //         CompilerErrorKind::UndefinedVariable(identifier.clone()),
-        //     ))
-        // }
+        Ok(Builder::new().push(Instruction::new(
+            expression.pos.clone(),
+            InstructionKind::Push(ValueKind::Variable(variable_id)),
+        )))
     }
 }

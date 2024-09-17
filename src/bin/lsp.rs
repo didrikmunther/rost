@@ -361,6 +361,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     loop {
         let content = read_rpc_message(&mut reader).await?;
+
+        eprintln!("Received: {}", content);
+
         let request = serde_json::from_str::<LspRequest>(content.as_str()).unwrap();
         let params = get_params(&request);
 

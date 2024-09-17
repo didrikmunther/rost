@@ -1,11 +1,12 @@
 use ::std::io::Write;
 use std::{fs, process::exit};
 
+use backend::Backend;
 use clap::Subcommand;
-use compiler::program::Program;
 
 use crate::error::RostError;
 
+pub mod backend;
 pub mod compiler;
 pub mod error;
 pub mod lexer;
@@ -15,7 +16,8 @@ pub mod parser;
 pub enum CompilationLevel {
     Lexed,
     Parsed,
-    Compiled
+    Compiled,
+    Generated,
 }
 
 pub struct ShellSettings {
@@ -96,7 +98,7 @@ pub fn shell(settings: ShellSettings) {
 }
 
 #[allow(dead_code)]
-pub fn run(settings: RunSettings) -> Option<Program> {
+pub fn run(settings: RunSettings) -> Option<String> {
     let file = if let Some(file) = settings.file_name {
         file
     } else {
@@ -153,5 +155,17 @@ pub fn run(settings: RunSettings) -> Option<Program> {
         return None;
     }
 
-    compiled
+    let generated = match backend::python::PythonBackend::generate(&compiled.unwrap()) {
+        Ok(generated) => Some(generated),
+        Err(err) => {
+            print_error(err);
+            None
+        }
+    };
+
+    if settings.level == CompilationLevel::Generated {
+        println!("{:?}", generated);
+    }
+
+    generated
 }

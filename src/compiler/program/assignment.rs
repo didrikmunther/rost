@@ -1,19 +1,17 @@
 use crate::{
     compiler::{
         error::CompilerError,
-        program::ir::{
-            Arithmetic, Instruction, InstructionKind, PrimitiveType, ValueKind, Variable,
-            VariableId,
-        },
+        program::ir::{Instruction, InstructionKind, PrimitiveType, Variable, VariableId},
     },
     parser::definition::VariableDeclaration,
 };
 
-use super::{builder::Builder, Program};
+use super::{builder::Builder, ir::VariableKind, Program};
 
 /*
+    ```rost
     fn main() {
-        let a = 1 + 2 + 3 + 4;
+        let a = 1 + 2;
         let b = a + 3 * 4;
 
         printf("%i %i", a, b);
@@ -23,56 +21,77 @@ use super::{builder::Builder, Program};
     ```irrepresentation
     global_vars = ["%i %i\n"]
     instructions = [
-        Assign(1, Int(1)),
-        Add(1, Int(2)),
-        Add(1, Int(3)),
-        Add(1, Int(4)),
-
-
-        Assign(2, Int(3)),
-        Mul(2, Int(4)),
-        Assign(3, Var(1)),
-        Add(3, Var(2)),
-
-        
-        Function("printf", [GlobalVar(0), Var(1), Var(3)]),
+        Push(Int(1), Int),
+        Push(Int(2), Int),
+        IntAdd,
+        Assign(Var(0), Int),
+        Push(Int(3), Int),
+        Push(Int(4), Int),
+        IntMul,
+        Assign(Var(1), Int),
+        Push(Var(1), Int),
+        Push(Var(0), Int),
+        Push(GlobalVar(0), String),
+        BuiltinFunction("printf", 3),
+        Pop,
     ]
-```
+    ```
 */
 
 impl Program {
     fn insert_variable(&mut self, variable: Variable) -> VariableId {
+        let variable_id = self.variables.len();
+        self.variable_lookup
+            .insert(variable.name.clone(), variable_id);
         self.variables.push(variable);
-        self.variables.len() - 1
+
+        variable_id
+    }
+
+    pub fn get_variable(&mut self, identifier: &str) -> Option<VariableId> {
+        self.variable_lookup.get(identifier).copied()
     }
 
     pub fn handle_variable_declaration(
         &mut self,
         declaration: &VariableDeclaration,
     ) -> Result<Builder, CompilerError> {
+        let value = self.handle_expression(&declaration.right)?;
+
         let variable_id = self.insert_variable(Variable {
-            name: Some(declaration.identifier.clone()),
+            name: declaration.identifier.clone(),
             typ: PrimitiveType::Int,
+            kind: VariableKind::Local,
         });
 
-        let builder = Builder::new()
-            .push(
-                Instruction::new(
-                    declaration.identifier_pos.start..declaration.right_pos.end,
-                    InstructionKind::Assign(variable_id, ValueKind::Int(1)),
-                )
-                .with_comment(format!("Variable declaration: {}", declaration.identifier)),
-            )
-            .push(Instruction::new(
-                declaration.identifier_pos.start..declaration.right_pos.end,
-                InstructionKind::BinaryOperation {
-                    operator: Arithmetic::Add,
-                    left: variable_id,
-                    right: ValueKind::Int(2),
-                },
-            ));
+        let builder = Builder::new().append(value);
 
-        Ok(builder)
+        Ok(builder.push(Instruction {
+            pos: declaration.identifier_pos.start..declaration.right_pos.end,
+            comment: Some(format!("Assign: {}", declaration.identifier)),
+            kind: InstructionKind::Assign(variable_id),
+        }))
+
+        // let builder = Builder::new()
+        //     .push(
+        //         Instruction::new(
+        //             declaration.identifier_pos.start..declaration.right_pos.end,
+        //             InstructionKind::Assign(variable_id, ValueKind::Int(1)),
+        //         )
+        //         .with_comment(format!("Variable declaration: {}", declaration.identifier)),
+        //     )
+        //     .push(Instruction::new(
+        //         declaration.identifier_pos.start..declaration.right_pos.end,
+        //         InstructionKind::BinaryOperation {
+        //             operator: Arithmetic::Add,
+        //             left: variable_id,
+        //             right: ValueKind::Int(2),
+        //         },
+        //     ));
+
+        // Ok(builder)
+
+        // todo!()
     }
 
     // pub fn handle_variable_assignment(

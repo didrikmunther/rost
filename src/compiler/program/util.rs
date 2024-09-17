@@ -1,16 +1,8 @@
-use crate::{
-    compiler::error::CompilerError,
-    lexer::{Keyword, Literal},
-    parser::{
-        definition::{Declaration, Expression, ExpressionKind, Primary},
-        types::{Type, TypeIdentifier},
-    },
-};
-
 use super::{builder::Builder, Program};
+use crate::{compiler::error::CompilerError, parser::definition::Declaration};
 
 impl Program {
-    pub fn get_procedures(&mut self, content: &[Declaration]) -> Result<Builder, CompilerError> {
+    pub fn get_instructions(&mut self, content: &[Declaration]) -> Result<Builder, CompilerError> {
         content
             .iter()
             .try_fold(Builder::default(), |builder, declaration| {
@@ -34,13 +26,13 @@ impl Program {
     //     }
     // }
 
-    fn get_primitive_type_size(primitive: &Keyword) -> usize {
-        match primitive {
-            Keyword::Int => 8,
-            Keyword::Char | Keyword::Bool => 1,
-            _ => todo!("Not supported"),
-        }
-    }
+    // fn get_primitive_type_size(primitive: &Keyword) -> usize {
+    //     match primitive {
+    //         Keyword::Int => 8,
+    //         Keyword::Char | Keyword::Bool => 1,
+    //         _ => todo!("Not supported"),
+    //     }
+    // }
 
     // /// Return sizes in bytes
     // // todo: maybe this is different depending on platform?

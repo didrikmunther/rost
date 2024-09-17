@@ -3,7 +3,7 @@ use crate::{
         error::CompilerError,
         program::{
             builder::Builder,
-            ir::{Instruction, InstructionKind},
+            ir::{Instruction, InstructionKind, PrimitiveValue, ValueKind},
             Program,
         },
     },
@@ -17,18 +17,14 @@ impl Program {
         expression: &Expression,
         string: &str,
     ) -> Result<Builder, CompilerError> {
-        // let label = format!("_literal_{}", self.literal_index);
-        // self.literal_index += 1;
+        let global_data_index = self.global_data.len();
+        self.global_data
+            .push(PrimitiveValue::String(string.to_string()));
 
-        // self.global_data
-        //     .insert(label.clone(), GlobalData::String(string.to_string()));
-
-        // Ok(Builder::default().push(Instruction::new(
-        //     expression.pos.clone(),
-        //     InstructionKind::Push(OperandValue::DataPointerLocation(label)),
-        // )))
-
-        todo!()
+        Ok(Builder::default().push(Instruction::new(
+            expression.pos.clone(),
+            InstructionKind::Push(ValueKind::GlobalData(global_data_index)),
+        )))
     }
 
     fn handle_int_literal(
@@ -36,18 +32,16 @@ impl Program {
         expression: &Expression,
         int: i32,
     ) -> Result<Builder, CompilerError> {
-        // Ok(Builder::default().push(Instruction::new(
-        //     expression.pos.clone(),
-        //     InstructionKind::Push(OperandValue::Int(int)),
-        // )))
-
-        todo!()
+        Ok(Builder::default().push(Instruction::new(
+            expression.pos.clone(),
+            InstructionKind::Push(ValueKind::Primitive(PrimitiveValue::Int(int))),
+        )))
     }
 
     fn handle_bool_literal(
         &mut self,
-        expression: &Expression,
-        b: bool,
+        _expression: &Expression,
+        _b: bool,
     ) -> Result<Builder, CompilerError> {
         // Ok(Builder::default().push(Instruction::new(
         //     expression.pos.clone(),

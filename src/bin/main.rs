@@ -27,18 +27,18 @@ fn main() -> std::io::Result<()> {
 
     let level = match args.level {
         Some(level) => level,
-        None => CompilationLevel::Compiled,
+        None => CompilationLevel::Generated,
     };
 
     if args.shell {
         shell(ShellSettings { level });
     } else {
-        let asm = run(RunSettings {
+        let generated = run(RunSettings {
             file_name: args.file,
             level,
         });
-        if let Some(asm) = asm {
-            fs::write("out.asm", format!("{asm:?}")).expect("Unable to write file");
+        if let Some(generated) = generated {
+            fs::write("out.py", generated).expect("Unable to write file");
             exit(0);
         }
 

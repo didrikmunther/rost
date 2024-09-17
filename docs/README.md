@@ -57,13 +57,19 @@ fn main() {
 ```irrepresentation
 global_vars = ["%i %i\n"]
 instructions = [
-	Assign(1, Int(1)),
-	Add(1, Int(2)),
-	Assign(2, Int(3)),
-	Mul(2, Int(4)),
-	Assign(3, Var(1)),
-	Add(3, Var(2)),
-	Function("printf", [GlobalVar(0), Var(1), Var(3)]),
+	Push(Int(1), Int),
+	Push(Int(2), Int),
+	IntAdd,
+	Assign(Var(0), Int),
+	Push(Int(3), Int),
+	Push(Int(4), Int),
+	IntMul,
+	Assign(Var(1), Int),
+	Push(Var(1), Int),
+	Push(Var(0), Int),
+	Push(GlobalVar(0), String),
+	BuiltinFunction("printf", 3),
+	Pop,
 ]
 ```
 
@@ -72,18 +78,48 @@ import sys
 def __builtin__printf(format, *args):
 	sys.stdout.write(format % args)
 
+stack = []
+
+def __intrinsic__stack_add():
+	_1 = stack.pop()
+	_2 = stack.pop()
+	stack.append(_1 + _2)
+
+def __intrinsic__stack_mul():
+	_1 = stack.pop()
+	_2 = stack.pop()
+	stack.append(_1 * _2)
+
+def __intrinsic__stack_push(value):
+	stack.append(value)
+
+def __intrinsic__stack_pop():
+	return stack.pop()
+
+def __instrinsic__stack_callf(func, n_args):
+	args = [stack.pop() for i in range(n_args)]
+	stack.append(func(*args))
+
 _global_vars = {
 	'_g1': "%i %i\n",
 }
 
 def main():
-	_1_a = 1;
-	_1_a += 2;
-	_2 = 3;
-	_2 *= 4;
-	_3_b = _1_a;
-	_3_b += _2;
-	__builtin__printf(_global_vars['_g1'], _1_a, _3_b)
+	__intrinsic__stack_push(1)
+	__intrinsic__stack_push(2)
+	__intrinsic__stack_add()
+	_0_a = __intrinsic__stack_pop()
+
+	__intrinsic__stack_push(3)
+	__intrinsic__stack_push(4)
+	__intrinsic__stack_mul()
+	_1_b = __intrinsic__stack_pop()
+
+	__intrinsic__stack_push(_1_b)
+	__intrinsic__stack_push(_0_a)
+	__intrinsic__stack_push(_global_vars['_g1'])
+	__intrinsic__stack_callf(__builtin__printf, 3)
+	__intrinsic__stack_pop() # Discard the return value
 ```
 
 ```asm
