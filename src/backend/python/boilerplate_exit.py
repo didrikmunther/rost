@@ -3,11 +3,11 @@
 if __name__ == "__main__":
     import sys
 
-    argc = len(sys.argv)
-    argv = sys.argv
+    __intrinsic__stack_push(sys.argv)
+    __intrinsic__stack_push(len(sys.argv))
 
     __setup()
-    sys.exit(__main(argc, argv))
+    sys.exit(__main())
 
 
 # boilerplate_exit end

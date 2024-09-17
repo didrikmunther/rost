@@ -1,24 +1,67 @@
-use super::{builder::Builder, Program};
+use super::{
+    builder::Builder,
+    ir::{
+        Function, Instruction, InstructionKind, NormalVariable, PrimitiveType, Variable,
+        VariableKind, VariableScope,
+    },
+    Program, Scope,
+};
 use crate::{
     compiler::error::CompilerError,
     parser::definition::{Declaration, FunctionDeclaration},
 };
 
-#[derive(Debug, Default)]
-pub struct Function {
-    pub body: Builder,
-}
-
 impl Program {
     pub fn handle_function_declaration(
         &mut self,
-        statement: &Declaration,
+        _statement: &Declaration,
         fdec: &FunctionDeclaration,
     ) -> Result<Builder, CompilerError> {
-        let body = self.get_instructions(&fdec.content)?;
+        let mut scope = Scope::from_parent(&self.scope, &self.variables);
+        std::mem::swap(&mut scope, &mut self.scope);
 
-        let function_id = self.functions.len();
-        self.functions.push(Function { body });
+        // The first value on the stack on a function call is always amount of arguments.
+        // This is used for varargs functions, but we don't have those yet.
+        let mut body = Builder::new().push(Instruction::new(
+            fdec.identifier_pos.clone(),
+            InstructionKind::Pop,
+        ));
+
+        let mut parameter_variable_ids = Vec::new();
+
+        for param in &fdec.parameters {
+            let variable_id = self.insert_variable(Variable {
+                identifier: param.identifier.clone(),
+                scope: VariableScope::Local,
+                kind: VariableKind::Normal(NormalVariable {
+                    typ: PrimitiveType::Int, // TODO: Get the actual type
+                }),
+            });
+
+            parameter_variable_ids.push(variable_id);
+
+            body = body.push(Instruction::new(
+                fdec.identifier_pos.clone(),
+                InstructionKind::Assign(variable_id),
+            ));
+        }
+
+        let body = body.append(self.get_instructions(&fdec.content)?);
+        self.scope = scope;
+
+        let variable_id = self.variables.len();
+        self.variables.push(Variable {
+            identifier: fdec.identifier.clone(),
+            scope: VariableScope::Global,
+            kind: VariableKind::DeclaredFunction(Function {
+                parameter_variable_ids,
+                body,
+            }),
+        });
+
+        self.scope
+            .variable_lookup
+            .insert(fdec.identifier.clone(), variable_id);
 
         Ok(Builder::new())
 

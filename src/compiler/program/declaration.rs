@@ -13,12 +13,12 @@ impl Program {
             DeclarationKind::Statement(statement) => match &statement.kind {
                 StatementKind::Expression(expression) => self.handle_expression(expression),
                 StatementKind::VariableDeclaration(declaration) => self.handle_variable_declaration(declaration),
+                StatementKind::VariableAssignment(assignment) => self.handle_variable_assignment(assignment),
                 _ => {
                     eprintln!("Not supported {:#?}", statement.kind);
 
                     todo!("Handle other statement kinds")
                 }
-                // StatementKind::VariableAssignment(assignment) => self.handle_variable_assignment(assignment),
                 // StatementKind::IfStatements(if_statements) => {
                 //     self.handle_if_statement(statement, if_statements)
                 // }

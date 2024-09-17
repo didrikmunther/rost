@@ -11,6 +11,6 @@ pub struct PythonBackend;
 
 impl Backend for PythonBackend {
     fn generate(program: &Program) -> Result<String, RostError> {
-        Ok(Generator::new(program).generate_code()?)
+        Ok(Generator.generate_code(program)?)
     }
 }

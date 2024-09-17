@@ -43,16 +43,33 @@ pub enum PrimitiveValue {
     String(String),
 }
 
-#[derive(Debug)]
-pub enum VariableKind {
+#[derive(Debug, PartialEq)]
+pub enum VariableScope {
     Local,
     Global,
 }
 
 #[derive(Debug)]
-pub struct Variable {
-    pub name: String,
+pub struct NormalVariable {
     pub typ: PrimitiveType,
+}
+
+#[derive(Debug, Default)]
+pub struct Function {
+    pub parameter_variable_ids: Vec<VariableId>,
+    pub body: Builder,
+}
+
+#[derive(Debug)]
+pub enum VariableKind {
+    Normal(NormalVariable),
+    DeclaredFunction(Function),
+}
+
+#[derive(Debug)]
+pub struct Variable {
+    pub identifier: String,
+    pub scope: VariableScope,
     pub kind: VariableKind,
 }
 
@@ -71,7 +88,8 @@ pub enum InstructionKind {
     Assign(VariableId),
     IntAdd,
     IntMul,
-    SystemCall(SystemCall),
+    ProcedureCall(ProcedureCall),
+    SystemCall(ProcedureCall),
 }
 
 // impl Display for InstructionKind {
@@ -111,7 +129,7 @@ pub enum Arithmetic {
 }
 
 #[derive(Debug)]
-pub struct SystemCall {
+pub struct ProcedureCall {
     pub identifier: String,
     pub nargs: usize,
 }

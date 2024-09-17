@@ -1,34 +1,30 @@
 use crate::{
     backend::python::code::Element,
     compiler::program::{
-        ir::{InstructionKind, PrimitiveValue, SystemCall, ValueKind},
+        builder::Builder,
+        ir::{
+            InstructionKind, PrimitiveValue, ProcedureCall, ValueKind, VariableKind, VariableScope,
+        },
         Program,
     },
 };
 
 use super::{code::Code, error::PythonError};
 
-pub struct Generator<'a> {
-    pub program: &'a Program,
-}
+pub struct Generator;
 
-impl<'a> Generator<'a> {
-    pub fn new(program: &'a Program) -> Self {
-        Self { program }
-    }
-
-    pub fn generate_code(self) -> Result<String, PythonError> {
+impl Generator {
+    pub fn generate_code(self, program: &Program) -> Result<String, PythonError> {
         let root_element = Element::Block(vec![
             Element::Raw(include_str!("boilerplate_entry.py").into()),
+            Element::Block(self.get_functions(program)?),
             Element::FunctionDefinition {
-                name: "__setup".into(),
-                params: vec![],
-                content: Box::new(self.get_setup()?),
+                identifier: "__setup".into(),
+                content: Box::new(self.get_setup(program)?),
             },
             Element::FunctionDefinition {
-                name: "__main".into(),
-                params: vec!["argc".into(), "argv".into()],
-                content: Box::new(self.get_program()?),
+                identifier: "__main".into(),
+                content: Box::new(self.get_program(&program.instructions, program)?),
             },
             Element::Raw(include_str!("boilerplate_exit.py").into()),
         ]);
@@ -38,16 +34,41 @@ impl<'a> Generator<'a> {
         Ok(format!("{}", code))
     }
 
-    pub fn get_setup(&self) -> Result<Element, PythonError> {
+    pub fn get_functions(&self, program: &Program) -> Result<Vec<Element>, PythonError> {
+        let mut elements = vec![];
+
+        let functions = program.variables.iter().filter_map(|variable| {
+            if let VariableScope::Global = variable.scope {
+                if let VariableKind::DeclaredFunction(function) = &variable.kind {
+                    Some((function, variable.identifier.clone()))
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        });
+
+        for (function, identifier) in functions {
+            elements.push(Element::FunctionDefinition {
+                identifier: format!("__user__{identifier}"),
+                content: Box::new(self.get_program(&function.body, program)?),
+            });
+        }
+
+        Ok(elements)
+    }
+
+    pub fn get_setup(&self, program: &Program) -> Result<Element, PythonError> {
         let mut elements: Vec<Element> = vec![
             Element::Raw("global __global_data".into()),
             Element::Raw(format!(
                 "__global_data = list(range({}))",
-                self.program.global_data.len()
+                program.global_data.len()
             )),
         ];
 
-        for (i, global_data) in self.program.global_data.iter().enumerate() {
+        for (i, global_data) in program.global_data.iter().enumerate() {
             match global_data {
                 PrimitiveValue::String(value) => {
                     elements.push(Element::Raw(format!("__global_data[{i}] = \"{value}\"",)));
@@ -62,10 +83,14 @@ impl<'a> Generator<'a> {
         Ok(Element::Block(elements))
     }
 
-    pub fn get_program(&self) -> Result<Element, PythonError> {
+    pub fn get_program(
+        &self,
+        instructions: &Builder,
+        program: &Program,
+    ) -> Result<Element, PythonError> {
         let mut elements: Vec<Element> = vec![];
 
-        for instruction in self.program.instructions.iter() {
+        for instruction in instructions.iter() {
             match &instruction.kind {
                 InstructionKind::Push(value) => match value {
                     ValueKind::Primitive(primitive) => match primitive {
@@ -81,32 +106,32 @@ impl<'a> Generator<'a> {
                         elements.push(Element::Push(format!("__global_data[{id}]")));
                     }
                     &ValueKind::Variable(id) => {
-                        let variable_name = self.program.variables[id].name.clone();
-                        elements.push(Element::Raw(format!(
-                            "__intrinsic__stack_push(_{id}_{variable_name})"
-                        )));
+                        let variable = &program.variables[id];
+                        let variable_name = &program.variables[id].identifier;
+                        let variable_name = format!("_{id}_{variable_name}");
+
+                        let value = match variable.scope {
+                            VariableScope::Local => variable_name,
+                            VariableScope::Global => format!("__global_variables[{variable_name}]"),
+                        };
+
+                        elements.push(Element::Push(value));
                     }
                 },
-                InstructionKind::Pop => {
-                    elements.push(Element::Raw("__intrinsic__stack_pop()".into()))
-                }
-                InstructionKind::IntAdd => {
-                    elements.push(Element::Raw("__intrinsic__stack_add()".into()))
-                }
-                InstructionKind::IntMul => {
-                    elements.push(Element::Raw("__intrinsic__stack_mul()".into()))
-                }
+                InstructionKind::Pop => elements.push(Element::Pop),
+                InstructionKind::IntAdd => elements.push(Element::Add),
+                InstructionKind::IntMul => elements.push(Element::Mul),
                 &InstructionKind::Assign(id) => {
-                    let variable_name = self.program.variables[id].name.clone();
-                    elements.push(Element::Raw(format!(
-                        "_{id}_{variable_name} = __intrinsic__stack_pop()"
-                    )));
+                    let variable_name = program.variables[id].identifier.clone();
+                    elements.push(Element::Assign(format!("_{id}_{variable_name}")));
                 }
-                InstructionKind::SystemCall(SystemCall { identifier, nargs }) => {
-                    elements.push(Element::FunctionCall {
-                        identifier: format!("__builtin__{identifier}"),
-                        nargs: *nargs,
-                    })
+                InstructionKind::SystemCall(ProcedureCall { identifier, nargs }) => {
+                    elements.push(Element::Push(nargs.to_string()));
+                    elements.push(Element::FunctionCall(format!("__builtin__{identifier}")))
+                }
+                InstructionKind::ProcedureCall(ProcedureCall { identifier, nargs }) => {
+                    elements.push(Element::Push(nargs.to_string()));
+                    elements.push(Element::FunctionCall(format!("__user__{identifier}")))
                 }
                 _ => {
                     eprintln!("Instruction: {:?}", instruction);

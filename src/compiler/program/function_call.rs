@@ -1,7 +1,7 @@
 use crate::{
     compiler::{
         error::CompilerError,
-        program::ir::{Instruction, InstructionKind, SystemCall},
+        program::ir::{Instruction, InstructionKind, ProcedureCall},
     },
     parser::definition::{Expression, FunctionCall},
 };
@@ -24,11 +24,12 @@ impl Program {
         }
 
         let identifier = fcall.left.get_string().unwrap().to_string();
+        
         if BUILT_IN.contains(&identifier.as_str()) {
             return Ok(builder
                 .push(Instruction::new(
                     expression.pos.clone(),
-                    InstructionKind::SystemCall(SystemCall {
+                    InstructionKind::SystemCall(ProcedureCall {
                         nargs: fcall.args.len(),
                         identifier,
                     }),
@@ -39,7 +40,20 @@ impl Program {
                 )));
         }
 
-        todo!()
+        let builder = builder
+            .push(Instruction::new(
+                expression.pos.clone(),
+                InstructionKind::ProcedureCall(ProcedureCall {
+                    nargs: fcall.args.len(),
+                    identifier,
+                }),
+            ))
+            .push(Instruction::new(
+                expression.pos.clone(),
+                InstructionKind::Pop,
+            ));
+
+        Ok(builder)
 
         // let Some(variable) = self.get_variable(&identifier) else {
         //     return Err(CompilerError::new(

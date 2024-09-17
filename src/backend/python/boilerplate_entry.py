@@ -3,12 +3,23 @@
 import sys
 
 
+def __compiler__with_regular_args(func):
+    def wrapper(*args):
+        n_args = __stack.pop()
+        args = reversed([__stack.pop() for i in range(n_args)])
+        __stack.append(func(*args))
+
+    return wrapper
+
+
+@__compiler__with_regular_args
 def __builtin__printf(format, *args):
     sys.stdout.write(format % args)
 
 
 __stack = []
 __global_data = []
+__global_variables = {}
 
 
 def __intrinsic__stack_add():
@@ -29,11 +40,6 @@ def __intrinsic__stack_push(value):
 
 def __intrinsic__stack_pop():
     return __stack.pop()
-
-
-def __intrinsic__stack_callf(func, n_args):
-    args = reversed([__stack.pop() for i in range(n_args)])
-    __stack.append(func(*args))
 
 
 # boilerplate_start end

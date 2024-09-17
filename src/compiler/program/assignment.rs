@@ -1,12 +1,16 @@
 use crate::{
     compiler::{
-        error::CompilerError,
-        program::ir::{Instruction, InstructionKind, PrimitiveType, Variable, VariableId},
+        error::{CompilerError, CompilerErrorKind},
+        program::ir::{Instruction, InstructionKind, Variable, VariableId},
     },
-    parser::definition::VariableDeclaration,
+    parser::definition::{ExpressionKind, Primary, VariableAssignment, VariableDeclaration},
 };
 
-use super::{builder::Builder, ir::VariableKind, Program};
+use super::{
+    builder::Builder,
+    ir::{NormalVariable, PrimitiveType, VariableKind, VariableScope},
+    Program,
+};
 
 /*
     ```rost
@@ -39,17 +43,18 @@ use super::{builder::Builder, ir::VariableKind, Program};
 */
 
 impl Program {
-    fn insert_variable(&mut self, variable: Variable) -> VariableId {
+    pub fn insert_variable(&mut self, variable: Variable) -> VariableId {
         let variable_id = self.variables.len();
-        self.variable_lookup
-            .insert(variable.name.clone(), variable_id);
+        self.scope
+            .variable_lookup
+            .insert(variable.identifier.clone(), variable_id);
         self.variables.push(variable);
 
         variable_id
     }
 
     pub fn get_variable(&mut self, identifier: &str) -> Option<VariableId> {
-        self.variable_lookup.get(identifier).copied()
+        self.scope.variable_lookup.get(identifier).copied()
     }
 
     pub fn handle_variable_declaration(
@@ -59,9 +64,11 @@ impl Program {
         let value = self.handle_expression(&declaration.right)?;
 
         let variable_id = self.insert_variable(Variable {
-            name: declaration.identifier.clone(),
-            typ: PrimitiveType::Int,
-            kind: VariableKind::Local,
+            identifier: declaration.identifier.clone(),
+            scope: VariableScope::Local,
+            kind: VariableKind::Normal(NormalVariable {
+                typ: PrimitiveType::Int,
+            }),
         });
 
         let builder = Builder::new().append(value);
@@ -71,27 +78,49 @@ impl Program {
             comment: Some(format!("Assign: {}", declaration.identifier)),
             kind: InstructionKind::Assign(variable_id),
         }))
+    }
 
-        // let builder = Builder::new()
-        //     .push(
-        //         Instruction::new(
-        //             declaration.identifier_pos.start..declaration.right_pos.end,
-        //             InstructionKind::Assign(variable_id, ValueKind::Int(1)),
-        //         )
-        //         .with_comment(format!("Variable declaration: {}", declaration.identifier)),
-        //     )
-        //     .push(Instruction::new(
-        //         declaration.identifier_pos.start..declaration.right_pos.end,
-        //         InstructionKind::BinaryOperation {
-        //             operator: Arithmetic::Add,
-        //             left: variable_id,
-        //             right: ValueKind::Int(2),
-        //         },
-        //     ));
+    pub fn handle_variable_assignment(
+        &mut self,
+        assignment: &VariableAssignment,
+    ) -> Result<Builder, CompilerError> {
+        let value = self.handle_expression(&assignment.right)?;
 
-        // Ok(builder)
+        let builder = match &assignment.left.kind {
+            ExpressionKind::Primary(Primary::Identifier(identifier)) => {
+                let Some(variable_id) = self.get_variable(identifier) else {
+                    return Err(CompilerError::new(
+                        assignment.left_pos.clone(),
+                        CompilerErrorKind::UndefinedVariable(identifier.clone()),
+                    ));
+                };
 
-        // todo!()
+                Builder::new().append(value).push(Instruction {
+                    pos: assignment.left_pos.start..assignment.right_pos.end,
+                    comment: Some(format!("Assign: {}", identifier)),
+                    kind: InstructionKind::Assign(variable_id),
+                })
+            }
+            _ => todo!(),
+        };
+
+        Ok(builder)
+
+        // let variable_id = self.insert_variable(Variable {
+        //     identifier: assignment.identifier.clone(),
+        //     scope: VariableScope::Local,
+        //     kind: VariableKind::Normal(NormalVariable {
+        //         typ: PrimitiveType::Int,
+        //     }),
+        // });
+
+        // let builder = Builder::new().append(value);
+
+        // Ok(builder.push(Instruction {
+        //     pos: declaration.identifier_pos.start..declaration.right_pos.end,
+        //     comment: Some(format!("Assign: {}", declaration.identifier)),
+        //     kind: InstructionKind::Assign(variable_id),
+        // }))
     }
 
     // pub fn handle_variable_assignment(

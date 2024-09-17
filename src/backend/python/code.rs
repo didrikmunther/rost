@@ -3,24 +3,25 @@ use std::fmt::{Arguments, Display, Formatter};
 #[derive(Debug, Clone)]
 pub enum Element {
     Block(Vec<Element>),
+    Pass,
     Raw(String),
+    Assign(String),
+    Pop,
     Push(String),
-    FunctionCall {
-        identifier: String,
-        nargs: usize,
-    },
+    Add,
+    Mul,
+    FunctionCall(String),
     FunctionDefinition {
-        name: String,
-        params: Vec<String>,
+        identifier: String,
         content: Box<Element>,
     },
 }
 
 impl Element {
     fn fmt(&self, fmt: &mut Formatter<'_>, n_indent: usize) -> Result<(), std::fmt::Error> {
-        let mut w = |args: Arguments| fmt.write_fmt(args);
-
         let indent = "\t".repeat(n_indent);
+
+        let mut w = |args: Arguments| fmt.write_fmt(format_args!("{indent}{args}"));
 
         match self {
             Element::Block(elements) => {
@@ -29,24 +30,19 @@ impl Element {
                     fmt.write_fmt(format_args!("\n"))?;
                 }
             }
-            Element::Raw(raw) => {
-                w(format_args!("{indent}{raw}"))?;
-            }
-            Element::Push(el) => {
-                w(format_args!("{indent}__intrinsic__stack_push({el})"))?;
-            }
-            Element::FunctionCall { identifier, nargs } => {
-                w(format_args!(
-                    "{indent}__intrinsic__stack_callf({identifier}, {nargs})"
-                ))?;
-            }
+            Element::Pass => w(format_args!("pass"))?,
+            Element::Assign(name) => w(format_args!("{name} = __intrinsic__stack_pop()"))?,
+            Element::Raw(raw) => w(format_args!("{raw}"))?,
+            Element::Pop => w(format_args!("__intrinsic__stack_pop()"))?,
+            Element::Add => w(format_args!("__intrinsic__stack_add()"))?,
+            Element::Mul => w(format_args!("__intrinsic__stack_mul()"))?,
+            Element::Push(el) => w(format_args!("__intrinsic__stack_push({el})"))?,
+            Element::FunctionCall(identifier) => w(format_args!("{identifier}()"))?,
             Element::FunctionDefinition {
-                name,
-                params,
+                identifier,
                 content,
             } => {
-                let params = params.join(", ");
-                w(format_args!("{indent}def {name}({params}):\n"))?;
+                w(format_args!("def {identifier}():\n"))?;
                 content.fmt(fmt, n_indent + 1)?;
             }
         }
