@@ -4,15 +4,16 @@ use std::ops::Range;
 use clap::Parser;
 use lsp_types::{
     GotoDefinitionParams, GotoDefinitionResponse, Hover, HoverParams, HoverProviderCapability,
-    InitializeParams, InitializeResult, Location, Position, Range as LSPRange, ServerCapabilities,
+    InitializeParams, InitializeResult, Location, Position as LSPPosition, Range as LSPRange,
+    ServerCapabilities,
 };
-use rost::compiler;
+use rost::compiler::program::ir::{Variable, VariableKind};
 use rost::compiler::program::Program;
 use rost::error::RostError;
-use rost::lexer::{self, Keyword};
 use rost::lexer::{Block, Token};
 use rost::parser;
 use rost::parser::definition::Ast;
+use rost::{compiler, lexer};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio::fs;
@@ -171,18 +172,34 @@ fn pos_to_row_col(text: &str, pos: &Range<usize>) -> LSPRange {
     let (row_values, column_values) = get_row_col_vecs(text);
 
     LSPRange {
-        start: Position {
+        start: LSPPosition {
             character: *column_values.get(pos.start).unwrap(),
             line: *row_values.get(pos.start).unwrap(),
         },
-        end: Position {
+        end: LSPPosition {
             character: *column_values.get(pos.end).unwrap(),
             line: *row_values.get(pos.end).unwrap(),
         },
     }
 }
 
-fn find_block<'a>(lexed: &'a [Block], text: &str, pos: Position) -> Option<(&'a Block, LSPRange)> {
+fn row_col_to_pos(text: &str, pos: &LSPPosition) -> usize {
+    let (row_values, column_values) = get_row_col_vecs(text);
+
+    let row = row_values.iter().position(|&x| x >= pos.line).unwrap();
+    let col = column_values
+        .iter()
+        .position(|&x| x >= pos.character)
+        .unwrap();
+
+    row + col
+}
+
+fn find_block<'a>(
+    lexed: &'a [Block],
+    text: &str,
+    pos: LSPPosition,
+) -> Option<(&'a Block, LSPRange)> {
     let (row_values, column_values) = get_row_col_vecs(text);
 
     let block = lexed.iter().find(|block| {
@@ -193,11 +210,11 @@ fn find_block<'a>(lexed: &'a [Block], text: &str, pos: Position) -> Option<(&'a 
     })?;
 
     let block_range = LSPRange {
-        start: Position {
+        start: LSPPosition {
             character: *column_values.get(block.pos.start).unwrap(),
             line: *row_values.get(block.pos.start).unwrap(),
         },
-        end: Position {
+        end: LSPPosition {
             character: *column_values.get(block.pos.end).unwrap(),
             line: *row_values.get(block.pos.end).unwrap(),
         },
@@ -242,6 +259,31 @@ fn get_processed_code(text: &str, uri: &str) -> Option<(Vec<Block>, Ast, Program
     Some((lexed, parsed, compiled))
 }
 
+fn get_variable_at_position<'a>(
+    text: &str,
+    block: &Block,
+    pos: LSPPosition,
+    program: &'a Program,
+) -> Option<&'a Variable> {
+    let pos = row_col_to_pos(text, &pos);
+    let scope = program
+        .scope_lookup
+        .get(&pos)
+        .and_then(|&v| program.scopes.get(v))?;
+
+    let variable = match &block.token {
+        Token::Identifier(identifier) => scope
+            .variable_lookup
+            .get(identifier)
+            .and_then(|&v| program.variables.get(v)),
+        _ => {
+            return None;
+        }
+    };
+
+    variable
+}
+
 async fn handle_params(
     request: LspRequest,
     params: LspParams,
@@ -284,24 +326,21 @@ async fn handle_params(
                 return Ok(());
             };
 
-            match (block.kind, &block.token) {
-                (Keyword::Identifier, Token::Identifier(identifier)) => {
-                    // let Some(variable) = program.get_variable(identifier) else {
-                    //     write_empty_response(writer, request.id).await?;
-                    //     return Ok(());
-                    // };
+            let variable = get_variable_at_position(text, block, pos, &program);
 
-                    // let variable_pos = pos_to_row_col(text, &variable.pos);
+            let Some(variable) = variable else {
+                write_empty_response(writer, request.id).await?;
+                return Ok(());
+            };
 
-                    // let result = GotoDefinitionResponse::Scalar(Location {
-                    //     uri,
-                    //     range: variable_pos,
-                    // });
+            let variable_pos = pos_to_row_col(text, &variable.declaration_pos);
 
-                    // write_lsp_message(writer, request.id, &result).await?;
-                }
-                _ => write_empty_response(writer, request.id).await?,
-            }
+            let result = GotoDefinitionResponse::Scalar(Location {
+                uri,
+                range: variable_pos,
+            });
+
+            write_lsp_message(writer, request.id, &result).await?;
         }
         LspParams::Hover(params) => {
             let pos_params = params.text_document_position_params;
@@ -310,7 +349,7 @@ async fn handle_params(
 
             let text = &fs::read_to_string(strip_file_protocol(uri.as_str())).await?;
 
-            let (lexed, _parsed, _compiled) = match get_processed_code(text, uri.as_str()) {
+            let (lexed, _parsed, program) = match get_processed_code(text, uri.as_str()) {
                 Some(v) => v,
                 None => {
                     write_empty_response(writer, request.id).await?;
@@ -323,9 +362,26 @@ async fn handle_params(
                 return Ok(());
             };
 
-            let contents = lsp_types::HoverContents::Scalar(
-                lsp_types::MarkedString::from_markdown(format!("{:?}", block).to_string()),
-            );
+            let variable = get_variable_at_position(text, block, pos, &program);
+
+            let Some(variable) = variable else {
+                write_empty_response(writer, request.id).await?;
+                return Ok(());
+            };
+
+            let kind = match variable.kind {
+                VariableKind::Normal(_) => "Variable",
+                VariableKind::DeclaredFunction(_) => "Function",
+            };
+
+            let contents =
+                lsp_types::HoverContents::Scalar(lsp_types::MarkedString::from_markdown(
+                    format!(
+                        "<{:?}> [{:?}]: {kind:?}",
+                        variable.identifier, variable.scope
+                    )
+                    .to_string(),
+                ));
 
             let result = Hover {
                 contents,
@@ -362,7 +418,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     loop {
         let content = read_rpc_message(&mut reader).await?;
 
-        eprintln!("Received: {}", content);
+        // eprintln!("Received: {}", content);
 
         let request = serde_json::from_str::<LspRequest>(content.as_str()).unwrap();
         let params = get_params(&request);

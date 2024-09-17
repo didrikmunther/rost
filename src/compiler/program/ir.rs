@@ -71,6 +71,7 @@ pub struct Variable {
     pub identifier: String,
     pub scope: VariableScope,
     pub kind: VariableKind,
+    pub declaration_pos: Range<usize>,
 }
 
 #[derive(Debug)]

@@ -45,16 +45,18 @@ use super::{
 impl Program {
     pub fn insert_variable(&mut self, variable: Variable) -> VariableId {
         let variable_id = self.variables.len();
-        self.scope
+
+        self.get_scope_mut()
             .variable_lookup
             .insert(variable.identifier.clone(), variable_id);
+
         self.variables.push(variable);
 
         variable_id
     }
 
     pub fn get_variable(&mut self, identifier: &str) -> Option<VariableId> {
-        self.scope.variable_lookup.get(identifier).copied()
+        self.get_scope().variable_lookup.get(identifier).copied()
     }
 
     pub fn handle_variable_declaration(
@@ -69,6 +71,7 @@ impl Program {
             kind: VariableKind::Normal(NormalVariable {
                 typ: PrimitiveType::Int,
             }),
+            declaration_pos: declaration.identifier_pos.clone(),
         });
 
         let builder = Builder::new().append(value);

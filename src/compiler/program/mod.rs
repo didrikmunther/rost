@@ -3,7 +3,8 @@ use std::collections::HashMap;
 use super::error::CompilerError;
 use crate::parser::definition::Declaration;
 use builder::Builder;
-use ir::{PrimitiveValue, Variable, VariableId, VariableScope};
+use ir::{PrimitiveValue, Variable};
+use scope::{Scope, ScopeId};
 
 mod assignment;
 pub mod builder;
@@ -12,29 +13,11 @@ mod expression;
 mod function_call;
 mod function_declaration;
 pub mod ir;
+mod scope;
 mod util;
 mod variable;
 
-#[derive(Debug, Default)]
-pub struct Scope {
-    pub variable_lookup: HashMap<String, VariableId>,
-}
-
-impl Scope {
-    // Only keep global variables
-    pub fn from_parent(parent: &Scope, variables: &[Variable]) -> Self {
-        Self {
-            variable_lookup: parent
-                .variable_lookup
-                .clone()
-                .into_iter()
-                .filter(|(_, variable_id)| {
-                    variables.get(*variable_id).unwrap().scope == VariableScope::Global
-                })
-                .collect::<HashMap<_, _>>(),
-        }
-    }
-}
+pub type Location = usize;
 
 #[derive(Debug, Default)]
 pub struct Program {
@@ -42,7 +25,11 @@ pub struct Program {
     pub variables: Vec<Variable>,
     pub global_data: Vec<PrimitiveValue>,
 
-    pub scope: Scope,
+    pub scopes: Vec<Scope>,
+    pub scope_id: ScopeId,
+    // This is quite a hack, but it's the easiest way to get the scope of a variable.
+    // We should use some kind of run-length encoding to make this more efficient.
+    pub scope_lookup: HashMap<Location, ScopeId>,
 
     // How many parameters does the main function take?
     pub main_func_nparams: usize,
@@ -50,10 +37,22 @@ pub struct Program {
 
 impl Program {
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            scopes: vec![Scope::default()],
+            scope_id: 0,
+            ..Default::default()
+        }
     }
 
     pub fn compile(mut self, parsed: Vec<Declaration>) -> Result<Program, CompilerError> {
+        let locations = parsed
+            .iter()
+            .fold(0..0, |acc, decl| acc.start..decl.pos.end);
+
+        for location in locations {
+            self.scope_lookup.insert(location, self.scope_id);
+        }
+
         self.instructions = self.get_instructions(&parsed)?;
 
         Ok(self)

@@ -3,7 +3,6 @@ use std::fmt::{Arguments, Display, Formatter};
 #[derive(Debug, Clone)]
 pub enum Element {
     Block(Vec<Element>),
-    Pass,
     Raw(String),
     Assign(String),
     Pop,
@@ -15,6 +14,9 @@ pub enum Element {
         identifier: String,
         content: Box<Element>,
     },
+
+    #[allow(dead_code)]
+    Pass,
 }
 
 impl Element {

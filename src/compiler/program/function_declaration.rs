@@ -4,7 +4,7 @@ use super::{
         Function, Instruction, InstructionKind, NormalVariable, PrimitiveType, Variable,
         VariableKind, VariableScope,
     },
-    Program, Scope,
+    Program,
 };
 use crate::{
     compiler::error::CompilerError,
@@ -17,51 +17,55 @@ impl Program {
         _statement: &Declaration,
         fdec: &FunctionDeclaration,
     ) -> Result<Builder, CompilerError> {
-        let mut scope = Scope::from_parent(&self.scope, &self.variables);
-        std::mem::swap(&mut scope, &mut self.scope);
-
-        // The first value on the stack on a function call is always amount of arguments.
-        // This is used for varargs functions, but we don't have those yet.
-        let mut body = Builder::new().push(Instruction::new(
-            fdec.identifier_pos.clone(),
-            InstructionKind::Pop,
-        ));
-
         let mut parameter_variable_ids = Vec::new();
 
-        for param in &fdec.parameters {
-            let variable_id = self.insert_variable(Variable {
-                identifier: param.identifier.clone(),
-                scope: VariableScope::Local,
-                kind: VariableKind::Normal(NormalVariable {
-                    typ: PrimitiveType::Int, // TODO: Get the actual type
-                }),
-            });
-
-            parameter_variable_ids.push(variable_id);
-
-            body = body.push(Instruction::new(
+        let body = self.with_scope(|this| {
+            // The first value on the stack on a function call is always amount of arguments.
+            // This is used for varargs functions, but we don't have those yet.
+            let mut body = Builder::new().push(Instruction::new(
                 fdec.identifier_pos.clone(),
-                InstructionKind::Assign(variable_id),
+                InstructionKind::Pop,
             ));
-        }
 
-        let body = body.append(self.get_instructions(&fdec.content)?);
-        self.scope = scope;
+            for param in &fdec.parameters {
+                let variable_id = this.insert_variable(Variable {
+                    identifier: param.identifier.clone(),
+                    scope: VariableScope::Local,
+                    kind: VariableKind::Normal(NormalVariable {
+                        typ: PrimitiveType::Int, // TODO: Get the actual type
+                    }),
+                    declaration_pos: param.pos.clone(),
+                });
 
-        let variable_id = self.variables.len();
-        self.variables.push(Variable {
+                parameter_variable_ids.push(variable_id);
+
+                body = body.push(Instruction::new(
+                    fdec.identifier_pos.clone(),
+                    InstructionKind::Assign(variable_id),
+                ));
+            }
+
+            let body = body.append(this.get_instructions(&fdec.content)?);
+
+            let location = fdec
+                .content
+                .iter()
+                .fold(fdec.identifier_pos.clone(), |acc, decl| {
+                    acc.start..decl.pos.end
+                });
+
+            Ok((body, location))
+        })?;
+
+        self.insert_variable(Variable {
             identifier: fdec.identifier.clone(),
             scope: VariableScope::Global,
             kind: VariableKind::DeclaredFunction(Function {
                 parameter_variable_ids,
                 body,
             }),
+            declaration_pos: fdec.identifier_pos.clone(),
         });
-
-        self.scope
-            .variable_lookup
-            .insert(fdec.identifier.clone(), variable_id);
 
         Ok(Builder::new())
 
