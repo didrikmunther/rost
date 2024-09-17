@@ -11,6 +11,7 @@ pub mod compiler;
 pub mod error;
 pub mod lexer;
 pub mod parser;
+pub mod lsp;
 
 #[derive(Subcommand, PartialEq, Clone, Debug)]
 pub enum CompilationLevel {
