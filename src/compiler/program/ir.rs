@@ -93,19 +93,6 @@ pub enum InstructionKind {
     SystemCall(ProcedureCall),
 }
 
-// impl Display for InstructionKind {
-//     fn fmt(&self, fmt: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
-//         match self {
-//             // InstructionKind::If(ifs) => fmt.write_fmt(format_args!("If (n_cases: {})", ifs.len())),
-//             // InstructionKind::While(while_statement) => fmt.write_fmt(format_args!(
-//             //     "While (n_declarations: {})",
-//             //     while_statement.content.instructions.len()
-//             // )),
-//             _ => fmt.write_fmt(format_args!("{self:?}")),
-//         }
-//     }
-// }
-
 #[derive(Debug)]
 pub struct While {
     pub condition: Box<Builder>,

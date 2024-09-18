@@ -1,10 +1,9 @@
-use std::collections::HashMap;
-
 use super::error::CompilerError;
 use crate::parser::definition::Declaration;
 use builder::Builder;
 use ir::{PrimitiveValue, Variable};
-use scope::{Scope, ScopeId};
+use rust_lapper::Lapper;
+use scope::{Scope, ScopeId, ScopeRange};
 
 mod assignment;
 pub mod builder;
@@ -19,7 +18,7 @@ mod variable;
 
 pub type Location = usize;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Program {
     pub instructions: Builder,
     pub variables: Vec<Variable>,
@@ -29,10 +28,14 @@ pub struct Program {
     pub scope_id: ScopeId,
     // This is quite a hack, but it's the easiest way to get the scope of a variable.
     // We should use some kind of run-length encoding to make this more efficient.
-    pub scope_lookup: HashMap<Location, ScopeId>,
+    scope_ranges: Vec<ScopeRange>,
+    pub scope_lookup: Lapper<Location, ScopeId>,
+}
 
-    // How many parameters does the main function take?
-    pub main_func_nparams: usize,
+impl Default for Program {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Program {
@@ -40,20 +43,24 @@ impl Program {
         Self {
             scopes: vec![Scope::default()],
             scope_id: 0,
-            ..Default::default()
+            scope_lookup: Lapper::new(vec![]),
+            scope_ranges: vec![],
+            instructions: Builder::new(),
+            variables: vec![],
+            global_data: vec![],
         }
     }
 
     pub fn compile(mut self, parsed: Vec<Declaration>) -> Result<Program, CompilerError> {
-        let locations = parsed
+        let location = parsed
             .iter()
             .fold(0..0, |acc, decl| acc.start..decl.pos.end);
 
-        for location in locations {
-            self.scope_lookup.insert(location, self.scope_id);
-        }
+        self.scope_ranges.push((location, self.scope_id));
 
         self.instructions = self.get_instructions(&parsed)?;
+
+        self.scope_lookup = self.get_scope_lookup();
 
         Ok(self)
     }

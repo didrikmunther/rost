@@ -203,8 +203,9 @@ fn get_variable_at_position<'a>(
     let pos = row_col_to_pos(text, &pos);
     let scope = program
         .scope_lookup
-        .get(&pos)
-        .and_then(|&v| program.scopes.get(v))?;
+        .find(pos, pos)
+        .next()
+        .and_then(|v| program.scopes.get(v.val))?;
 
     let variable = match &block.token {
         Token::Identifier(identifier) => scope
@@ -253,15 +254,15 @@ impl LSPServer {
         Ok(())
     }
 
-    async fn write_lsp_message(
+    async fn _write_lsp_message(
         &mut self,
         id: Option<u64>,
-        deserializable: &impl Serialize,
+        result: Option<Value>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let response = LspResponse {
             jsonrpc: "2.0".to_string(),
             id,
-            result: Some(serde_json::to_value(deserializable)?),
+            result,
             error: None,
         };
 
@@ -269,19 +270,20 @@ impl LSPServer {
         self.write_rpc_message(message.as_ref()).await
     }
 
+    async fn write_lsp_message(
+        &mut self,
+        id: Option<u64>,
+        deserializable: &impl Serialize,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self._write_lsp_message(id, Some(serde_json::to_value(deserializable)?))
+            .await
+    }
+
     async fn write_empty_response(
         &mut self,
         id: Option<u64>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let response = LspResponse {
-            jsonrpc: "2.0".to_string(),
-            id,
-            result: None,
-            error: None,
-        };
-
-        let message = serde_json::to_string(&response)?;
-        self.write_rpc_message(message.as_ref()).await
+        self._write_lsp_message(id, None).await
     }
 
     async fn handle_params(

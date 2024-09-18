@@ -1,7 +1,7 @@
 use ::std::io::Write;
 use std::{fs, process::exit};
 
-use backend::Backend;
+use backend::{python::PythonBackend, Backend};
 use clap::Subcommand;
 
 use crate::error::RostError;
@@ -10,8 +10,8 @@ pub mod backend;
 pub mod compiler;
 pub mod error;
 pub mod lexer;
-pub mod parser;
 pub mod lsp;
+pub mod parser;
 
 #[derive(Subcommand, PartialEq, Clone, Debug)]
 pub enum CompilationLevel {
@@ -156,17 +156,11 @@ pub fn run(settings: RunSettings) -> Option<String> {
         return None;
     }
 
-    let generated = match backend::python::PythonBackend::generate(&compiled.unwrap()) {
+    match PythonBackend::generate(&compiled.unwrap()) {
         Ok(generated) => Some(generated),
         Err(err) => {
             print_error(err);
             None
         }
-    };
-
-    if settings.level == CompilationLevel::Generated {
-        println!("{:?}", generated);
     }
-
-    generated
 }
