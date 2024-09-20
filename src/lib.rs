@@ -123,40 +123,39 @@ pub fn run(settings: RunSettings) -> Option<String> {
             print_error(vec![err.into()]);
             None
         }
-    };
+    }?;
 
     if settings.level == CompilationLevel::Lexed {
         println!("{document:#?}");
         return None;
     }
 
-    let parsed = document.and_then(|document| match parser::parse(&document) {
+    let parsed = match parser::parse(&document) {
         Ok(program) => Some(program),
         Err(err) => {
             print_error(vec![err.into()]);
             None
         }
-    });
+    }?;
 
     if settings.level == CompilationLevel::Parsed {
         println!("{parsed:#?}");
         return None;
     }
 
-    let compiled = parsed.and_then(|parsed| match compiler::compile(parsed) {
-        Ok(code) => Some(code),
-        Err(errs) => {
-            print_error(errs.into_iter().map(|e| e.into()).collect());
-            None
-        }
-    });
+    let program = compiler::compile(parsed);
 
-    if settings.level == CompilationLevel::Compiled {
-        println!("{compiled:#?}");
+    if program.errors.len() > 0 {
+        print_error(program.errors.into_iter().map(|e| e.into()).collect());
         return None;
     }
 
-    match PythonBackend::generate(&compiled.unwrap()) {
+    if settings.level == CompilationLevel::Compiled {
+        println!("{program:#?}");
+        return None;
+    }
+
+    match PythonBackend::generate(&program) {
         Ok(generated) => Some(generated),
         Err(err) => {
             print_error(vec![err]);

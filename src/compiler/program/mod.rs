@@ -98,22 +98,18 @@ impl Program {
         self.scope_ranges.push((location, self.scope_id));
         self.add_builtin_functions()?;
         self.instructions = self.get_instructions(&parsed)?;
-        self.scope_lookup = self.get_scope_lookup();
 
         Ok(())
     }
 
-    pub fn compile(mut self, parsed: Vec<Declaration>) -> Result<Program, Vec<CompilerError>> {
+    pub fn compile(mut self, parsed: Vec<Declaration>) -> Program {
         let result = self._compile(parsed);
+        self.scope_lookup = self.get_scope_lookup();
 
         if let Err(error) = result {
             self.errors.push(error);
         }
 
-        if self.errors.is_empty() {
-            Ok(self)
-        } else {
-            Err(self.errors)
-        }
+        self
     }
 }

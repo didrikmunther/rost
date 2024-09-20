@@ -4,7 +4,7 @@ use crate::error::{RostError, RostErrorElement};
 
 // use super::scope::variable::VariableType;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum CompilerErrorKind {
     UndefinedVariable(String),
     UndefinedFunction(String),
@@ -41,7 +41,7 @@ macro_rules! compiler_todo {
 #[allow(unused_imports)]
 pub use compiler_todo;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct CompilerError {
     pub pos: Range<usize>,
     pub kind: CompilerErrorKind,

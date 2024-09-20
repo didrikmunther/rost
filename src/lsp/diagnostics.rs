@@ -1,3 +1,4 @@
+use super::util::{Compiled, CompilerResult};
 use super::LSPServer;
 use crate::error::RostError;
 use crate::lsp::util::{get_processed_code, pos_to_row_col};
@@ -32,8 +33,15 @@ impl LSPServer {
         let text = self.file_contents.get(uri).await?;
 
         let diagnostics = match get_processed_code(&text, uri.as_str()) {
-            Ok(_) => vec![],
-            Err(errs) => self.get_diagnostics(&text, errs),
+            CompilerResult::Lexed(Err(err)) => self.get_diagnostics(&text, vec![err]),
+            CompilerResult::Parsed {
+                parsed: Err(err), ..
+            } => self.get_diagnostics(&text, vec![err]),
+            CompilerResult::Compiled {
+                compiled: Compiled { errors, .. },
+                ..
+            } => self.get_diagnostics(&text, errors),
+            _ => vec![],
         };
 
         let params = PublishDiagnosticsParams {

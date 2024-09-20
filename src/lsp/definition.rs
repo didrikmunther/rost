@@ -2,7 +2,10 @@ use crate::lsp::util::{find_block, get_processed_code, get_variable_at_position,
 use lsp_types::{GotoDefinitionParams, GotoDefinitionResponse, Location};
 use std::error::Error;
 
-use super::{util::LspRequest, LSPServer};
+use super::{
+    util::{Compiled, CompilerResult, LspRequest},
+    LSPServer,
+};
 
 impl LSPServer {
     pub async fn handle_goto_definition(
@@ -15,7 +18,13 @@ impl LSPServer {
         let uri = pos_params.text_document.uri;
         let text = self.file_contents.get(&uri).await?;
 
-        let Ok((lexed, _parsed, program)) = get_processed_code(&text, uri.as_str()) else {
+        let processed = get_processed_code(&text, uri.as_str());
+        let CompilerResult::Compiled {
+            lexed,
+            compiled: Compiled { program, .. },
+            ..
+        } = processed
+        else {
             self.write_empty_response(request.id).await?;
             return Ok(());
         };
