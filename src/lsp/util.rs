@@ -28,6 +28,13 @@ pub struct LspResponse {
     pub error: Option<Value>,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LspNotification {
+    pub jsonrpc: String,
+    pub method: String,
+    pub params: Option<Value>,
+}
+
 pub fn strip_file_protocol(content: &str) -> String {
     content.replace("file://", "")
 }
@@ -37,30 +44,45 @@ pub fn get_row_col_vecs(text: &str) -> (VecDeque<u32>, VecDeque<u32>) {
         .chars()
         .map(|c| c == '\n')
         .chain(std::iter::once(true))
-        .chain(std::iter::once(true));
+        .collect::<Vec<_>>();
+
+    // eprintln!(
+    //     "new_lines :{:?}",
+    //     new_lines
+    //         .iter()
+    //         .map(|&v| if v { 1 } else { 0 })
+    //         .collect::<Vec<_>>()
+    // );
 
     let mut row_values = new_lines
-        .clone()
-        .scan(0, |acc, x| {
+        .iter()
+        .scan(0, |acc, &x| {
             *acc += if x { 1 } else { 0 };
             Some(*acc)
         })
         .collect::<VecDeque<u32>>();
 
+    row_values.push_back(0);
     row_values.rotate_right(1);
-    row_values[0] = 0;
 
-    let column_values = new_lines
+    let mut column_values = new_lines
+        .iter()
         .scan(0, |acc, x| {
             if !x {
                 *acc += 1;
                 Some(*acc - 1)
             } else {
+                let tmp = *acc;
                 *acc = 0;
-                Some(*acc)
+                Some(tmp)
             }
         })
         .collect::<VecDeque<u32>>();
+
+    column_values.push_back(0);
+
+    // eprintln!("row_values:{:?}", row_values);
+    // eprintln!("col_values:{:?}", column_values);
 
     (row_values, column_values)
 }
@@ -120,40 +142,35 @@ pub fn find_block<'a>(
     Some((block, block_range))
 }
 
-pub fn get_processed_code(text: &str, uri: &str) -> Option<(Vec<Block>, Ast, Program)> {
-    let print_error = |mut err: RostError, text: &str, file: &str| {
-        eprintln!(
-            "{}",
-            err.with_code(Some(text.to_string()))
-                .with_file(Some(file.to_string()))
-        );
-    };
-
+pub fn _get_processed_code(text: &str) -> Result<(Vec<Block>, Ast, Program), RostError> {
     let lexed = match lexer::lex(text) {
         Ok(v) => v,
-        Err(err) => {
-            print_error(err.into(), text, uri);
-            return None;
-        }
+        Err(err) => return Err(err.into()),
     };
 
     let parsed = match parser::parse(&lexed) {
         Ok(v) => v,
-        Err(err) => {
-            print_error(err.into(), text, uri);
-            return None;
-        }
+        Err(err) => return Err(err.into()),
     };
 
     let compiled = match compiler::compile(parsed.clone()) {
         Ok(v) => v,
-        Err(err) => {
-            print_error(err.into(), text, uri);
-            return None;
-        }
+        Err(err) => return Err(err.into()),
     };
 
-    Some((lexed, parsed, compiled))
+    Ok((lexed, parsed, compiled))
+}
+
+pub fn get_processed_code(text: &str, uri: &str) -> Result<(Vec<Block>, Ast, Program), RostError> {
+    match _get_processed_code(text) {
+        Ok(v) => Ok(v),
+        Err(mut err) => {
+            err.with_code(Some(text.to_string()))
+                .with_file(Some(uri.to_string()));
+
+            Err(err)
+        }
+    }
 }
 
 pub fn get_variable_at_position<'a>(

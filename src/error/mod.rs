@@ -8,9 +8,10 @@ use std::{
 
 static TAB_SIZE: usize = 4;
 
+#[derive(Debug)]
 pub struct RostErrorElement {
-    pos: Range<usize>,
-    message: String,
+    pub pos: Range<usize>,
+    pub message: String,
 }
 
 impl From<&(String, Range<usize>)> for RostErrorElement {
@@ -36,12 +37,13 @@ fn green(msg: &str) -> String {
     format!("\x1b[92m{msg}\x1b[0m")
 }
 
+#[derive(Debug)]
 pub struct RostError {
-    kind: String,
-    file: Option<String>,
-    code: Option<String>,
-    elements: Vec<RostErrorElement>,
-    margin: usize,
+    pub kind: String,
+    pub file: Option<String>,
+    pub code: Option<String>,
+    pub elements: Vec<RostErrorElement>,
+    pub margin: usize,
 }
 
 impl RostError {

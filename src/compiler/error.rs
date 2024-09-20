@@ -12,6 +12,7 @@ pub enum CompilerErrorKind {
     // DereferenceNonPointer(VariableType),
     MissingMainFunction,
     TooManyParametersInMainFunction,
+    NotSupported(String),
 
     #[allow(dead_code)]
     Todo {
@@ -87,6 +88,9 @@ impl CompilerError {
                     format!("Undefined function: {identifier}"),
                     self.pos.clone(),
                 )]
+            }
+            CompilerErrorKind::NotSupported(v) => {
+                vec![(format!("Not supported: {v}"), self.pos.clone())]
             }
         }
     }

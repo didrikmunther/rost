@@ -1,14 +1,10 @@
-use std::error::Error;
-
-use lsp_types::{Hover, HoverParams};
-use tokio::fs;
-
+use super::{util::LspRequest, LSPServer};
 use crate::{
     compiler::program::ir::VariableKind,
-    lsp::util::{find_block, get_processed_code, get_variable_at_position, strip_file_protocol},
+    lsp::util::{find_block, get_processed_code, get_variable_at_position},
 };
-
-use super::{util::LspRequest, LSPServer};
+use lsp_types::{Hover, HoverParams};
+use std::error::Error;
 
 impl LSPServer {
     pub async fn handle_hover(
@@ -20,22 +16,19 @@ impl LSPServer {
         let uri = pos_params.text_document.uri;
         let pos = pos_params.position;
 
-        let text = &fs::read_to_string(strip_file_protocol(uri.as_str())).await?;
+        let text = self.file_contents.get(&uri).await?;
 
-        let (lexed, _parsed, program) = match get_processed_code(text, uri.as_str()) {
-            Some(v) => v,
-            None => {
-                self.write_empty_response(request.id).await?;
-                return Ok(());
-            }
-        };
-
-        let Some((block, block_range)) = find_block(&lexed, text, pos) else {
+        let Ok((lexed, _parsed, program)) = get_processed_code(&text, uri.as_str()) else {
             self.write_empty_response(request.id).await?;
             return Ok(());
         };
 
-        let variable = get_variable_at_position(text, block, pos, &program);
+        let Some((block, block_range)) = find_block(&lexed, &text, pos) else {
+            self.write_empty_response(request.id).await?;
+            return Ok(());
+        };
+
+        let variable = get_variable_at_position(&text, block, pos, &program);
 
         let Some(variable) = variable else {
             self.write_empty_response(request.id).await?;

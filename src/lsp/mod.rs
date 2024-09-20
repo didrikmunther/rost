@@ -1,7 +1,8 @@
+use file_content::FileContents;
 use lifecycle::EmptyClientNotification;
 use lsp_types::{
-    DidChangeTextDocumentParams, GotoDefinitionParams, HoverParams, InitializeParams,
-    InitializedParams,
+    DidChangeTextDocumentParams, DidOpenTextDocumentParams, GotoDefinitionParams, HoverParams,
+    InitializeParams, InitializedParams,
 };
 use serde::Serialize;
 use serde_json::Value;
@@ -10,10 +11,11 @@ use std::error::Error;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
-use util::{LspRequest, LspResponse};
+use util::{LspNotification, LspRequest, LspResponse};
 
 mod definition;
-mod did_change;
+mod diagnostics;
+mod file_content;
 mod hover;
 mod lifecycle;
 mod util;
@@ -25,9 +27,9 @@ macro_rules! match_lsp_methods {
                 $(
                     $method => {
                         let params = serde_json::from_value::<$param_type>(request.params.as_ref().unwrap().clone()).unwrap();
-                        let id = request.id.map(|v| v.to_string()).unwrap_or("?".to_string());
+                        let id = request.id.map(|v| format!("Request {}", v.to_string())).unwrap_or("Client notification".to_string());
                         let content = serde_json::to_string_pretty(&request.params.as_ref().unwrap()).unwrap();
-                        eprintln!("\n\nRequest to {} ({}): {}", id, request.method, content);
+                        eprintln!("\n\n{id} ({}): {}", request.method, content);
 
                         self.$param_handler(request, params).await?;
                     }
@@ -42,17 +44,11 @@ macro_rules! match_lsp_methods {
     };
 }
 
-#[derive(Debug)]
-pub struct FileContent {
-    pub uri: String,
-    pub content: Option<String>,
-}
-
 pub struct LSPServer {
     pub reader: BufReader<OwnedReadHalf>,
     pub writer: OwnedWriteHalf,
     pub id_method_lookup: HashMap<u64, String>,
-    pub file_contents: HashMap<String, FileContent>,
+    pub file_contents: FileContents,
 }
 
 impl LSPServer {
@@ -63,6 +59,7 @@ impl LSPServer {
         "textDocument/definition" => GotoDefinitionParams => handle_goto_definition,
         "textDocument/hover" => HoverParams => handle_hover,
         "textDocument/didChange" => DidChangeTextDocumentParams => handle_did_change,
+        "textDocument/didOpen" => DidOpenTextDocumentParams => handle_did_open,
     }
 
     pub async fn create_and_connect(socket: u16) -> Result<Self, Box<dyn std::error::Error>> {
@@ -77,7 +74,7 @@ impl LSPServer {
             reader,
             writer,
             id_method_lookup: HashMap::new(),
-            file_contents: HashMap::new(),
+            file_contents: FileContents::default(),
         })
     }
 
@@ -136,12 +133,44 @@ impl LSPServer {
         self.write_rpc_message(message.as_ref()).await
     }
 
+    async fn _write_lsp_notification(
+        &mut self,
+        method: &str,
+        params: Option<Value>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        eprintln!(
+            "\n\nServer notification: {}",
+            params
+                .as_ref()
+                .map(|value| serde_json::to_string_pretty(&value).unwrap())
+                .unwrap_or("".to_string())
+        );
+
+        let response = LspNotification {
+            jsonrpc: "2.0".to_string(),
+            method: method.to_string(),
+            params,
+        };
+
+        let message = serde_json::to_string(&response)?;
+        self.write_rpc_message(message.as_ref()).await
+    }
+
     async fn write_lsp_message(
         &mut self,
         id: Option<u64>,
         deserializable: &impl Serialize,
     ) -> Result<(), Box<dyn std::error::Error>> {
         self._write_lsp_message(id, Some(serde_json::to_value(deserializable)?))
+            .await
+    }
+
+    async fn write_lsp_notification(
+        &mut self,
+        method: &str,
+        deserializable: &impl Serialize,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        self._write_lsp_notification(method, Some(serde_json::to_value(deserializable)?))
             .await
     }
 

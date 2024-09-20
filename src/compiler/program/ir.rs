@@ -1,6 +1,5 @@
-use std::ops::Range;
-
 use super::builder::Builder;
+use std::ops::Range;
 
 // An instruction is an atomic intermediate representation of an instruction
 

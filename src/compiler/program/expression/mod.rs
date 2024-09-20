@@ -154,7 +154,10 @@ impl Program {
             ExpressionKind::Primary(primary) => self.handle_primary(expression, primary),
             // ExpressionKind::Unary(unary) => self.handle_unary(expression, unary),
             ExpressionKind::Binary(binary) => self.handle_binary(expression, binary),
-            _ => todo!(),
+            _ => {
+                eprintln!("Expression: {:?}", expression);
+                todo!()
+            },
         }
     }
 }
