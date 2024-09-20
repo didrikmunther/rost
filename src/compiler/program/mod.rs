@@ -1,10 +1,7 @@
 use super::error::CompilerError;
-use crate::{
-    lexer::Keyword,
-    parser::{
-        definition::{Declaration, FunctionDeclaration, FunctionDeclarationParameter},
-        types::{Type, TypeIdentifier},
-    },
+use crate::parser::{
+    definition::{Declaration, FunctionDeclaration, FunctionDeclarationParameter},
+    types::{Type, TypeIdentifier},
 };
 use builder::Builder;
 use ir::{PrimitiveValue, Variable};
@@ -77,7 +74,7 @@ impl Program {
             parameters: vec![FunctionDeclarationParameter {
                 identifier: "format".to_string(),
                 typ: Type {
-                    identifier: TypeIdentifier::Primitive(Keyword::String),
+                    identifier: TypeIdentifier::Identifier("string".to_string()),
                     pos: 0..0,
                     children: None,
                 },

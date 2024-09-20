@@ -76,28 +76,6 @@ impl Program {
             _ => unreachable!(),
         }
 
-        // if parameter_diff > 0 {
-        //     return Err(CompilerError::new(
-        //         fcall.left.pos.clone(),
-        //         CompilerErrorKind::NotEnoughFunctionArguments {
-        //             got: fcall.args.len(),
-        //             missing: parameters[parameters.len() - parameter_diff as usize..]
-        //                 .iter()
-        //                 .map(|v| v.identifier.clone())
-        //                 .collect(),
-        //         },
-        //     ));
-        // }
-        //  else if parameter_diff < 0 {
-        //     return Err(CompilerError::new(
-        //         fcall.left.pos.clone(),
-        //         CompilerErrorKind::TooManyFunctionArguments {
-        //             expected: parameters.len(),
-        //             got: fcall.args.len(),
-        //         },
-        //     ));
-        // }
-
         let builder = builder
             .push(Instruction::new(
                 expression.pos.clone(),
@@ -112,53 +90,5 @@ impl Program {
             ));
 
         Ok(builder)
-
-        // let Some(variable) = self.get_variable(&identifier) else {
-        //     return Err(CompilerError::new(
-        //         fcall.left.pos.clone(),
-        //         CompilerErrorKind::UndefinedFunction(identifier),
-        //     ));
-        // };
-
-        // let VariableType::Function(function_id) = variable.typ else {
-        //     todo!("Variable is not a function")
-        // };
-
-        // let function = self.functions.get(function_id).unwrap();
-
-        // if function.parameters.len() != fcall.args.len() {
-        //     todo!(
-        //         "Wrong number of arguments to function, takes {}, {} was given",
-        //         function.parameters.len(),
-        //         fcall.args.len()
-        //     )
-        // }
-
-        // for (par, arg) in function.parameters.iter().zip(&fcall.args) {
-        //     let arg_type = self.infer_type(arg)?;
-        //     let par_type = self.get_variable_type(&par.typ);
-
-        //     if arg_type != par_type {
-        //         return Err(CompilerError::new(
-        //             arg.pos.clone(),
-        //             CompilerErrorKind::WrongArgumentType {
-        //                 parameter: par_type,
-        //                 argument: arg_type,
-        //                 parameter_pos: par.pos.clone(),
-        //             },
-        //         ));
-        //     }
-        // }
-
-        // builder = builder.push(Procedure::new(
-        //     expression.pos.clone(),
-        //     ProcedureKind::ProcedureCall(ProcedureCall {
-        //         function_id,
-        //         nargs: fcall.args.len(),
-        //         returns: function.return_type.is_some(),
-        //     }),
-        // ));
-
-        // Ok(builder)
     }
 }

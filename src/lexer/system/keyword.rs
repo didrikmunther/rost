@@ -3,11 +3,6 @@ use phf::phf_map;
 
 static KEYWORDS: phf::Map<&'static str, Keyword> = phf_map! {
     "let" => Keyword::Let,
-    "int" => Keyword::Int,
-    "pointer" => Keyword::Pointer,
-    "string" => Keyword::String,
-    "char" => Keyword::Char,
-    "bool" => Keyword::Bool,
     "fn" => Keyword::Fn,
     "return" => Keyword::Return,
     "if" => Keyword::If,
@@ -15,6 +10,7 @@ static KEYWORDS: phf::Map<&'static str, Keyword> = phf_map! {
     "while" => Keyword::While,
     "struct" => Keyword::Struct,
     "__builtin" => Keyword::Builtin,
+    "..." => Keyword::Ellipsis,
 };
 
 pub struct KeywordLexer;

@@ -9,8 +9,8 @@ use super::{error::ParserError, Parser};
 
 #[derive(Debug, Clone)]
 pub enum TypeIdentifier {
-    Primitive(Keyword),
-    Struct(String),
+    Identifier(String),
+    Pointer,
 }
 
 #[derive(Debug, Clone)]
@@ -27,32 +27,18 @@ impl<'a> Parser<'a> {
 
         let identifier = match &next.token {
             Token::Keyword(keyword) => match keyword {
-                Keyword::Int | Keyword::Bool | Keyword::Char | Keyword::Pointer => {
-                    TypeIdentifier::Primitive(*keyword)
-                }
                 Keyword::Ampersand => {
                     let child = self.parse_type()?;
 
                     return Ok(Type {
-                        identifier: TypeIdentifier::Primitive(Keyword::Pointer),
+                        identifier: TypeIdentifier::Pointer,
                         pos: next.pos.start..child.pos.end,
                         children: Some(vec![child]),
                     });
                 }
-                Keyword::String => {
-                    return Ok(Type {
-                        identifier: TypeIdentifier::Primitive(Keyword::Pointer),
-                        pos: next.pos.clone(),
-                        children: Some(vec![Type {
-                            identifier: TypeIdentifier::Primitive(Keyword::Char),
-                            pos: next.pos.clone(),
-                            children: None,
-                        }]),
-                    })
-                }
                 _ => return parser_todo!(next.pos.clone(), "Unknown type"),
             },
-            Token::Identifier(identifier) => TypeIdentifier::Struct(identifier.clone()),
+            Token::Identifier(identifier) => identifier.clone(),
             _ => return parser_todo!(next.pos.clone(), "Unknown type"),
         };
 
@@ -67,13 +53,13 @@ impl<'a> Parser<'a> {
             }
 
             Ok(Type {
-                identifier,
+                identifier: TypeIdentifier::Identifier(identifier),
                 pos: next.pos.start..children.last().unwrap().pos.end,
                 children: Some(children),
             })
         } else {
             Ok(Type {
-                identifier,
+                identifier: TypeIdentifier::Identifier(identifier),
                 pos: next.pos.clone(),
                 children: None,
             })
