@@ -1,4 +1,13 @@
+// __builtin fn printf(format: string) {}
+
+fn print_two_numbers(a: int, b: int) {
+	a = a + 1;
+	b = b * 2;
+
+	printf("%i %i", a, b);
+}
+
 let a = 1 + 2;
-let b = c + 3 * 4;
+let b = a + 3 * 4;
 
 print_two_numbers(a, b);

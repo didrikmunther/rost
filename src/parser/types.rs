@@ -39,6 +39,17 @@ impl<'a> Parser<'a> {
                         children: Some(vec![child]),
                     });
                 }
+                Keyword::String => {
+                    return Ok(Type {
+                        identifier: TypeIdentifier::Primitive(Keyword::Pointer),
+                        pos: next.pos.clone(),
+                        children: Some(vec![Type {
+                            identifier: TypeIdentifier::Primitive(Keyword::Char),
+                            pos: next.pos.clone(),
+                            children: None,
+                        }]),
+                    })
+                }
                 _ => return parser_todo!(next.pos.clone(), "Unknown type"),
             },
             Token::Identifier(identifier) => TypeIdentifier::Struct(identifier.clone()),

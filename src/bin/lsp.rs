@@ -1,6 +1,5 @@
 use clap::Parser;
 use rost::lsp::LSPServer;
-use tokio::{io::BufReader, net::TcpStream};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -13,18 +12,10 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
-
     eprintln!("{:?}", args);
-    eprintln!("Connecting to the language server ...");
 
-    let (reader, writer) = TcpStream::connect(format!("127.0.0.1:{}", args.socket))
+    LSPServer::create_and_connect(args.socket)
         .await?
-        .into_split();
-    let reader = BufReader::new(reader);
-
-    let mut server = LSPServer { reader, writer };
-
-    server.run().await?;
-
-    Ok(())
+        .run()
+        .await
 }

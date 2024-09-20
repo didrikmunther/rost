@@ -1,6 +1,6 @@
 use crate::{
     compiler::{
-        error::CompilerError,
+        error::{CompilerError, CompilerErrorKind},
         program::ir::{Instruction, InstructionKind, ProcedureCall},
     },
     parser::definition::{Expression, FunctionCall},
@@ -24,28 +24,35 @@ impl Program {
         }
 
         let identifier = fcall.left.get_string().unwrap().to_string();
-        
-        if BUILT_IN.contains(&identifier.as_str()) {
-            return Ok(builder
-                .push(Instruction::new(
-                    expression.pos.clone(),
-                    InstructionKind::SystemCall(ProcedureCall {
-                        nargs: fcall.args.len(),
-                        identifier,
-                    }),
-                ))
-                .push(Instruction::new(
-                    expression.pos.clone(),
-                    InstructionKind::Pop,
-                )));
-        }
+
+        // if BUILT_IN.contains(&identifier.as_str()) {
+        //     return Ok(builder
+        //         .push(Instruction::new(
+        //             expression.pos.clone(),
+        //             InstructionKind::SystemCall(ProcedureCall {
+        //                 nargs: fcall.args.len(),
+        //                 identifier,
+        //             }),
+        //         ))
+        //         .push(Instruction::new(
+        //             expression.pos.clone(),
+        //             InstructionKind::Pop,
+        //         )));
+        // }
+
+        let Some(variable_id) = self.get_variable(&identifier) else {
+            return Err(CompilerError::new(
+                fcall.left.pos.clone(),
+                CompilerErrorKind::UndefinedFunction(identifier),
+            ));
+        };
 
         let builder = builder
             .push(Instruction::new(
                 expression.pos.clone(),
                 InstructionKind::ProcedureCall(ProcedureCall {
                     nargs: fcall.args.len(),
-                    identifier,
+                    variable_id,
                 }),
             ))
             .push(Instruction::new(

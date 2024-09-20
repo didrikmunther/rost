@@ -125,12 +125,14 @@ impl Generator {
                     let variable_name = program.variables[id].identifier.clone();
                     elements.push(Element::Assign(format!("_{id}_{variable_name}")));
                 }
-                InstructionKind::SystemCall(ProcedureCall { identifier, nargs }) => {
+                InstructionKind::SystemCall(ProcedureCall { variable_id, nargs }) => {
                     elements.push(Element::Push(nargs.to_string()));
+                    let identifier = program.variables[*variable_id].identifier.clone();
                     elements.push(Element::FunctionCall(format!("__builtin__{identifier}")))
                 }
-                InstructionKind::ProcedureCall(ProcedureCall { identifier, nargs }) => {
+                InstructionKind::ProcedureCall(ProcedureCall { variable_id, nargs }) => {
                     elements.push(Element::Push(nargs.to_string()));
+                    let identifier = program.variables[*variable_id].identifier.clone();
                     elements.push(Element::FunctionCall(format!("__user__{identifier}")))
                 }
                 _ => {

@@ -1,5 +1,11 @@
 use super::error::CompilerError;
-use crate::parser::definition::Declaration;
+use crate::{
+    lexer::Keyword,
+    parser::{
+        definition::{Declaration, FunctionDeclaration, FunctionDeclarationParameter},
+        types::{Type, TypeIdentifier},
+    },
+};
 use builder::Builder;
 use ir::{PrimitiveValue, Variable};
 use rust_lapper::Lapper;
@@ -57,6 +63,22 @@ impl Program {
             .fold(0..0, |acc, decl| acc.start..decl.pos.end);
 
         self.scope_ranges.push((location, self.scope_id));
+
+        self.create_function_declaration(&FunctionDeclaration {
+            identifier: "printf".to_string(),
+            identifier_pos: 0..0,
+            parameters: vec![FunctionDeclarationParameter {
+                identifier: "format".to_string(),
+                typ: Type {
+                    identifier: TypeIdentifier::Primitive(Keyword::String),
+                    pos: 0..0,
+                    children: None,
+                },
+                pos: 0..0,
+            }],
+            content: vec![],
+            return_type: None,
+        })?;
 
         self.instructions = self.get_instructions(&parsed)?;
 

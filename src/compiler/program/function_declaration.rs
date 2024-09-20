@@ -12,11 +12,10 @@ use crate::{
 };
 
 impl Program {
-    pub fn handle_function_declaration(
+    pub fn create_function_declaration(
         &mut self,
-        _statement: &Declaration,
         fdec: &FunctionDeclaration,
-    ) -> Result<Builder, CompilerError> {
+    ) -> Result<(), CompilerError> {
         let mut parameter_variable_ids = Vec::new();
 
         let body = self.with_scope(|this| {
@@ -40,7 +39,7 @@ impl Program {
                 parameter_variable_ids.push(variable_id);
 
                 body = body.push(Instruction::new(
-                    fdec.identifier_pos.clone(),
+                    param.pos.clone(),
                     InstructionKind::Assign(variable_id),
                 ));
             }
@@ -66,6 +65,16 @@ impl Program {
             }),
             declaration_pos: fdec.identifier_pos.clone(),
         });
+
+        Ok(())
+    }
+
+    pub fn handle_function_declaration(
+        &mut self,
+        _statement: &Declaration,
+        fdec: &FunctionDeclaration,
+    ) -> Result<Builder, CompilerError> {
+        self.create_function_declaration(fdec)?;
 
         Ok(Builder::new())
 

@@ -28,6 +28,7 @@ pub enum Keyword {
     GreaterThan,
     Equality,
     Dot,
+    Builtin,
 
     // Types
     Int,

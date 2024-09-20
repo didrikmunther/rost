@@ -93,17 +93,17 @@ pub enum InstructionKind {
     SystemCall(ProcedureCall),
 }
 
-#[derive(Debug)]
-pub struct While {
-    pub condition: Box<Builder>,
-    pub content: Box<Builder>,
-}
+// #[derive(Debug)]
+// pub struct While {
+//     pub condition: Box<Builder>,
+//     pub content: Box<Builder>,
+// }
 
-#[derive(Debug)]
-pub struct If {
-    pub condition: Option<Box<Builder>>,
-    pub content: Box<Builder>,
-}
+// #[derive(Debug)]
+// pub struct If {
+//     pub condition: Option<Box<Builder>>,
+//     pub content: Box<Builder>,
+// }
 
 #[derive(Debug, Clone)]
 pub enum Arithmetic {
@@ -118,11 +118,6 @@ pub enum Arithmetic {
 
 #[derive(Debug)]
 pub struct ProcedureCall {
-    pub identifier: String,
+    pub variable_id: VariableId,
     pub nargs: usize,
-}
-
-#[derive(Debug)]
-pub struct Assignment {
-    pub identifier: String,
 }
