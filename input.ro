@@ -8,8 +8,7 @@ let a = 1;
 let b = 2;
 let u = add_two_numbers(
 	a,
-	b,
-	4
+	b
 );
 
 let q = u + 1;

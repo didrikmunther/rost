@@ -49,22 +49,49 @@ impl Program {
             .collect::<Vec<_>>();
 
         let parameter_diff = parameters.len() as i32 - fcall.args.len() as i32;
-        if parameter_diff > 0 {
-            return Err(CompilerError::new(
-                fcall.left.pos.clone(),
-                CompilerErrorKind::NotEnoughFunctionArguments {
-                    missing: parameters[parameters.len() - parameter_diff as usize..]
-                        .iter()
-                        .map(|v| v.identifier.clone())
-                        .collect(),
-                },
-            ));
+
+        match parameter_diff {
+            0 => {}
+            _ if parameter_diff > 0 => {
+                return Err(CompilerError::new(
+                    fcall.left.pos.clone(),
+                    CompilerErrorKind::NotEnoughFunctionArguments {
+                        got: fcall.args.len(),
+                        missing: parameters[parameters.len() - parameter_diff as usize..]
+                            .iter()
+                            .map(|v| v.identifier.clone())
+                            .collect(),
+                    },
+                ));
+            }
+            _ if parameter_diff < 0 => {
+                return Err(CompilerError::new(
+                    fcall.left.pos.clone(),
+                    CompilerErrorKind::TooManyFunctionArguments {
+                        expected: parameters.len(),
+                        got: fcall.args.len(),
+                    },
+                ));
+            }
+            _ => unreachable!(),
         }
+
+        // if parameter_diff > 0 {
+        //     return Err(CompilerError::new(
+        //         fcall.left.pos.clone(),
+        //         CompilerErrorKind::NotEnoughFunctionArguments {
+        //             got: fcall.args.len(),
+        //             missing: parameters[parameters.len() - parameter_diff as usize..]
+        //                 .iter()
+        //                 .map(|v| v.identifier.clone())
+        //                 .collect(),
+        //         },
+        //     ));
+        // }
         //  else if parameter_diff < 0 {
         //     return Err(CompilerError::new(
         //         fcall.left.pos.clone(),
-        //         CompilerErrorKind::TooManyArguments {
-        //             identifier,
+        //         CompilerErrorKind::TooManyFunctionArguments {
         //             expected: parameters.len(),
         //             got: fcall.args.len(),
         //         },

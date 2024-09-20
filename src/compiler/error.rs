@@ -11,6 +11,11 @@ pub enum CompilerErrorKind {
     NotAFunction(String),
     NotEnoughFunctionArguments {
         missing: Vec<String>,
+        got: usize,
+    },
+    TooManyFunctionArguments {
+        expected: usize,
+        got: usize,
     },
     RedeclaredVariable(String, Range<usize>),
     NotSupported(String),
@@ -84,12 +89,18 @@ impl CompilerError {
             CompilerErrorKind::NotAFunction(identifier) => {
                 vec![(format!("Not a function: {identifier}"), self.pos.clone())]
             }
-            CompilerErrorKind::NotEnoughFunctionArguments { missing } => {
+            CompilerErrorKind::NotEnoughFunctionArguments { missing, got } => {
                 vec![(
                     format!(
-                        "Missing function arguments: {missing}",
-                        missing = missing.join(", ")
+                        "Not enough function arguments, only got {got}, missing: {missing}",
+                        missing = missing.join(", "),
                     ),
+                    self.pos.clone(),
+                )]
+            }
+            CompilerErrorKind::TooManyFunctionArguments { expected, got } => {
+                vec![(
+                    format!("Too many function arguments, expected {expected}, got {got}",),
                     self.pos.clone(),
                 )]
             }
