@@ -5,11 +5,11 @@ use lsp_types::{Diagnostic, PublishDiagnosticsParams, Uri};
 use std::error::Error;
 
 impl LSPServer {
-    fn get_diagnostics(&self, text: &str, err: RostError) -> Vec<Diagnostic> {
-        eprintln!("Error: {:?}", err);
+    fn get_diagnostics(&self, text: &str, errs: Vec<RostError>) -> Vec<Diagnostic> {
+        eprintln!("Errors: {:?}", errs);
 
-        err.elements
-            .iter()
+        errs.iter()
+            .flat_map(|el| &el.elements)
             .map(|el| Diagnostic {
                 range: pos_to_row_col(text, &el.pos),
                 severity: None,
@@ -33,7 +33,7 @@ impl LSPServer {
 
         let diagnostics = match get_processed_code(&text, uri.as_str()) {
             Ok(_) => vec![],
-            Err(err) => self.get_diagnostics(&text, err),
+            Err(errs) => self.get_diagnostics(&text, errs),
         };
 
         let params = PublishDiagnosticsParams {

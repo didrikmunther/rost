@@ -67,8 +67,9 @@ def __user__add_two_numbers():
 
 def __setup():
 	global __global_data
-	__global_data = list(range(1))
+	__global_data = list(range(2))
 	__global_data[0] = "%i + %i = %i\n"
+	__global_data[1] = "a"
 
 def __main():
 	__intrinsic__stack_push(1)
@@ -76,7 +77,9 @@ def __main():
 	__intrinsic__stack_push(2)
 	_7_b = __intrinsic__stack_pop()
 	__intrinsic__stack_push(_6_a)
+	__intrinsic__stack_push(__global_data[1])
 	__intrinsic__stack_push(_7_b)
+	__intrinsic__stack_add()
 	__intrinsic__stack_push(2)
 	__user__add_two_numbers()
 	__intrinsic__stack_pop()

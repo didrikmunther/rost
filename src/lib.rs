@@ -1,4 +1,3 @@
-use ::std::io::Write;
 use std::{fs, process::exit};
 
 use backend::{python::PythonBackend, Backend};
@@ -30,73 +29,73 @@ pub struct RunSettings {
     pub level: CompilationLevel,
 }
 
-fn flush() {
-    std::io::stdout().flush().expect("Flush failed.");
-}
+// fn flush() {
+//     std::io::stdout().flush().expect("Flush failed.");
+// }
 
-pub fn shell(settings: ShellSettings) {
-    let mut code = String::new();
+// pub fn shell(settings: ShellSettings) {
+//     let mut code = String::new();
 
-    loop {
-        print!("> ");
-        flush();
+//     loop {
+//         print!("> ");
+//         flush();
 
-        let mut buf = String::new();
-        std::io::stdin()
-            .read_line(&mut buf)
-            .expect("Could not read user input.");
+//         let mut buf = String::new();
+//         std::io::stdin()
+//             .read_line(&mut buf)
+//             .expect("Could not read user input.");
 
-        code.push_str(&buf);
+//         code.push_str(&buf);
 
-        let print_error = |mut err: RostError| {
-            println!("{}", err.with_code(Some(buf.clone())));
-        };
+//         let print_error = |mut err: RostError| {
+//             println!("{}", err.with_code(Some(buf.clone())));
+//         };
 
-        match buf.as_ref() {
-            "quit\n" => break,
-            _ => {
-                let document = match lexer::lex(&buf) {
-                    Ok(lexed) => Some(lexed),
-                    Err(err) => {
-                        print_error(err.into());
-                        None
-                    }
-                };
+//         match buf.as_ref() {
+//             "quit\n" => break,
+//             _ => {
+//                 let document = match lexer::lex(&buf) {
+//                     Ok(lexed) => Some(lexed),
+//                     Err(err) => {
+//                         print_error(err.into());
+//                         None
+//                     }
+//                 };
 
-                if settings.level == CompilationLevel::Lexed {
-                    println!("{document:#?}");
-                    continue;
-                }
+//                 if settings.level == CompilationLevel::Lexed {
+//                     println!("{document:#?}");
+//                     continue;
+//                 }
 
-                let parsed = document.and_then(|document| match parser::parse(&document) {
-                    Ok(program) => Some(program),
-                    Err(err) => {
-                        print_error(err.into());
-                        None
-                    }
-                });
+//                 let parsed = document.and_then(|document| match parser::parse(&document) {
+//                     Ok(program) => Some(program),
+//                     Err(err) => {
+//                         print_error(err.into());
+//                         None
+//                     }
+//                 });
 
-                if settings.level == CompilationLevel::Parsed {
-                    println!("{parsed:#?}");
-                    continue;
-                }
+//                 if settings.level == CompilationLevel::Parsed {
+//                     println!("{parsed:#?}");
+//                     continue;
+//                 }
 
-                let compiled = parsed.and_then(|parsed| match compiler::compile(parsed) {
-                    Ok(code) => Some(code),
-                    Err(err) => {
-                        print_error(err.into());
-                        None
-                    }
-                });
+//                 let compiled = parsed.and_then(|parsed| match compiler::compile(parsed) {
+//                     Ok(code) => Some(code),
+//                     Err(err) => {
+//                         print_error(err.into());
+//                         None
+//                     }
+//                 });
 
-                if settings.level == CompilationLevel::Compiled {
-                    println!("{compiled:#?}");
-                    continue;
-                }
-            }
-        };
-    }
-}
+//                 if settings.level == CompilationLevel::Compiled {
+//                     println!("{compiled:#?}");
+//                     continue;
+//                 }
+//             }
+//         };
+//     }
+// }
 
 #[allow(dead_code)]
 pub fn run(settings: RunSettings) -> Option<String> {
@@ -109,18 +108,19 @@ pub fn run(settings: RunSettings) -> Option<String> {
 
     let text = &fs::read_to_string(&file).expect("Unable to read file");
 
-    let print_error = |mut err: RostError| {
-        println!(
-            "{}",
+    let print_error = |mut errs: Vec<RostError>| {
+        for err in errs.iter_mut() {
             err.with_code(Some(text.to_string()))
-                .with_file(Some(file.to_string()))
-        );
+                .with_file(Some(file.to_string()));
+
+            println!("{}", err);
+        }
     };
 
     let document = match lexer::lex(text) {
         Ok(lexed) => Some(lexed),
         Err(err) => {
-            print_error(err.into());
+            print_error(vec![err.into()]);
             None
         }
     };
@@ -133,7 +133,7 @@ pub fn run(settings: RunSettings) -> Option<String> {
     let parsed = document.and_then(|document| match parser::parse(&document) {
         Ok(program) => Some(program),
         Err(err) => {
-            print_error(err.into());
+            print_error(vec![err.into()]);
             None
         }
     });
@@ -145,8 +145,8 @@ pub fn run(settings: RunSettings) -> Option<String> {
 
     let compiled = parsed.and_then(|parsed| match compiler::compile(parsed) {
         Ok(code) => Some(code),
-        Err(err) => {
-            print_error(err.into());
+        Err(errs) => {
+            print_error(errs.into_iter().map(|e| e.into()).collect());
             None
         }
     });
@@ -159,7 +159,7 @@ pub fn run(settings: RunSettings) -> Option<String> {
     match PythonBackend::generate(&compiled.unwrap()) {
         Ok(generated) => Some(generated),
         Err(err) => {
-            print_error(err);
+            print_error(vec![err]);
             None
         }
     }

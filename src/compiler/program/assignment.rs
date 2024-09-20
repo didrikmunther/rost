@@ -63,7 +63,9 @@ impl Program {
         &mut self,
         declaration: &VariableDeclaration,
     ) -> Result<Builder, CompilerError> {
-        let value = self.handle_expression(&declaration.right)?;
+        let result = self.handle_expression(&declaration.right);
+        let value = self.get_or_add_error(result);
+        let assignment_has_error = value.is_none();
 
         let variable_id = self.insert_variable(Variable {
             identifier: declaration.identifier.clone(),
@@ -72,7 +74,12 @@ impl Program {
                 typ: PrimitiveType::Int,
             }),
             declaration_pos: declaration.identifier_pos.clone(),
+            assignment_has_error,
         });
+
+        let Some(value) = value else {
+            return Ok(Builder::new());
+        };
 
         let builder = Builder::new().append(value);
 

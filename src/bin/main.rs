@@ -1,5 +1,5 @@
 use clap::Parser;
-use rost::{run, shell, CompilationLevel, RunSettings, ShellSettings};
+use rost::{run, CompilationLevel, RunSettings};
 use std::{fs, process::exit};
 
 #[derive(Parser, Debug)]
@@ -31,7 +31,7 @@ fn main() -> std::io::Result<()> {
     };
 
     if args.shell {
-        shell(ShellSettings { level });
+        // shell(ShellSettings { level });
     } else {
         let generated = run(RunSettings {
             file_name: args.file,

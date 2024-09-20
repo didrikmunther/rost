@@ -3,11 +3,22 @@ use crate::{compiler::error::CompilerError, parser::definition::Declaration};
 
 impl Program {
     pub fn get_instructions(&mut self, content: &[Declaration]) -> Result<Builder, CompilerError> {
-        content
-            .iter()
-            .try_fold(Builder::default(), |builder, declaration| {
-                Ok(builder.append(self.handle_declaration(declaration)?))
-            })
+        // content
+        //     .iter()
+        //     .try_fold(Builder::default(), |builder, declaration| {
+        //         Ok(builder.append(self.handle_declaration(declaration)?))
+        //     })
+
+        let mut builder = Builder::default();
+
+        for declaration in content {
+            let result = self.handle_declaration(declaration);
+            if let Some(result) = self.get_or_add_error(result) {
+                builder = builder.append(result);
+            }
+        }
+
+        Ok(builder)
     }
 
     // pub fn get_variable(&self, identifier: &String) -> Option<&StoredVariable> {

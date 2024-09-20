@@ -6,4 +6,6 @@ fn add_two_numbers(a: int, b: int) {
 
 let a = 1;
 let b = 2;
-add_two_numbers(a, b);
+let u = add_two_number(a, b + c);
+
+let q = u + 1;

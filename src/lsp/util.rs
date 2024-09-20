@@ -142,33 +142,38 @@ pub fn find_block<'a>(
     Some((block, block_range))
 }
 
-pub fn _get_processed_code(text: &str) -> Result<(Vec<Block>, Ast, Program), RostError> {
+pub fn _get_processed_code(text: &str) -> Result<(Vec<Block>, Ast, Program), Vec<RostError>> {
     let lexed = match lexer::lex(text) {
         Ok(v) => v,
-        Err(err) => return Err(err.into()),
+        Err(err) => return Err(vec![err.into()]),
     };
 
     let parsed = match parser::parse(&lexed) {
         Ok(v) => v,
-        Err(err) => return Err(err.into()),
+        Err(err) => return Err(vec![err.into()]),
     };
 
     let compiled = match compiler::compile(parsed.clone()) {
         Ok(v) => v,
-        Err(err) => return Err(err.into()),
+        Err(errs) => return Err(errs.into_iter().map(|e| e.into()).collect()),
     };
 
     Ok((lexed, parsed, compiled))
 }
 
-pub fn get_processed_code(text: &str, uri: &str) -> Result<(Vec<Block>, Ast, Program), RostError> {
+pub fn get_processed_code(
+    text: &str,
+    uri: &str,
+) -> Result<(Vec<Block>, Ast, Program), Vec<RostError>> {
     match _get_processed_code(text) {
         Ok(v) => Ok(v),
-        Err(mut err) => {
-            err.with_code(Some(text.to_string()))
-                .with_file(Some(uri.to_string()));
+        Err(mut errs) => {
+            for err in errs.iter_mut() {
+                err.with_code(Some(text.to_string()))
+                    .with_file(Some(uri.to_string()));
+            }
 
-            Err(err)
+            Err(errs)
         }
     }
 }

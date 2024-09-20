@@ -36,6 +36,8 @@ pub struct Program {
     // We should use some kind of run-length encoding to make this more efficient.
     scope_ranges: Vec<ScopeRange>,
     pub scope_lookup: Lapper<Location, ScopeId>,
+
+    pub errors: Vec<CompilerError>,
 }
 
 impl Default for Program {
@@ -54,16 +56,21 @@ impl Program {
             instructions: Builder::new(),
             variables: vec![],
             global_data: vec![],
+            errors: vec![],
         }
     }
 
-    pub fn compile(mut self, parsed: Vec<Declaration>) -> Result<Program, CompilerError> {
-        let location = parsed
-            .iter()
-            .fold(0..0, |acc, decl| acc.start..decl.pos.end);
+    pub fn get_or_add_error(&mut self, result: Result<Builder, CompilerError>) -> Option<Builder> {
+        match result {
+            Ok(builder) => Some(builder),
+            Err(error) => {
+                self.errors.push(error);
+                None
+            }
+        }
+    }
 
-        self.scope_ranges.push((location, self.scope_id));
-
+    fn add_builtin_functions(&mut self) -> Result<(), CompilerError> {
         self.create_function_declaration(&FunctionDeclaration {
             identifier: "printf".to_string(),
             identifier_pos: 0..0,
@@ -80,10 +87,33 @@ impl Program {
             return_type: None,
         })?;
 
-        self.instructions = self.get_instructions(&parsed)?;
+        Ok(())
+    }
 
+    fn _compile(&mut self, parsed: Vec<Declaration>) -> Result<(), CompilerError> {
+        let location = parsed
+            .iter()
+            .fold(0..0, |acc, decl| acc.start..decl.pos.end);
+
+        self.scope_ranges.push((location, self.scope_id));
+        self.add_builtin_functions()?;
+        self.instructions = self.get_instructions(&parsed)?;
         self.scope_lookup = self.get_scope_lookup();
 
-        Ok(self)
+        Ok(())
+    }
+
+    pub fn compile(mut self, parsed: Vec<Declaration>) -> Result<Program, Vec<CompilerError>> {
+        let result = self._compile(parsed);
+
+        if let Err(error) = result {
+            self.errors.push(error);
+        }
+
+        if self.errors.is_empty() {
+            Ok(self)
+        } else {
+            Err(self.errors)
+        }
     }
 }

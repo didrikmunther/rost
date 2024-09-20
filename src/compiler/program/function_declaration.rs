@@ -18,13 +18,20 @@ impl Program {
     ) -> Result<(), CompilerError> {
         let mut parameter_variable_ids = Vec::new();
 
-        let body = self.with_scope(|this| {
+        let result = self.with_scope(|this| {
             // The first value on the stack on a function call is always amount of arguments.
             // This is used for varargs functions, but we don't have those yet.
             let mut body = Builder::new().push(Instruction::new(
                 fdec.identifier_pos.clone(),
                 InstructionKind::Pop,
             ));
+
+            let location = fdec
+                .content
+                .iter()
+                .fold(fdec.identifier_pos.clone(), |acc, decl| {
+                    acc.start..decl.pos.end
+                });
 
             for param in &fdec.parameters {
                 let variable_id = this.insert_variable(Variable {
@@ -34,6 +41,7 @@ impl Program {
                         typ: PrimitiveType::Int, // TODO: Get the actual type
                     }),
                     declaration_pos: param.pos.clone(),
+                    assignment_has_error: false,
                 });
 
                 parameter_variable_ids.push(variable_id);
@@ -46,24 +54,21 @@ impl Program {
 
             let body = body.append(this.get_instructions(&fdec.content)?);
 
-            let location = fdec
-                .content
-                .iter()
-                .fold(fdec.identifier_pos.clone(), |acc, decl| {
-                    acc.start..decl.pos.end
-                });
-
             Ok((body, location))
-        })?;
+        });
+
+        let body = self.get_or_add_error(result);
+        let assignment_has_error = body.is_none();
 
         self.insert_variable(Variable {
             identifier: fdec.identifier.clone(),
             scope: VariableScope::Global,
             kind: VariableKind::DeclaredFunction(Function {
                 parameter_variable_ids,
-                body,
+                body: body.unwrap_or_default(),
             }),
             declaration_pos: fdec.identifier_pos.clone(),
+            assignment_has_error,
         });
 
         Ok(())
