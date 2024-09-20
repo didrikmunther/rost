@@ -16,7 +16,7 @@ impl Program {
     ) -> Result<Builder, CompilerError> {
         let mut builder = Builder::new();
 
-        for arg in &fcall.args {
+        for arg in fcall.args.iter().rev() {
             let result = self.handle_expression(arg);
             if let Some(expr) = self.get_or_add_error(result) {
                 builder = builder.append(expr);
@@ -64,6 +64,7 @@ impl Program {
                     },
                 ));
             }
+            _ if function.vararg_parameter.is_some() && parameter_diff < 0 => {}
             _ if parameter_diff < 0 => {
                 return Err(CompilerError::new(
                     fcall.left.pos.clone(),

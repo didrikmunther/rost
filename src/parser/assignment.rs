@@ -30,14 +30,20 @@ impl<'a> Parser<'a> {
             let Some((right, _)) = self.parse_assignment_value()? else {
                 return Err(ParserError::new(
                     self.peek_or_eof()?.pos.clone(),
-                    ParserErrorKind::Expected(&[Keyword::Equals]),
+                    ParserErrorKind::Expected {
+                        expected: &[Keyword::Equals],
+                        got: self.peek_or_eof()?.kind,
+                    },
                 ));
             };
 
             let Some(identifier) = get_block_identifier(left) else {
                 return Err(ParserError::new(
                     left.pos.clone(),
-                    ParserErrorKind::Expected(&[Keyword::Identifier]),
+                    ParserErrorKind::Expected {
+                        expected: &[Keyword::Identifier],
+                        got: left.kind,
+                    },
                 ));
             };
 
@@ -54,7 +60,10 @@ impl<'a> Parser<'a> {
         } else {
             Err(ParserError::new(
                 self.peek_or_eof()?.pos.clone(),
-                ParserErrorKind::Expected(&[Keyword::Identifier]),
+                ParserErrorKind::Expected {
+                    expected: &[Keyword::Identifier],
+                    got: self.peek_or_eof()?.kind,
+                },
             ))
         }
     }

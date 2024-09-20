@@ -39,14 +39,20 @@ impl<'a> Parser<'a> {
                     } else {
                         return Err(ParserError::new(
                             struct_identifier.pos.clone(),
-                            ParserErrorKind::Expected(&[Keyword::Identifier]),
+                            ParserErrorKind::Expected {
+                                expected: &[Keyword::Identifier],
+                                got: identifier.kind,
+                            },
                         ));
                     }
                 } else {
                     println!("here: {struct_identifier:#?}");
                     return Err(ParserError::new(
                         self.peek().unwrap().pos.clone(),
-                        ParserErrorKind::Expected(&[Keyword::Identifier]),
+                        ParserErrorKind::Expected {
+                            expected: &[Keyword::Identifier],
+                            got: self.peek().unwrap().kind,
+                        },
                     ));
                 };
 

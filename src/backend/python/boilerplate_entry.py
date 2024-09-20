@@ -6,7 +6,7 @@ import sys
 def __compiler__with_regular_args(func):
     def wrapper(*args):
         n_args = __stack.pop()
-        args = reversed([__stack.pop() for i in range(n_args)])
+        args = [__stack.pop() for i in range(n_args)]
         __stack.append(func(*args))
 
     return wrapper

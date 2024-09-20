@@ -1,24 +1,81 @@
 use super::{
     builder::Builder,
     ir::{
-        Function, Instruction, InstructionKind, NormalVariable, PrimitiveType, Variable,
-        VariableKind, VariableScope,
+        Function, FunctionBody, Instruction, InstructionKind, NormalVariable, PrimitiveType,
+        Variable, VariableKind, VariableScope,
     },
     Program,
 };
 use crate::{
     compiler::error::CompilerError,
-    parser::definition::{Declaration, FunctionDeclaration},
+    parser::definition::{Declaration, FunctionDeclaration, FunctionDeclarationContent},
 };
+
+fn add_function_parameters(this: &mut Program, fdec: &FunctionDeclaration) -> Vec<usize> {
+    let mut parameter_variable_ids = Vec::new();
+
+    for param in &fdec.parameters {
+        let variable_id = this.insert_variable(Variable {
+            identifier: param.identifier.clone(),
+            scope: VariableScope::Local,
+            kind: VariableKind::Normal(NormalVariable {
+                typ: PrimitiveType::Int, // TODO: Get the actual type
+            }),
+            declaration_pos: param.pos.clone(),
+            assignment_has_error: false,
+        });
+
+        parameter_variable_ids.push(variable_id);
+    }
+
+    if let Some(vararg_parameter) = &fdec.vararg_parameter {
+        let variable_id = this.insert_variable(Variable {
+            identifier: vararg_parameter.identifier.clone(),
+            scope: VariableScope::Local,
+            kind: VariableKind::Normal(NormalVariable {
+                typ: PrimitiveType::Int, // TODO: Get the actual type
+            }),
+            declaration_pos: vararg_parameter.pos.clone(),
+            assignment_has_error: false,
+        });
+
+        parameter_variable_ids.push(variable_id);
+    }
+
+    parameter_variable_ids
+}
 
 impl Program {
     pub fn create_function_declaration(
         &mut self,
         fdec: &FunctionDeclaration,
     ) -> Result<(), CompilerError> {
-        let mut parameter_variable_ids = Vec::new();
+        let block = match &fdec.content {
+            FunctionDeclarationContent::Builtin => {
+                let parameter_variable_ids = add_function_parameters(self, fdec);
+
+                self.insert_variable(Variable {
+                    identifier: fdec.identifier.clone(),
+                    scope: VariableScope::Global,
+                    kind: VariableKind::DeclaredFunction(Function {
+                        vararg_parameter: parameter_variable_ids.last().copied(),
+                        parameter_variable_ids,
+                        body: FunctionBody::Builtin,
+                    }),
+                    declaration_pos: fdec.identifier_pos.clone(),
+                    assignment_has_error: false,
+                });
+
+                return Ok(());
+            }
+            FunctionDeclarationContent::Block(block) => block,
+        };
 
         let result = self.with_scope(|this| {
+            let location = block.iter().fold(fdec.identifier_pos.clone(), |acc, decl| {
+                acc.start..decl.pos.end
+            });
+
             // The first value on the stack on a function call is always amount of arguments.
             // This is used for varargs functions, but we don't have those yet.
             let mut body = Builder::new().push(Instruction::new(
@@ -26,46 +83,32 @@ impl Program {
                 InstructionKind::Pop,
             ));
 
-            let location = fdec
-                .content
-                .iter()
-                .fold(fdec.identifier_pos.clone(), |acc, decl| {
-                    acc.start..decl.pos.end
-                });
+            let parameter_variable_ids = add_function_parameters(this, fdec);
 
-            for param in &fdec.parameters {
-                let variable_id = this.insert_variable(Variable {
-                    identifier: param.identifier.clone(),
-                    scope: VariableScope::Local,
-                    kind: VariableKind::Normal(NormalVariable {
-                        typ: PrimitiveType::Int, // TODO: Get the actual type
-                    }),
-                    declaration_pos: param.pos.clone(),
-                    assignment_has_error: false,
-                });
-
-                parameter_variable_ids.push(variable_id);
-
+            for (&variable_id, param) in parameter_variable_ids.iter().zip(fdec.parameters.iter()) {
                 body = body.push(Instruction::new(
                     param.pos.clone(),
                     InstructionKind::Assign(variable_id),
                 ));
             }
 
-            let body = body.append(this.get_instructions(&fdec.content)?);
+            let body = body.append(this.get_instructions(block)?);
 
-            Ok((body, location))
+            Ok(((body, parameter_variable_ids), location))
         });
 
         let body = self.get_or_add_error(result);
         let assignment_has_error = body.is_none();
+
+        let (body, parameter_variable_ids) = body.unwrap_or_default();
 
         self.insert_variable(Variable {
             identifier: fdec.identifier.clone(),
             scope: VariableScope::Global,
             kind: VariableKind::DeclaredFunction(Function {
                 parameter_variable_ids,
-                body: body.unwrap_or_default(),
+                body: FunctionBody::Block(body),
+                vararg_parameter: None,
             }),
             declaration_pos: fdec.identifier_pos.clone(),
             assignment_has_error,

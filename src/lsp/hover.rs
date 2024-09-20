@@ -1,5 +1,5 @@
 use super::{
-    util::{Compiled, CompilerResult, LspRequest},
+    util::{create_code_block, Compiled, CompilerResult, LspRequest},
     LSPServer,
 };
 use crate::{
@@ -69,7 +69,11 @@ impl LSPServer {
         };
 
         let contents = lsp_types::HoverContents::Scalar(lsp_types::MarkedString::from_markdown(
-            format!("<{:?}> {:?} {kind}", variable.identifier, variable.scope).to_string(),
+            [
+                create_code_block("rost", "let a = 5;").to_string(),
+                format!("<{:?}> {:?} {kind}", variable.identifier, variable.scope).to_string(),
+            ]
+            .join("\n\n"),
         ));
 
         let result = Hover {

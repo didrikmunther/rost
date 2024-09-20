@@ -53,10 +53,17 @@ pub struct NormalVariable {
     pub typ: PrimitiveType,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
+pub enum FunctionBody {
+    Builtin,
+    Block(Builder),
+}
+
+#[derive(Debug)]
 pub struct Function {
     pub parameter_variable_ids: Vec<VariableId>,
-    pub body: Builder,
+    pub vararg_parameter: Option<VariableId>,
+    pub body: FunctionBody,
 }
 
 #[derive(Debug)]

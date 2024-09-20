@@ -1,8 +1,5 @@
 use super::error::CompilerError;
-use crate::parser::{
-    definition::{Declaration, FunctionDeclaration, FunctionDeclarationParameter},
-    types::{Type, TypeIdentifier},
-};
+use crate::parser::definition::Declaration;
 use builder::Builder;
 use ir::{PrimitiveValue, Variable};
 use rust_lapper::Lapper;
@@ -57,9 +54,9 @@ impl Program {
         }
     }
 
-    pub fn get_or_add_error(&mut self, result: Result<Builder, CompilerError>) -> Option<Builder> {
+    pub fn get_or_add_error<T>(&mut self, result: Result<T, CompilerError>) -> Option<T> {
         match result {
-            Ok(builder) => Some(builder),
+            Ok(v) => Some(v),
             Err(error) => {
                 self.errors.push(error);
                 None
@@ -68,21 +65,22 @@ impl Program {
     }
 
     fn add_builtin_functions(&mut self) -> Result<(), CompilerError> {
-        self.create_function_declaration(&FunctionDeclaration {
-            identifier: "printf".to_string(),
-            identifier_pos: 0..0,
-            parameters: vec![FunctionDeclarationParameter {
-                identifier: "format".to_string(),
-                typ: Type {
-                    identifier: TypeIdentifier::Identifier("string".to_string()),
-                    pos: 0..0,
-                    children: None,
-                },
-                pos: 0..0,
-            }],
-            content: vec![],
-            return_type: None,
-        })?;
+        // self.create_function_declaration(&FunctionDeclaration {
+        //     identifier: "printf".to_string(),
+        //     identifier_pos: 0..0,
+        //     parameters: vec![FunctionDeclarationParameter {
+        //         identifier: "format".to_string(),
+        //         typ: Type {
+        //             identifier: TypeIdentifier::Identifier("string".to_string()),
+        //             pos: 0..0,
+        //             children: None,
+        //         },
+        //         pos: 0..0,
+        //     }],
+        //     content: vec![],
+        //     return_type: None,
+        //     builtin: true,
+        // })?;
 
         Ok(())
     }

@@ -26,7 +26,7 @@
 		},
 		{
 			"name": "keyword.control.rost",
-			"match": "\\b(pub|let|fn|if|else|for|while|return)\\b"
+			"match": "\\b(__builtin|pub|let|fn|if|else|for|while|return)\\b"
 		},
 		{
 			"name": "string.quoted.double.rost",

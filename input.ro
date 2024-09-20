@@ -1,3 +1,5 @@
+__builtin fn printf(format: str, ...args: any);
+
 fn add_two_numbers(a: int, b: int) {
 	let c = a + b;
 
@@ -6,9 +8,5 @@ fn add_two_numbers(a: int, b: int) {
 
 let a = 1;
 let b = 2;
-let u = add_two_numbers(
-	a,
-	b
-);
 
-let q = u + 1;
+add_two_numbers(a, b);

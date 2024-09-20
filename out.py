@@ -6,7 +6,7 @@ import sys
 def __compiler__with_regular_args(func):
     def wrapper(*args):
         n_args = __stack.pop()
-        args = reversed([__stack.pop() for i in range(n_args)])
+        args = [__stack.pop() for i in range(n_args)]
         __stack.append(func(*args))
 
     return wrapper
@@ -45,21 +45,19 @@ def __intrinsic__stack_pop():
 # boilerplate_start end
 
 def __user__printf():
-	__intrinsic__stack_pop()
-	_0_format = __intrinsic__stack_pop()
-
+	__builtin__printf()
 def __user__add_two_numbers():
 	__intrinsic__stack_pop()
-	_2_a = __intrinsic__stack_pop()
-	_3_b = __intrinsic__stack_pop()
-	__intrinsic__stack_push(_3_b)
-	__intrinsic__stack_push(_2_a)
+	_3_a = __intrinsic__stack_pop()
+	_4_b = __intrinsic__stack_pop()
+	__intrinsic__stack_push(_4_b)
+	__intrinsic__stack_push(_3_a)
 	__intrinsic__stack_add()
-	_4_c = __intrinsic__stack_pop()
+	_5_c = __intrinsic__stack_pop()
+	__intrinsic__stack_push(_5_c)
+	__intrinsic__stack_push(_4_b)
+	__intrinsic__stack_push(_3_a)
 	__intrinsic__stack_push(__global_data[0])
-	__intrinsic__stack_push(_2_a)
-	__intrinsic__stack_push(_3_b)
-	__intrinsic__stack_push(_4_c)
 	__intrinsic__stack_push(4)
 	__user__printf()
 	__intrinsic__stack_pop()
@@ -67,19 +65,16 @@ def __user__add_two_numbers():
 
 def __setup():
 	global __global_data
-	__global_data = list(range(2))
+	__global_data = list(range(1))
 	__global_data[0] = "%i + %i = %i\n"
-	__global_data[1] = "a"
 
 def __main():
 	__intrinsic__stack_push(1)
-	_6_a = __intrinsic__stack_pop()
+	_7_a = __intrinsic__stack_pop()
 	__intrinsic__stack_push(2)
-	_7_b = __intrinsic__stack_pop()
-	__intrinsic__stack_push(_6_a)
-	__intrinsic__stack_push(__global_data[1])
-	__intrinsic__stack_push(_7_b)
-	__intrinsic__stack_add()
+	_8_b = __intrinsic__stack_pop()
+	__intrinsic__stack_push(_8_b)
+	__intrinsic__stack_push(_7_a)
 	__intrinsic__stack_push(2)
 	__user__add_two_numbers()
 	__intrinsic__stack_pop()

@@ -3,7 +3,6 @@ use rust_lapper::{Interval, Lapper};
 use crate::compiler::error::CompilerError;
 
 use super::{
-    builder::Builder,
     ir::{VariableId, VariableScope},
     Location, Program,
 };
@@ -56,9 +55,9 @@ impl Program {
 
     /// Used when entering a new scope, makes sure that variables are properly scoped.
     /// Inner function should return the new builder and the range of the location of the scope.
-    pub fn with_scope<F>(&mut self, inner: F) -> Result<Builder, CompilerError>
+    pub fn with_scope<F, T>(&mut self, inner: F) -> Result<T, CompilerError>
     where
-        F: FnOnce(&mut Self) -> Result<(Builder, Range<Location>), CompilerError>,
+        F: FnOnce(&mut Self) -> Result<(T, Range<Location>), CompilerError>,
     {
         let old_scope_id = self.scope_id;
         let scope_id = self.scopes.len();

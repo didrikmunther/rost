@@ -184,17 +184,6 @@ pub fn get_processed_code(text: &str, uri: &str) -> CompilerResult {
         }
     };
 
-    // let compiled = match  {
-    //     Ok(v) => v,
-    //     Err(errs) => {
-    //         return CompilerResult::Compiled {
-    //             lexed,
-    //             parsed,
-    //             program: Err(errs.into_iter().map(|e| get_error(e.into())).collect()),
-    //         }
-    //     }
-    // };
-
     let program = compiler::compile(parsed.clone());
     let errors = program
         .errors
@@ -234,4 +223,8 @@ pub fn get_variable_at_position<'a>(
     };
 
     variable
+}
+
+pub fn create_code_block(lang: &str, code: &str) -> String {
+    format!("```{}\n{}\n```", lang, code)
 }

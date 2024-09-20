@@ -10,7 +10,6 @@ static KEYWORDS: phf::Map<&'static str, Keyword> = phf_map! {
     "while" => Keyword::While,
     "struct" => Keyword::Struct,
     "__builtin" => Keyword::Builtin,
-    "..." => Keyword::Ellipsis,
 };
 
 pub struct KeywordLexer;

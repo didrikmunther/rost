@@ -3,7 +3,8 @@ use crate::{
     compiler::program::{
         builder::Builder,
         ir::{
-            InstructionKind, PrimitiveValue, ProcedureCall, ValueKind, VariableKind, VariableScope,
+            FunctionBody, InstructionKind, PrimitiveValue, ProcedureCall, ValueKind, VariableKind,
+            VariableScope,
         },
         Program,
     },
@@ -50,10 +51,20 @@ impl Generator {
         });
 
         for (function, identifier) in functions {
-            elements.push(Element::FunctionDefinition {
-                identifier: format!("__user__{identifier}"),
-                content: Box::new(self.get_program(&function.body, program)?),
-            });
+            match &function.body {
+                FunctionBody::Builtin => {
+                    elements.push(Element::FunctionDefinition {
+                        identifier: format!("__user__{identifier}"),
+                        content: Box::new(Element::Raw(format!("__builtin__{identifier}()"))),
+                    });
+                }
+                FunctionBody::Block(block) => {
+                    elements.push(Element::FunctionDefinition {
+                        identifier: format!("__user__{identifier}"),
+                        content: Box::new(self.get_program(block, program)?),
+                    });
+                }
+            }
         }
 
         Ok(elements)
