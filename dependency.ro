@@ -1,0 +1,6 @@
+pub fn print_two_numbers(a: int, b: int) {
+	a = a + 1;
+	b = b * 2;
+
+	printf("%i %i", a, b);
+}
