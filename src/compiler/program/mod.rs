@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use super::error::CompilerError;
 use crate::parser::definition::Declaration;
 use builder::Builder;
@@ -25,6 +27,7 @@ pub struct Program {
     pub functions: Vec<Function>,
     pub function_templates: Vec<FunctionTemplate>,
     pub types: Vec<Type>,
+    pub reverse_type_lookup: HashMap<TypeId, String>,
     pub global_data: Vec<PrimitiveValue>,
 
     pub scopes: Vec<Scope>,
@@ -53,6 +56,7 @@ impl Program {
             functions: vec![],
             function_templates: vec![],
             types: vec![],
+            reverse_type_lookup: HashMap::new(),
             global_data: vec![],
             errors: vec![],
         }
@@ -76,7 +80,9 @@ impl Program {
         self.insert_type(
             Some(identifier),
             Type {
-                kind: TypeKind::Intrinsic,
+                kind: TypeKind::Intrinsic {
+                    identifier: identifier.to_string(),
+                },
                 type_parameters: vec![],
             },
         )

@@ -1,6 +1,6 @@
 use crate::parser::definition::FunctionDeclaration;
 
-use super::builder::Builder;
+use super::{builder::Builder, Program};
 use std::ops::Range;
 
 // An instruction is an atomic intermediate representation of an instruction
@@ -77,11 +77,16 @@ pub enum VariableKind {
 
 #[derive(Debug, Clone)]
 pub enum TypeKind {
-    Generic,
-    Intrinsic,
+    Generic {
+        identifier: String,
+    },
+    Intrinsic {
+        identifier: String,
+    },
     Function {
         parameter_type_ids: Vec<(String, TypeId)>,
         vararg_parameter_type_id: Option<(String, TypeId)>,
+        declaration_pos: Range<usize>,
         // return_type: TypeId,
     },
     UserDefined {
@@ -94,6 +99,42 @@ pub enum TypeKind {
 pub struct Type {
     pub kind: TypeKind,
     pub type_parameters: Vec<String>, // Todo: add type constraints
+}
+
+impl Type {
+    pub fn format(&self, program: &Program) -> String {
+        match &self.kind {
+            TypeKind::Generic { identifier } => identifier.to_string(),
+            TypeKind::Intrinsic {
+                identifier: typ_identifier,
+            } => typ_identifier.into(),
+            TypeKind::Function {
+                parameter_type_ids,
+                vararg_parameter_type_id,
+                declaration_pos,
+            } => {
+                let parameters = parameter_type_ids
+                    .iter()
+                    .map(|(identifier, id)| {
+                        let typ = program.types.get(*id).unwrap();
+                        format!("{}: {}", identifier, typ.format(program))
+                    })
+                    .collect::<Vec<_>>()
+                    .join(", ");
+
+                let vararg = vararg_parameter_type_id
+                    .as_ref()
+                    .map(|(identifier, id)| {
+                        let typ = program.types.get(*id).unwrap();
+                        format!(", ...{}: {}", identifier, typ.format(program))
+                    })
+                    .unwrap_or_else(|| "".to_string());
+
+                format!("({}{vararg}) -> todo", parameters)
+            }
+            TypeKind::UserDefined { identifier, .. } => identifier.to_string(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

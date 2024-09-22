@@ -31,6 +31,7 @@ impl Program {
                 kind: TypeKind::Function {
                     parameter_type_ids,
                     vararg_parameter_type_id,
+                    declaration_pos: fdec.identifier_pos.clone(),
                 },
                 type_parameters: vec![],
             },

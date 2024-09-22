@@ -94,6 +94,7 @@ impl Program {
         let TypeKind::Function {
             parameter_type_ids,
             vararg_parameter_type_id,
+            declaration_pos,
         } = &function_type.kind
         else {
             return Err(CompilerError::new(
@@ -206,15 +207,15 @@ impl Program {
 
         let variable_id = self.insert_variable(
             Variable {
-                identifier,
+                identifier: identifier.clone(),
                 typ: ExpressedType {
                     id: function_template_typ,
                     arguments: None,
                 },
-                declaration_pos: fcall.left.pos.clone(),
+                declaration_pos: fdec.identifier_pos.clone(),
                 assignment_has_error: false,
             },
-            None,
+            Some(identifier.as_str()),
         );
 
         self.insert_function(Function {

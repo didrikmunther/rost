@@ -53,6 +53,9 @@ impl Program {
             self.get_scope_mut()
                 .type_lookup
                 .insert(identifier.to_string(), type_id);
+
+            self.reverse_type_lookup
+                .insert(type_id, identifier.to_string());
         }
 
         type_id
@@ -107,7 +110,7 @@ impl Program {
                 let ctyp = &self.types[*type_id];
 
                 match &ctyp.kind {
-                    TypeKind::Intrinsic => Some(ExpressedType {
+                    TypeKind::Intrinsic { identifier } => Some(ExpressedType {
                         // identifier: identifier.clone(),
                         id: *type_id,
                         arguments: None,
@@ -115,6 +118,7 @@ impl Program {
                     TypeKind::Function {
                         parameter_type_ids,
                         vararg_parameter_type_id,
+                        declaration_pos,
                     } => todo!(),
                     TypeKind::UserDefined {
                         identifier,
