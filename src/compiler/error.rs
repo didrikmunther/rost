@@ -1,32 +1,12 @@
-use std::ops::Range;
-
-use crate::error::{RostError, RostErrorElement};
-
-// use super::scope::variable::VariableType;
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum CompilerErrorKind {
-    UndefinedVariable(String),
-    UndefinedFunction(String),
-    NotAFunction(String),
-    NotEnoughFunctionArguments {
-        missing: Vec<String>,
-        got: usize,
-    },
-    TooManyFunctionArguments {
-        expected: usize,
-        got: usize,
-    },
-    RedeclaredVariable(String, Range<usize>),
-    NotSupported(String),
-
-    #[allow(dead_code)]
-    Todo {
-        msg: String,
-        file: &'static str,
-        line: u32,
-    },
-}
+use super::program::{ir::ExpressedType, Program};
+use crate::{
+    error::{RostError, RostErrorElement},
+    lexer::Keyword,
+};
+use std::{
+    fmt::{Display, Formatter},
+    ops::Range,
+};
 
 #[macro_export]
 macro_rules! compiler_todo {
@@ -46,21 +26,79 @@ macro_rules! compiler_todo {
 #[allow(unused_imports)]
 pub use compiler_todo;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone)]
+pub struct WrongType {
+    content: String,
+}
+
+impl WrongType {
+    pub fn from_expressed_type(_typ: ExpressedType, _program: &Program) -> Self {
+        Self {
+            content: format!("todo"),
+        }
+    }
+}
+
+impl Display for WrongType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.content)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum CompilerErrorKind {
+    UndefinedVariable(String),
+    UndefinedFunction(String),
+    NotAFunction(String),
+    NotEnoughFunctionArguments {
+        missing: Vec<String>,
+        got: usize,
+    },
+    TooManyFunctionArguments {
+        expected: usize,
+        got: usize,
+    },
+    RedeclaredVariable(String, Range<usize>),
+    NotSupported(String),
+    WrongAssignmentType {
+        got: WrongType,
+        typ: WrongType,
+        declaration_pos: Option<Range<usize>>,
+    },
+    WrongBinaryExpressionTypes {
+        got: WrongType,
+        expected: WrongType,
+        expected_pos: Range<usize>,
+        operator: Keyword,
+        operator_pos: Range<usize>,
+    },
+
+    #[allow(dead_code)]
+    Todo {
+        msg: String,
+        file: &'static str,
+        line: u32,
+    },
+}
+
+#[derive(Debug, Clone)]
 pub struct CompilerError {
     pub pos: Range<usize>,
-    pub kind: CompilerErrorKind,
+    pub kind: Box<CompilerErrorKind>,
 }
 
 // Todo: Allow errors without positions,
 // todo: such as no-main function.
 impl CompilerError {
     pub fn new(pos: Range<usize>, kind: CompilerErrorKind) -> Self {
-        Self { pos, kind }
+        Self {
+            pos,
+            kind: Box::new(kind),
+        }
     }
 
     fn get_messages(&self) -> Vec<(String, Range<usize>)> {
-        match &self.kind {
+        match &self.kind.as_ref() {
             CompilerErrorKind::Todo { file, line, msg } => vec![(
                 format!("Not yet implemented, {msg}. {file}:{line}"),
                 self.pos.clone(),
@@ -97,6 +135,39 @@ impl CompilerError {
                     ),
                     self.pos.clone(),
                 )]
+            }
+            CompilerErrorKind::WrongAssignmentType {
+                got,
+                typ,
+                declaration_pos,
+            } => {
+                if let Some(pos) = declaration_pos {
+                    vec![
+                        (format!("Wrong type in assignment: {got}"), self.pos.clone()),
+                        (format!("Variable declared with type {typ}"), pos.clone()),
+                    ]
+                } else {
+                    vec![(format!("Wrong type in assignment: {got}"), self.pos.clone())]
+                }
+            }
+            CompilerErrorKind::WrongBinaryExpressionTypes {
+                got,
+                expected,
+                expected_pos,
+                operator,
+                operator_pos,
+            } => {
+                vec![
+                    (
+                        format!("Incompatible types in binary expression: {got}"),
+                        self.pos.clone(),
+                    ),
+                    (
+                        format!("Operator {operator:?} is not defined for types."),
+                        operator_pos.clone(),
+                    ),
+                    (format!("Other type is {expected}"), expected_pos.clone()),
+                ]
             }
             CompilerErrorKind::TooManyFunctionArguments { expected, got } => {
                 vec![(

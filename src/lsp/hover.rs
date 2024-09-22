@@ -44,45 +44,48 @@ impl LSPServer {
             return Ok(());
         };
 
-        let kind = match &variable.kind {
-            VariableKind::Normal(variable) => format!("Variable ({:?})", variable.typ),
-            VariableKind::DeclaredFunction(function) => {
-                let variables = function
-                    .parameter_variable_ids
-                    .iter()
-                    .map(|id| program.variables.get(*id).unwrap())
-                    .map(|variable| {
-                        format!(
-                            "{:?}: {:?}",
-                            variable.identifier,
-                            match &variable.kind {
-                                VariableKind::Normal(variable) => &variable.typ,
-                                VariableKind::DeclaredFunction(_) => unreachable!(),
-                            }
-                        )
-                    })
-                    .collect::<Vec<_>>()
-                    .join(", ");
+        // let kind = match &variable.typ {
+        //     VariableKind::Normal(variable) => format!("Variable ({:?})", variable.typ),
+        //     VariableKind::DeclaredFunction(function) => {
+        //         let variables = function
+        //             .parameter_variable_ids
+        //             .iter()
+        //             .map(|id| program.variables.get(*id).unwrap())
+        //             .map(|variable| {
+        //                 format!(
+        //                     "{:?}: {:?}",
+        //                     variable.identifier,
+        //                     match &variable.typ {
+        //                         VariableKind::Normal(variable) => &variable.typ,
+        //                         VariableKind::DeclaredFunction(_) => unreachable!(),
+        //                     }
+        //                 )
+        //             })
+        //             .collect::<Vec<_>>()
+        //             .join(", ");
 
-                format!("Function ({variables})")
-            }
-        };
+        //         format!("Function ({variables})")
+        //     }
+        // };
 
-        let contents = lsp_types::HoverContents::Scalar(lsp_types::MarkedString::from_markdown(
-            [
-                create_code_block("rost", "let a = 5;").to_string(),
-                format!("<{:?}> {:?} {kind}", variable.identifier, variable.scope).to_string(),
-            ]
-            .join("\n\n"),
-        ));
+        // let contents = lsp_types::HoverContents::Scalar(lsp_types::MarkedString::from_markdown(
+        //     [
+        //         create_code_block("rost", "let a = 5;").to_string(),
+        //         format!("<{:?}> {:?} {kind}", variable.identifier, variable.scope).to_string(),
+        //     ]
+        //     .join("\n\n"),
+        // ));
 
-        let result = Hover {
-            contents,
-            range: Some(block_range),
-        };
+        // let result = Hover {
+        //     contents,
+        //     range: Some(block_range),
+        // };
 
-        self.write_lsp_message(request.id, &result).await?;
+        // self.write_lsp_message(request.id, &result).await?;
 
-        Ok(())
+        // Ok(())
+
+        todo!();
+
     }
 }

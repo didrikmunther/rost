@@ -1,3 +1,5 @@
+use crate::parser::definition::FunctionDeclaration;
+
 use super::builder::Builder;
 use std::ops::Range;
 
@@ -26,14 +28,10 @@ impl Instruction {
 }
 
 pub type VariableId = usize;
+pub type FunctionId = usize;
+pub type FunctionTemplateId = usize;
+pub type TypeId = usize;
 pub type GlobalDataId = usize;
-
-#[derive(Debug)]
-pub enum PrimitiveType {
-    Int,
-    Float,
-    Char,
-}
 
 #[derive(Debug)]
 pub enum PrimitiveValue {
@@ -42,25 +40,30 @@ pub enum PrimitiveValue {
     String(String),
 }
 
-#[derive(Debug, PartialEq)]
-pub enum VariableScope {
-    Local,
-    Global,
-}
-
 #[derive(Debug)]
 pub struct NormalVariable {
-    pub typ: PrimitiveType,
+    pub typ: Type,
 }
 
 #[derive(Debug)]
 pub enum FunctionBody {
-    Builtin,
-    Block(Builder),
+    Builtin(String),
+    Block {
+        body_contains_error: bool,
+        content: Builder,
+    },
+}
+
+#[derive(Debug)]
+pub struct FunctionTemplate {
+    pub typ: TypeId,
+    pub function_declaration: FunctionDeclaration,
 }
 
 #[derive(Debug)]
 pub struct Function {
+    pub function_template_id: FunctionTemplateId,
+    pub variable_id: VariableId, // Which variable is this function assigned to?
     pub parameter_variable_ids: Vec<VariableId>,
     pub vararg_parameter: Option<VariableId>,
     pub body: FunctionBody,
@@ -72,13 +75,41 @@ pub enum VariableKind {
     DeclaredFunction(Function),
 }
 
+#[derive(Debug, Clone)]
+pub enum TypeKind {
+    Generic,
+    Intrinsic,
+    Function {
+        parameter_type_ids: Vec<(String, TypeId)>,
+        vararg_parameter_type_id: Option<(String, TypeId)>,
+        // return_type: TypeId,
+    },
+    UserDefined {
+        identifier: String,
+        declaration_pos: Range<usize>,
+    },
+}
+
+#[derive(Debug, Clone)]
+pub struct Type {
+    pub kind: TypeKind,
+    pub type_parameters: Vec<String>, // Todo: add type constraints
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ExpressedType {
+    // Todo: impl PartialEq for type inheritance
+    // pub identifier: String,
+    pub id: TypeId,
+    pub arguments: Option<Vec<ExpressedType>>,
+}
+
 #[derive(Debug)]
 pub struct Variable {
-    pub identifier: String,
-    pub scope: VariableScope,
-    pub kind: VariableKind,
+    pub typ: ExpressedType,
     pub declaration_pos: Range<usize>,
     pub assignment_has_error: bool,
+    pub identifier: String,
 }
 
 #[derive(Debug)]
@@ -97,7 +128,6 @@ pub enum InstructionKind {
     IntAdd,
     IntMul,
     ProcedureCall(ProcedureCall),
-    SystemCall(ProcedureCall),
 }
 
 // #[derive(Debug)]

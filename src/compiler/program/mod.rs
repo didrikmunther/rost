@@ -1,7 +1,7 @@
 use super::error::CompilerError;
 use crate::parser::definition::Declaration;
 use builder::Builder;
-use ir::{PrimitiveValue, Variable};
+use ir::{Function, FunctionTemplate, PrimitiveValue, Type, TypeId, TypeKind, Variable};
 use rust_lapper::Lapper;
 use scope::{Scope, ScopeId, ScopeRange};
 
@@ -22,12 +22,13 @@ pub type Location = usize;
 pub struct Program {
     pub instructions: Builder,
     pub variables: Vec<Variable>,
+    pub functions: Vec<Function>,
+    pub function_templates: Vec<FunctionTemplate>,
+    pub types: Vec<Type>,
     pub global_data: Vec<PrimitiveValue>,
 
     pub scopes: Vec<Scope>,
     pub scope_id: ScopeId,
-    // This is quite a hack, but it's the easiest way to get the scope of a variable.
-    // We should use some kind of run-length encoding to make this more efficient.
     scope_ranges: Vec<ScopeRange>,
     pub scope_lookup: Lapper<Location, ScopeId>,
 
@@ -49,9 +50,16 @@ impl Program {
             scope_ranges: vec![],
             instructions: Builder::new(),
             variables: vec![],
+            functions: vec![],
+            function_templates: vec![],
+            types: vec![],
             global_data: vec![],
             errors: vec![],
         }
+    }
+
+    pub fn add_error(&mut self, error: CompilerError) {
+        self.errors.push(error);
     }
 
     pub fn get_or_add_error<T>(&mut self, result: Result<T, CompilerError>) -> Option<T> {
@@ -64,25 +72,22 @@ impl Program {
         }
     }
 
-    fn add_builtin_functions(&mut self) -> Result<(), CompilerError> {
-        // self.create_function_declaration(&FunctionDeclaration {
-        //     identifier: "printf".to_string(),
-        //     identifier_pos: 0..0,
-        //     parameters: vec![FunctionDeclarationParameter {
-        //         identifier: "format".to_string(),
-        //         typ: Type {
-        //             identifier: TypeIdentifier::Identifier("string".to_string()),
-        //             pos: 0..0,
-        //             children: None,
-        //         },
-        //         pos: 0..0,
-        //     }],
-        //     content: vec![],
-        //     return_type: None,
-        //     builtin: true,
-        // })?;
+    fn add_intrinsic_type(&mut self, identifier: &str) -> TypeId {
+        self.insert_type(
+            Some(identifier),
+            Type {
+                kind: TypeKind::Intrinsic,
+                type_parameters: vec![],
+            },
+        )
+    }
 
-        Ok(())
+    fn add_builtin_types(&mut self) {
+        self.add_intrinsic_type("int");
+        self.add_intrinsic_type("float");
+        self.add_intrinsic_type("str");
+        self.add_intrinsic_type("bool");
+        self.add_intrinsic_type("any");
     }
 
     fn _compile(&mut self, parsed: Vec<Declaration>) -> Result<(), CompilerError> {
@@ -91,7 +96,7 @@ impl Program {
             .fold(0..0, |acc, decl| acc.start..decl.pos.end);
 
         self.scope_ranges.push((location, self.scope_id));
-        self.add_builtin_functions()?;
+        self.add_builtin_types();
         self.instructions = self.get_instructions(&parsed)?;
 
         Ok(())

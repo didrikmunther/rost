@@ -11,14 +11,14 @@
 // };
 
 use crate::{
-    compiler::error::CompilerError,
-    lexer::Keyword,
-    parser::definition::{Binary, Expression, ExpressionKind},
+    compiler::error::{CompilerError, CompilerErrorKind, WrongType},
+    lexer::{Keyword, Literal},
+    parser::definition::{Binary, Expression, ExpressionKind, Primary},
 };
 
 use super::{
     builder::Builder,
-    ir::{Arithmetic, Instruction, InstructionKind},
+    ir::{Arithmetic, ExpressedType, Instruction, InstructionKind, NormalVariable, VariableKind},
     Program,
 };
 
@@ -53,12 +53,142 @@ impl Program {
     //     }
     // }
 
+    pub fn get_intrinstic_type(&self, identifier: &str) -> ExpressedType {
+        ExpressedType {
+            id: *self.get_scope().type_lookup.get(identifier).unwrap(),
+            arguments: None,
+        }
+    }
+
+    pub fn infer_type(&self, expr: &Expression) -> Result<ExpressedType, CompilerError> {
+        match &expr.kind {
+            ExpressionKind::Primary(primary) => match primary {
+                Primary::Identifier(ref identifier) => {
+                    let Some(variable_id) = self.get_variable(identifier) else {
+                        return Err(CompilerError::new(
+                            expr.pos.clone(),
+                            CompilerErrorKind::UndefinedVariable(identifier.clone()),
+                        ));
+                    };
+
+                    let variable = self.variables.get(variable_id).unwrap();
+
+                    Ok(variable.typ.clone())
+                }
+                Primary::Literal(literal) => Ok(match literal {
+                    Literal::Int(_) => self.get_intrinstic_type("int"),
+                    Literal::String(_) => self.get_intrinstic_type("str"),
+                    Literal::Bool(_) => self.get_intrinstic_type("bool"),
+                }),
+            },
+            ExpressionKind::Binary(binary) => {
+                let left = self.infer_type(&binary.left)?;
+                let right = self.infer_type(&binary.right)?;
+
+                if left == right {
+                    return Ok(left);
+                } else {
+                    return Err(CompilerError::new(
+                        binary.left.pos.clone(),
+                        CompilerErrorKind::WrongBinaryExpressionTypes {
+                            got: WrongType::from_expressed_type(left, self),
+                            expected: WrongType::from_expressed_type(right, self),
+                            expected_pos: binary.right.pos.clone(),
+                            operator: binary.operator,
+                            operator_pos: binary.operator_pos.clone(),
+                        },
+                    ));
+                }
+
+                // let inferred = self.infer_binary_result_type(&left, &right, binary.operator);
+                // let Some(typ) = inferred else {
+                //     return Err(CompilerError::new(
+                //         binary.left.pos.clone(),
+                //         CompilerErrorKind::WrongBinaryExpressionTypes {
+                //             got: left,
+                //             expected: right,
+                //             expected_pos: binary.right.pos.clone(),
+                //             operator: binary.operator,
+                //             operator_pos: binary.operator_pos.clone(),
+                //         },
+                //     ));
+                // };
+
+                // Ok(typ)
+            }
+            _ => {
+                eprintln!("Expression: {:?}", expr);
+
+                todo!()
+            } // ExpressionKind::ArrayIndex(index) => {
+              //     let expr_type = self.infer_type(&index.left)?;
+
+              //     match expr_type {
+              //         VariableType::Pointer(pointer_type) => Ok(*pointer_type),
+              //         _ => Err(CompilerError::new(
+              //             index.left.pos.clone(),
+              //             CompilerErrorKind::DereferenceNonPointer(expr_type),
+              //         )),
+              //     }
+              // }
+              // ExpressionKind::Unary(unary) => {
+              //     let expr_type = self.infer_type(&unary.expr)?;
+
+              //     match unary.operator {
+              //         Keyword::Ampersand => Ok(VariableType::Pointer(Box::new(expr_type))),
+              //         Keyword::Asterix => {
+              //             let VariableType::Pointer(typ) = expr_type else {
+              //                 return Err(CompilerError::new(
+              //                     unary.operator_pos.clone(),
+              //                     CompilerErrorKind::DereferenceNonPointer(expr_type),
+              //                 ));
+              //             };
+
+              //             Ok(*typ)
+              //         }
+              //         _ => todo!("Not supported"),
+              //     }
+              // }
+              // ExpressionKind::FunctionCall(call) => {
+              //     let identifier = call.left.get_string().unwrap().to_string();
+
+              //     let Some(function) = self.get_variable(&identifier) else {
+              //         return Err(CompilerError::new(
+              //             call.left.pos.clone(),
+              //             CompilerErrorKind::UndefinedFunction(identifier),
+              //         ));
+              //     };
+
+              //     let VariableType::Function(function_id) = function.typ else {
+              //         todo!("Variable is not a function");
+              //     };
+
+              //     let Some(return_type) = &self.functions.get(function_id).unwrap().return_type
+              //     else {
+              //         todo!("No return type for function");
+              //     };
+
+              //     Ok(return_type.clone())
+              // }
+              // ExpressionKind::StructConstruction(sconst) => {
+              //     Ok(self.get_variable(&sconst.identifier).unwrap().typ.clone())
+              // }
+              // ExpressionKind::MemberAccess(access) => Ok(self
+              //     .get_struct_field_type(&access.left, &access.member)?
+              //     .typ
+              //     .clone()),
+        }
+    }
+
     fn handle_binary(
         &mut self,
         expression: &Expression,
         binary: &Binary,
     ) -> Result<Builder, CompilerError> {
         let operation = Self::get_arithmetic_operation(binary.operator);
+        let _ = self.infer_type(expression)?;
+        let right = self.infer_type(&binary.right)?;
+        let left = self.infer_type(&binary.left)?;
 
         let instruction_kind = match operation {
             Arithmetic::Add => InstructionKind::IntAdd,
@@ -157,7 +287,7 @@ impl Program {
             _ => {
                 eprintln!("Expression: {:?}", expression);
                 todo!()
-            },
+            }
         }
     }
 }

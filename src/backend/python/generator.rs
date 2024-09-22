@@ -2,10 +2,7 @@ use crate::{
     backend::python::code::Element,
     compiler::program::{
         builder::Builder,
-        ir::{
-            FunctionBody, InstructionKind, PrimitiveValue, ProcedureCall, ValueKind, VariableKind,
-            VariableScope,
-        },
+        ir::{FunctionBody, InstructionKind, PrimitiveValue, ProcedureCall, ValueKind, VariableId},
         Program,
     },
 };
@@ -25,7 +22,10 @@ impl Generator {
             },
             Element::FunctionDefinition {
                 identifier: "__main".into(),
-                content: Box::new(self.get_program(&program.instructions, program)?),
+                content: Box::new(Element::Block(vec![
+                    self.get_program(&program.instructions, program)?,
+                    Element::Pass,
+                ])),
             },
             Element::Raw(include_str!("boilerplate_exit.py").into()),
         ]);
@@ -35,33 +35,45 @@ impl Generator {
         Ok(format!("{}", code))
     }
 
+    fn get_user_function_name(&self, variable_id: VariableId) -> String {
+        format!("__userf__{}", variable_id)
+    }
+
     pub fn get_functions(&self, program: &Program) -> Result<Vec<Element>, PythonError> {
         let mut elements = vec![];
 
-        let functions = program.variables.iter().filter_map(|variable| {
-            if let VariableScope::Global = variable.scope {
-                if let VariableKind::DeclaredFunction(function) = &variable.kind {
-                    Some((function, variable.identifier.clone()))
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        });
+        for function in &program.functions {
+            let var_identifier = &program.variables[function.variable_id].identifier;
 
-        for (function, identifier) in functions {
             match &function.body {
-                FunctionBody::Builtin => {
+                FunctionBody::Builtin(builtin_identifier) => {
+                    elements.push(Element::Comment(format!(
+                        "Builtin function: {builtin_identifier}"
+                    )));
+
                     elements.push(Element::FunctionDefinition {
-                        identifier: format!("__user__{identifier}"),
-                        content: Box::new(Element::Raw(format!("__builtin__{identifier}()"))),
+                        identifier: self.get_user_function_name(function.variable_id),
+                        content: Box::new(Element::FunctionCall(format!(
+                            "__builtin__{}",
+                            var_identifier
+                        ))),
                     });
                 }
-                FunctionBody::Block(block) => {
+                FunctionBody::Block {
+                    body_contains_error: _body_contains_error,
+                    content,
+                } => {
+                    elements.push(Element::Comment(format!(
+                        "User function: {}",
+                        var_identifier
+                    )));
+
                     elements.push(Element::FunctionDefinition {
-                        identifier: format!("__user__{identifier}"),
-                        content: Box::new(self.get_program(block, program)?),
+                        identifier: format!("__userf__{}", function.variable_id),
+                        content: Box::new(Element::Block(vec![
+                            self.get_program(content, program)?,
+                            Element::Pass,
+                        ])),
                     });
                 }
             }
@@ -80,15 +92,13 @@ impl Generator {
         ];
 
         for (i, global_data) in program.global_data.iter().enumerate() {
-            match global_data {
-                PrimitiveValue::String(value) => {
-                    elements.push(Element::Raw(format!("__global_data[{i}] = \"{value}\"",)));
-                }
-                PrimitiveValue::Int(value) => {
-                    elements.push(Element::Raw(format!("__global_data[{i}] = {value}",)));
-                }
+            let value = match global_data {
+                PrimitiveValue::String(value) => format!("\"{}\"", value),
+                PrimitiveValue::Int(value) => value.to_string(),
                 _ => todo!(),
-            }
+            };
+
+            elements.push(Element::Raw(format!("__global_data[{i}] = {value}",)));
         }
 
         Ok(Element::Block(elements))
@@ -117,16 +127,16 @@ impl Generator {
                         elements.push(Element::Push(format!("__global_data[{id}]")));
                     }
                     &ValueKind::Variable(id) => {
-                        let variable = &program.variables[id];
+                        // let variable = &program.variables[id];
                         let variable_name = &program.variables[id].identifier;
                         let variable_name = format!("_{id}_{variable_name}");
 
-                        let value = match variable.scope {
-                            VariableScope::Local => variable_name,
-                            VariableScope::Global => format!("__global_variables[{variable_name}]"),
-                        };
+                        // let value = match variable.scope {
+                        //     VariableScope::Local => variable_name,
+                        //     // VariableScope::Global => format!("__global_variables[{variable_name}]"),
+                        // };
 
-                        elements.push(Element::Push(value));
+                        elements.push(Element::Push(variable_name));
                     }
                 },
                 InstructionKind::Pop => elements.push(Element::Pop),
@@ -136,15 +146,13 @@ impl Generator {
                     let variable_name = program.variables[id].identifier.clone();
                     elements.push(Element::Assign(format!("_{id}_{variable_name}")));
                 }
-                InstructionKind::SystemCall(ProcedureCall { variable_id, nargs }) => {
-                    elements.push(Element::Push(nargs.to_string()));
-                    let identifier = program.variables[*variable_id].identifier.clone();
-                    elements.push(Element::FunctionCall(format!("__builtin__{identifier}")))
-                }
                 InstructionKind::ProcedureCall(ProcedureCall { variable_id, nargs }) => {
                     elements.push(Element::Push(nargs.to_string()));
                     let identifier = program.variables[*variable_id].identifier.clone();
-                    elements.push(Element::FunctionCall(format!("__user__{identifier}")))
+                    elements.push(Element::Comment(format!("Procedure call: {}", identifier)));
+                    elements.push(Element::FunctionCall(
+                        self.get_user_function_name(*variable_id),
+                    ));
                 }
                 _ => {
                     eprintln!("Instruction: {:?}", instruction);

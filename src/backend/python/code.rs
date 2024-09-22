@@ -9,6 +9,7 @@ pub enum Element {
     Push(String),
     Add,
     Mul,
+    Comment(String),
     FunctionCall(String),
     FunctionDefinition {
         identifier: String,
@@ -38,6 +39,7 @@ impl Element {
             Element::Pop => w(format_args!("__intrinsic__stack_pop()"))?,
             Element::Add => w(format_args!("__intrinsic__stack_add()"))?,
             Element::Mul => w(format_args!("__intrinsic__stack_mul()"))?,
+            Element::Comment(line) => w(format_args!("# {line}"))?,
             Element::Push(el) => w(format_args!("__intrinsic__stack_push({el})"))?,
             Element::FunctionCall(identifier) => w(format_args!("{identifier}()"))?,
             Element::FunctionDefinition {

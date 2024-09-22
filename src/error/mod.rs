@@ -248,6 +248,13 @@ impl Display for RostError {
                             prev_pos = *line_pos + *width;
                         }
 
+                        // Todo: error here when prev_pos > line_pos. How does this happen? Example program:
+                        /*
+                           let a: int = 1;
+                           let b: string = "b";
+
+                           let c: int = b;
+                        */
                         let offset = line_pos - prev_pos;
                         let ntabs = get_ntabs(row_index, prev_pos, offset);
                         let msg = format!(

@@ -4,9 +4,12 @@ fn add_two_numbers(a: int, b: int) {
 	let c = a + b;
 
 	printf("%i + %i = %i\n", a, b, c);
+	printf("%i + %i = %i\n", a, b, c);
 }
 
-let a = 1;
-let b = 2;
 
+let a: int = 1;
+let b: int = 2;
+
+add_two_numbers(a, b);
 add_two_numbers(a, b);

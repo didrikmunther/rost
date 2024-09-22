@@ -8,16 +8,19 @@ use crate::{
 use super::{error::ParserError, Parser};
 
 #[derive(Debug, Clone)]
-pub enum TypeIdentifier {
+pub enum TypeKind {
     Identifier(String),
-    Pointer,
+    Composed {
+        identifier: String,
+        children: Vec<Type>,
+    },
+    Pointer(Box<Type>),
 }
 
 #[derive(Debug, Clone)]
 pub struct Type {
-    pub identifier: TypeIdentifier,
+    pub kind: TypeKind,
     pub pos: Range<usize>,
-    pub children: Option<Vec<Type>>,
 }
 
 impl<'a> Parser<'a> {
@@ -31,9 +34,8 @@ impl<'a> Parser<'a> {
                     let child = self.parse_type()?;
 
                     return Ok(Type {
-                        identifier: TypeIdentifier::Pointer,
                         pos: next.pos.start..child.pos.end,
-                        children: Some(vec![child]),
+                        kind: TypeKind::Pointer(Box::new(child)),
                     });
                 }
                 _ => return parser_todo!(next.pos.clone(), "Unknown type"),
@@ -53,15 +55,16 @@ impl<'a> Parser<'a> {
             }
 
             Ok(Type {
-                identifier: TypeIdentifier::Identifier(identifier),
                 pos: next.pos.start..children.last().unwrap().pos.end,
-                children: Some(children),
+                kind: TypeKind::Composed {
+                    identifier,
+                    children,
+                },
             })
         } else {
             Ok(Type {
-                identifier: TypeIdentifier::Identifier(identifier),
+                kind: TypeKind::Identifier(identifier),
                 pos: next.pos.clone(),
-                children: None,
             })
         }
     }

@@ -3,7 +3,7 @@ use rust_lapper::{Interval, Lapper};
 use crate::compiler::error::CompilerError;
 
 use super::{
-    ir::{VariableId, VariableScope},
+    ir::{FunctionTemplateId, TypeId, VariableId},
     Location, Program,
 };
 use std::{
@@ -14,21 +14,35 @@ use std::{
 #[derive(Debug, Default)]
 pub struct Scope {
     pub variable_lookup: HashMap<String, VariableId>,
+    pub type_lookup: HashMap<String, TypeId>,
+    pub function_template_lookup: HashMap<String, FunctionTemplateId>,
 }
 
 impl Scope {
     // Only keep global variables
     pub fn create_child(program: &Program) -> Self {
+        let scope = program.get_scope();
+
         Self {
-            variable_lookup: program
-                .get_scope()
-                .variable_lookup
+            variable_lookup: HashMap::new(),
+            function_template_lookup: scope
+                .function_template_lookup
                 .clone()
                 .into_iter()
-                .filter(|(_, variable_id)| {
-                    program.variables.get(*variable_id).unwrap().scope == VariableScope::Global
-                })
                 .collect::<HashMap<_, _>>(),
+            type_lookup: scope
+                .type_lookup
+                .clone()
+                .into_iter()
+                .collect::<HashMap<_, _>>(),
+            // variable_lookup: scope
+            //     .variable_lookup
+            //     .clone()
+            //     .into_iter()
+            //     // .filter(|(_, variable_id)| {
+            //     //     program.variables.get(*variable_id).unwrap().scope == Scoping::Global
+            //     // })
+            //     .collect::<HashMap<_, _>>(),
         }
     }
 }

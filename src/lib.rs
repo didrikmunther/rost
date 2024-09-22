@@ -145,7 +145,7 @@ pub fn run(settings: RunSettings) -> Option<String> {
 
     let program = compiler::compile(parsed);
 
-    if program.errors.len() > 0 {
+    if !program.errors.is_empty() {
         print_error(program.errors.into_iter().map(|e| e.into()).collect());
         return None;
     }
