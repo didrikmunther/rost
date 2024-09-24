@@ -1,6 +1,7 @@
 use super::{
     builder::Builder,
-    ir::{FunctionTemplate, FunctionTypeKind, Type, TypeIdWithIdentifier, TypeKind},
+    ir::FunctionTemplate,
+    typ::{FunctionTypeKind, Type, TypeIdWithIdentifier, TypeKind},
     Program,
 };
 use crate::{

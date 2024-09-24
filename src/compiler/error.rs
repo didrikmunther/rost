@@ -1,4 +1,4 @@
-use super::program::{ir::ExpressedType, Program};
+use super::program::{typ::ExpressedType, Program};
 use crate::{
     error::{RostError, RostErrorElement},
     lexer::Keyword,
@@ -94,6 +94,7 @@ pub enum CompilerErrorKind {
     WrongFunctionArguments(WrongFunctionArguments),
     RedeclaredVariable(String, Range<usize>),
     NotSupported(String),
+    UndefinedType(WrongType),
     WrongAssignmentType {
         got: WrongType,
         typ: WrongType,
@@ -185,6 +186,9 @@ impl CompilerError {
                         declaration_pos.clone(),
                     ),
                 ]
+            }
+            CompilerErrorKind::UndefinedType(WrongType { content }) => {
+                vec![(format!("Undefined type: {content}"), self.pos.clone())]
             }
             CompilerErrorKind::WrongAssignmentType {
                 got,

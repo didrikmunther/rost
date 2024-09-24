@@ -3,9 +3,10 @@ use std::collections::HashMap;
 use super::error::CompilerError;
 use crate::parser::definition::Declaration;
 use builder::Builder;
-use ir::{Function, FunctionTemplate, PrimitiveValue, Type, TypeId, TypeKind, Variable};
+use ir::{Function, FunctionTemplate, PrimitiveValue, Variable};
 use rust_lapper::Lapper;
 use scope::{Scope, ScopeId, ScopeRange};
+use typ::{Type, TypeId};
 
 mod assignment;
 pub mod builder;
@@ -15,6 +16,7 @@ mod function_call;
 mod function_declaration;
 pub mod ir;
 mod scope;
+pub mod typ;
 mod util;
 mod variable;
 
@@ -74,26 +76,6 @@ impl Program {
                 None
             }
         }
-    }
-
-    fn add_intrinsic_type(&mut self, identifier: &str) -> TypeId {
-        self.insert_type(
-            Some(identifier),
-            Type {
-                kind: TypeKind::Intrinsic {
-                    identifier: identifier.to_string(),
-                },
-                type_parameters: vec![],
-            },
-        )
-    }
-
-    fn add_builtin_types(&mut self) {
-        self.add_intrinsic_type("int");
-        self.add_intrinsic_type("float");
-        self.add_intrinsic_type("str");
-        self.add_intrinsic_type("bool");
-        self.add_intrinsic_type("any");
     }
 
     fn _compile(&mut self, parsed: Vec<Declaration>) -> Result<(), CompilerError> {

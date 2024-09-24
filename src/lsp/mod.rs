@@ -1,8 +1,8 @@
 use file_content::FileContents;
 use lifecycle::EmptyClientNotification;
 use lsp_types::{
-    DidChangeTextDocumentParams, DidOpenTextDocumentParams, GotoDefinitionParams, HoverParams,
-    InitializeParams, InitializedParams,
+    CodeActionParams, DidChangeTextDocumentParams, DidOpenTextDocumentParams, GotoDefinitionParams,
+    HoverParams, InitializeParams, InitializedParams,
 };
 use serde::Serialize;
 use serde_json::Value;
@@ -13,6 +13,7 @@ use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpStream;
 use util::{LspNotification, LspRequest, LspResponse};
 
+mod code_action;
 mod definition;
 mod diagnostics;
 mod file_content;
@@ -60,6 +61,7 @@ impl LSPServer {
         "textDocument/hover" => HoverParams => handle_hover,
         "textDocument/didChange" => DidChangeTextDocumentParams => handle_did_change,
         "textDocument/didOpen" => DidOpenTextDocumentParams => handle_did_open,
+        "textDocument/codeAction" => CodeActionParams => handle_code_action,
     }
 
     pub async fn create_and_connect(socket: u16) -> Result<Self, Box<dyn std::error::Error>> {

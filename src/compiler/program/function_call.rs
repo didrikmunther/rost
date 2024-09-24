@@ -10,10 +10,8 @@ use crate::{
 
 use super::{
     builder::Builder,
-    ir::{
-        ExpressedType, Function, FunctionBody, FunctionTypeKind, TypeIdWithIdentifier, TypeKind,
-        Variable, VariableId,
-    },
+    ir::{Function, FunctionBody, Variable, VariableId},
+    typ::{ExpressedType, FunctionTypeKind, TypeIdWithIdentifier, TypeKind},
     Program,
 };
 
@@ -56,7 +54,7 @@ fn add_function_parameters(this: &mut Program, fdec: &FunctionDeclaration) -> Ve
 }
 
 impl Program {
-    fn check_parameter_amount(
+    fn check_parameter_correctness(
         &mut self,
         function_type_kind: &FunctionTypeKind,
         function_template: &FunctionDeclaration,
@@ -137,8 +135,12 @@ impl Program {
                     TypeKind::Intrinsic { identifier } => identifier == "any",
                     _ => false,
                 };
+                let is_unknown = match &self.types.get(arg_typ.id).unwrap().kind {
+                    TypeKind::Intrinsic { identifier } => identifier == "unknown",
+                    _ => false,
+                };
 
-                if !is_any && arg_typ.id != par.unwrap().1 {
+                if !is_any && !is_unknown && arg_typ.id != par.unwrap().1 {
                     self.add_error(CompilerError::new(
                         arg.pos.clone(),
                         CompilerErrorKind::WrongFunctionArguments(
@@ -196,7 +198,7 @@ impl Program {
             ));
         };
 
-        self.check_parameter_amount(
+        self.check_parameter_correctness(
             function_type_kind,
             &function_template.function_declaration.clone(),
             fcall,

@@ -1,8 +1,8 @@
 use std::error::Error;
 
 use lsp_types::{
-    HoverProviderCapability, InitializeParams, InitializeResult, InitializedParams,
-    ServerCapabilities, TextDocumentSyncCapability, TextDocumentSyncKind,
+    CodeActionProviderCapability, HoverProviderCapability, InitializeParams, InitializeResult,
+    InitializedParams, ServerCapabilities, TextDocumentSyncCapability, TextDocumentSyncKind,
 };
 use serde::Deserialize;
 
@@ -19,6 +19,7 @@ impl LSPServer {
     ) -> Result<(), Box<dyn Error>> {
         let result = InitializeResult {
             capabilities: ServerCapabilities {
+                code_action_provider: Some(CodeActionProviderCapability::Simple(true)),
                 hover_provider: Some(HoverProviderCapability::Simple(true)),
                 text_document_sync: Some(TextDocumentSyncCapability::Kind(
                     TextDocumentSyncKind::FULL,

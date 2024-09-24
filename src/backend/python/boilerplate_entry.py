@@ -7,7 +7,7 @@ def __compiler__with_regular_args(func):
     def wrapper(*args):
         n_args = __stack.pop()
         args = [__stack.pop() for i in range(n_args)]
-        __stack.append(func(*args))
+        func(*args)
 
     return wrapper
 
@@ -15,6 +15,7 @@ def __compiler__with_regular_args(func):
 @__compiler__with_regular_args
 def __builtin__printf(format, *args):
     sys.stdout.write(format % args)
+    __intrinsic__stack_push(0)
 
 
 __stack = []

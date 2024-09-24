@@ -3,8 +3,7 @@ use rust_lapper::{Interval, Lapper};
 use crate::compiler::error::CompilerError;
 
 use super::{
-    ir::{FunctionTemplateId, TypeId, VariableId},
-    Location, Program,
+    ir::{FunctionTemplateId, VariableId}, typ::TypeId, Location, Program
 };
 use std::{
     collections::{HashMap, LinkedList},

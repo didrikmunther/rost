@@ -6,7 +6,8 @@ use crate::{
 
 use super::{
     builder::Builder,
-    ir::{Arithmetic, ExpressedType, Instruction, InstructionKind},
+    ir::{Arithmetic, Instruction, InstructionKind},
+    typ::{ExpressedType, TypeKind},
     Program,
 };
 
@@ -48,7 +49,7 @@ impl Program {
         }
     }
 
-    pub fn infer_type(&self, expr: &Expression) -> Result<ExpressedType, CompilerError> {
+    pub fn infer_type(&mut self, expr: &Expression) -> Result<ExpressedType, CompilerError> {
         match &expr.kind {
             ExpressionKind::Primary(primary) => match primary {
                 Primary::Identifier(ref identifier) => {
@@ -73,20 +74,45 @@ impl Program {
                 let left = self.infer_type(&binary.left)?;
                 let right = self.infer_type(&binary.right)?;
 
-                if left == right {
-                    Ok(left)
-                } else {
-                    Err(CompilerError::new(
+                let is_unknown =
+                    [&left, &right]
+                        .iter()
+                        .any(|v| match &self.types.get(v.id).unwrap().kind {
+                            TypeKind::Intrinsic { identifier } => identifier == "unknown",
+                            _ => false,
+                        });
+
+                if !is_unknown && left != right {
+                    self.add_error(CompilerError::new(
                         binary.left.pos.clone(),
                         CompilerErrorKind::WrongBinaryExpressionTypes {
-                            got: WrongType::from_expressed_type(left, self),
+                            got: WrongType::from_expressed_type(left.clone(), self),
                             expected: WrongType::from_expressed_type(right, self),
                             expected_pos: binary.right.pos.clone(),
                             operator: binary.operator,
                             operator_pos: binary.operator_pos.clone(),
                         },
-                    ))
+                    ));
+
+                    return Ok(self.get_intrinstic_type("unknown"));
                 }
+
+                Ok(left)
+
+                // if left == right {
+                //     Ok(left)
+                // } else {
+                //     Err(CompilerError::new(
+                //         binary.left.pos.clone(),
+                //         CompilerErrorKind::WrongBinaryExpressionTypes {
+                //             got: WrongType::from_expressed_type(left, self),
+                //             expected: WrongType::from_expressed_type(right, self),
+                //             expected_pos: binary.right.pos.clone(),
+                //             operator: binary.operator,
+                //             operator_pos: binary.operator_pos.clone(),
+                //         },
+                //     ))
+                // }
 
                 // let inferred = self.infer_binary_result_type(&left, &right, binary.operator);
                 // let Some(typ) = inferred else {

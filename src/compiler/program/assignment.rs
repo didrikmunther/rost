@@ -1,12 +1,13 @@
 use super::{
     builder::Builder,
-    ir::{ExpressedType, Function, FunctionId, FunctionTemplate, FunctionTypeKind, Type},
+    ir::{Function, FunctionId, FunctionTemplate},
+    typ::{ExpressedType, FunctionTypeKind, Type, TypeKind},
     Program,
 };
 use crate::{
     compiler::{
         error::{CompilerError, CompilerErrorKind, WrongType},
-        program::ir::{Instruction, InstructionKind, TypeKind, Variable, VariableId},
+        program::ir::{Instruction, InstructionKind, Variable, VariableId},
     },
     parser::{
         definition::{ExpressionKind, Primary, VariableAssignment, VariableDeclaration},
@@ -144,28 +145,50 @@ impl Program {
         let assignment_has_error = value.is_none();
 
         let inferred_typ = self.infer_type(&declaration.right)?;
-        let picked_typ = declaration
-            .typ
-            .as_ref()
-            .and_then(|v| self.get_declared_type(v));
 
-        if let Some(picked_typ) = picked_typ {
-            if inferred_typ != picked_typ {
-                return Err(CompilerError::new(
-                    declaration.right_pos.clone(),
-                    CompilerErrorKind::WrongAssignmentType {
-                        typ: WrongType::from_expressed_type(inferred_typ, self),
-                        got: WrongType::from_expressed_type(picked_typ, self),
-                        declaration_pos: declaration.typ.as_ref().map(|typ| typ.pos.clone()),
-                    },
-                ));
+        let assignment_typ = if let Some(declaration_typ) = &declaration.typ {
+            match self.get_declared_type(declaration_typ) {
+                None => {
+                    self.add_error(CompilerError::new(
+                        declaration_typ.pos.clone(),
+                        CompilerErrorKind::UndefinedType(WrongType {
+                            content: format!("{declaration_typ}"),
+                        }),
+                    ));
+
+                    self.get_intrinstic_type("unknown")
+                }
+                Some(picked_typ) => {
+                    let is_unknown = match self.reverse_type_lookup.get(&inferred_typ.id) {
+                        Some(identifier) => identifier == "unknown",
+                        None => false,
+                    };
+
+                    if !is_unknown && inferred_typ != picked_typ {
+                        self.add_error(CompilerError::new(
+                            declaration.right_pos.clone(),
+                            CompilerErrorKind::WrongAssignmentType {
+                                got: WrongType::from_expressed_type(inferred_typ.clone(), self),
+                                typ: WrongType::from_expressed_type(picked_typ, self),
+                                declaration_pos: declaration
+                                    .typ
+                                    .as_ref()
+                                    .map(|typ| typ.pos.clone()),
+                            },
+                        ));
+                    }
+
+                    inferred_typ
+                }
             }
-        }
+        } else {
+            inferred_typ
+        };
 
         let variable_id = self.insert_variable(
             Variable {
                 identifier: declaration.identifier.clone(),
-                typ: inferred_typ,
+                typ: assignment_typ,
                 declaration_pos: declaration.identifier_pos.clone(),
                 assignment_has_error,
             },
