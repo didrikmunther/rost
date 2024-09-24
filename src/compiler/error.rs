@@ -1,4 +1,7 @@
-use super::program::{ir::ExpressedType, Program};
+use super::program::{
+    ir::{ExpressedType, Type},
+    Program,
+};
 use crate::{
     error::{RostError, RostErrorElement},
     lexer::Keyword,
@@ -28,13 +31,18 @@ pub use compiler_todo;
 
 #[derive(Debug, Clone)]
 pub struct WrongType {
-    content: String,
+    pub content: String,
 }
 
 impl WrongType {
     pub fn from_expressed_type(_typ: ExpressedType, _program: &Program) -> Self {
         Self {
-            content: format!("todo"),
+            content: _program
+                .types
+                .get(_typ.id)
+                .unwrap()
+                .format(_program)
+                .to_string(),
         }
     }
 }
@@ -42,6 +50,34 @@ impl WrongType {
 impl Display for WrongType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.content)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct WrongFunctionArguments {
+    pub expected: String,
+    pub got: String,
+    pub declaration_pos: Range<usize>,
+}
+
+impl WrongFunctionArguments {
+    pub fn from_expressed_type(
+        expected: usize,
+        got: usize,
+        declaration_pos: Range<usize>,
+        program: &Program,
+    ) -> Self {
+        Self {
+            got: program.types.get(got).unwrap().format(program).to_string(),
+            expected: program
+                .types
+                .get(expected)
+                .unwrap()
+                .clone()
+                .format(program)
+                .to_string(),
+            declaration_pos,
+        }
     }
 }
 
@@ -58,6 +94,7 @@ pub enum CompilerErrorKind {
         expected: usize,
         got: usize,
     },
+    WrongFunctionArguments(WrongFunctionArguments),
     RedeclaredVariable(String, Range<usize>),
     NotSupported(String),
     WrongAssignmentType {
@@ -135,6 +172,22 @@ impl CompilerError {
                     ),
                     self.pos.clone(),
                 )]
+            }
+            CompilerErrorKind::WrongFunctionArguments(WrongFunctionArguments {
+                expected,
+                got,
+                declaration_pos,
+            }) => {
+                vec![
+                    (
+                        format!("Wrong type in function call: {got}"),
+                        self.pos.clone(),
+                    ),
+                    (
+                        format!("Expected {expected} in declaration"),
+                        declaration_pos.clone(),
+                    ),
+                ]
             }
             CompilerErrorKind::WrongAssignmentType {
                 got,

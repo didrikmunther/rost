@@ -1,6 +1,6 @@
 use super::{
     builder::Builder,
-    ir::{ExpressedType, Function, FunctionId, FunctionTemplate, Type},
+    ir::{ExpressedType, Function, FunctionId, FunctionTemplate, FunctionTypeKind, Type},
     Program,
 };
 use crate::{
@@ -115,11 +115,11 @@ impl Program {
                         id: *type_id,
                         arguments: None,
                     }),
-                    TypeKind::Function {
+                    TypeKind::Function(FunctionTypeKind {
                         parameter_type_ids,
                         vararg_parameter_type_id,
                         declaration_pos,
-                    } => todo!(),
+                    }) => todo!(),
                     TypeKind::UserDefined {
                         identifier,
                         declaration_pos,

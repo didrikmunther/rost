@@ -3,7 +3,7 @@ use super::{
     LSPServer,
 };
 use crate::{
-    compiler::program::ir::{TypeKind, VariableKind},
+    compiler::program::ir::{FunctionTypeKind, TypeKind, VariableKind},
     lsp::util::{find_block, get_processed_code, get_variable_at_position},
 };
 use lsp_types::{Hover, HoverParams};
@@ -64,11 +64,11 @@ impl LSPServer {
                 //     .unwrap_or("")
                 //     .into(),
             ],
-            TypeKind::Function {
+            TypeKind::Function(FunctionTypeKind {
                 parameter_type_ids,
                 vararg_parameter_type_id,
                 declaration_pos,
-            } => vec![
+            }) => vec![
                 // create_code_block("rost", &format!("{}()", variable.identifier)).to_string()
                 create_code_block(
                     "rost",

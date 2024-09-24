@@ -10,4 +10,8 @@ fn add_two_numbers(a: int, b: int) {
 let a: int = 1;
 let b: str = "hej";
 
-add_two_numbers(a, b);
+add_two_numbers(
+	a,
+	b,
+	c
+);

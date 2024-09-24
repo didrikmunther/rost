@@ -1,6 +1,6 @@
 use crate::{
     compiler::{
-        error::{CompilerError, CompilerErrorKind},
+        error::{CompilerError, CompilerErrorKind, WrongFunctionArguments, WrongType},
         program::ir::{Instruction, InstructionKind, ProcedureCall},
     },
     parser::definition::{
@@ -10,7 +10,10 @@ use crate::{
 
 use super::{
     builder::Builder,
-    ir::{ExpressedType, Function, FunctionBody, TypeKind, Variable, VariableId},
+    ir::{
+        ExpressedType, Function, FunctionBody, FunctionTypeKind, TypeIdWithIdentifier, TypeKind,
+        Variable, VariableId,
+    },
     Program,
 };
 
@@ -53,6 +56,107 @@ fn add_function_parameters(this: &mut Program, fdec: &FunctionDeclaration) -> Ve
 }
 
 impl Program {
+    fn check_parameter_amount(
+        &mut self,
+        function_type_kind: &FunctionTypeKind,
+        function_template: &FunctionDeclaration,
+        fcall: &FunctionCall,
+    ) -> Result<(), CompilerError> {
+        let vararg_parameter_type = function_type_kind
+            .vararg_parameter_type_id
+            .as_ref()
+            .map(|TypeIdWithIdentifier { identifier, id }| {
+                (identifier, id, self.types.get(*id).unwrap())
+            })
+            .map(|(a, b, c)| (a.clone(), *b, c.clone()));
+
+        let parameter_types = function_type_kind
+            .parameter_type_ids
+            .iter()
+            .cloned()
+            .map(|TypeIdWithIdentifier { id, identifier }| (identifier, id, self.types[id].clone()))
+            .collect::<Vec<_>>();
+
+        let parameter_diff = parameter_types.len() as i32 - fcall.args.len() as i32;
+
+        match parameter_diff {
+            0 => {}
+            _ if parameter_diff > 0 => {
+                self.add_error(CompilerError::new(
+                    fcall.left.pos.clone(),
+                    CompilerErrorKind::NotEnoughFunctionArguments {
+                        got: fcall.args.len(),
+                        missing: parameter_types[parameter_types.len() - parameter_diff as usize..]
+                            .iter()
+                            .map(|(identifier, _id, _typ)| identifier.clone())
+                            .collect(),
+                    },
+                ));
+            }
+            _ if vararg_parameter_type.is_some() && parameter_diff < 0 => {}
+            _ if parameter_diff < 0 => {
+                let additional = fcall.args.get(parameter_types.len()..).unwrap();
+                let pos = additional
+                    .iter()
+                    .map(|arg| arg.pos.clone())
+                    .fold(additional.first().unwrap().pos.clone(), |acc, pos| {
+                        acc.start..pos.end
+                    });
+
+                self.add_error(CompilerError::new(
+                    pos,
+                    CompilerErrorKind::TooManyFunctionArguments {
+                        expected: parameter_types.len(),
+                        got: fcall.args.len(),
+                    },
+                ));
+            }
+            _ => unreachable!(),
+        }
+
+        let par_args = parameter_types
+            .iter()
+            .map(Some)
+            .chain(std::iter::repeat(None))
+            .zip(fcall.args.iter().map(Some).chain(std::iter::repeat(None)))
+            .take_while(|(x, y)| x.is_some() || y.is_some())
+            .collect::<Vec<_>>();
+
+        for ((mut par, arg), mut fdec_par) in par_args
+            .into_iter()
+            .zip(function_template.parameters.iter())
+        {
+            if par.is_none() {
+                par = vararg_parameter_type.as_ref();
+                fdec_par = function_template.vararg_parameter.as_ref().unwrap();
+            }
+
+            if let Some(arg) = arg {
+                let arg_typ = self.infer_type(arg)?;
+                let is_any = match &par.unwrap().2.kind {
+                    TypeKind::Intrinsic { identifier } => identifier == "any",
+                    _ => false,
+                };
+
+                if !is_any && arg_typ.id != par.unwrap().1 {
+                    self.add_error(CompilerError::new(
+                        arg.pos.clone(),
+                        CompilerErrorKind::WrongFunctionArguments(
+                            WrongFunctionArguments::from_expressed_type(
+                                par.unwrap().1,
+                                arg_typ.id,
+                                fdec_par.pos.clone(),
+                                self,
+                            ),
+                        ),
+                    ));
+                }
+            }
+        }
+
+        Ok(())
+    }
+
     pub fn handle_function_call(
         &mut self,
         expression: &Expression,
@@ -81,73 +185,22 @@ impl Program {
             ));
         };
 
-        // let function_type = self
-        //     .function_templates
-        //     .get(function_template_id)
-        //     .and_then(|function_template| self.types.get(function_template.typ))
-        //     .unwrap();
-
         let function_template = self.function_templates.get(function_template_id).unwrap();
         let function_template_typ = function_template.typ;
         let function_type = self.types.get(function_template.typ).unwrap();
 
-        let TypeKind::Function {
-            parameter_type_ids,
-            vararg_parameter_type_id,
-            declaration_pos,
-        } = &function_type.kind
-        else {
+        let TypeKind::Function(function_type_kind) = &function_type.kind.clone() else {
             return Err(CompilerError::new(
                 fcall.left.pos.clone(),
                 CompilerErrorKind::NotAFunction(identifier),
             ));
         };
 
-        let parameter_types = parameter_type_ids
-            .iter()
-            .map(|(identifier, id)| (identifier, &self.types[*id]))
-            .collect::<Vec<_>>();
-
-        let vararg_parameter_type = vararg_parameter_type_id
-            .as_ref()
-            .map(|(identifier, id)| (identifier, self.types.get(*id).unwrap()));
-
-        let parameter_diff = parameter_types.len() as i32 - fcall.args.len() as i32;
-
-        match parameter_diff {
-            0 => {}
-            _ if parameter_diff > 0 => {
-                self.add_error(CompilerError::new(
-                    fcall.left.pos.clone(),
-                    CompilerErrorKind::NotEnoughFunctionArguments {
-                        got: fcall.args.len(),
-                        missing: parameter_types[parameter_types.len() - parameter_diff as usize..]
-                            .iter()
-                            .map(|&(identifier, _typ)| identifier.clone())
-                            .collect(),
-                    },
-                ));
-            }
-            _ if vararg_parameter_type.is_some() && parameter_diff < 0 => {}
-            _ if parameter_diff < 0 => {
-                let additional = fcall.args.get(parameter_types.len()..).unwrap();
-                let pos = additional
-                    .iter()
-                    .map(|arg| arg.pos.clone())
-                    .fold(additional.first().unwrap().pos.clone(), |acc, pos| {
-                        acc.start..pos.end
-                    });
-
-                self.add_error(CompilerError::new(
-                    pos,
-                    CompilerErrorKind::TooManyFunctionArguments {
-                        expected: parameter_types.len(),
-                        got: fcall.args.len(),
-                    },
-                ));
-            }
-            _ => unreachable!(),
-        }
+        self.check_parameter_amount(
+            function_type_kind,
+            &function_template.function_declaration.clone(),
+            fcall,
+        )?;
 
         let fdec = self
             .function_templates

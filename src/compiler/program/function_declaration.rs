@@ -1,6 +1,6 @@
 use super::{
     builder::Builder,
-    ir::{FunctionTemplate, Type, TypeKind},
+    ir::{FunctionTemplate, FunctionTypeKind, Type, TypeIdWithIdentifier, TypeKind},
     Program,
 };
 use crate::{
@@ -17,22 +17,28 @@ impl Program {
 
         for param in &fdec.parameters {
             let picked_typ = self.get_declared_type(&param.typ).unwrap();
-            parameter_type_ids.push((param.identifier.clone(), picked_typ.id));
+            parameter_type_ids.push(TypeIdWithIdentifier {
+                identifier: param.identifier.clone(),
+                id: picked_typ.id,
+            });
         }
 
         let vararg_parameter_type_id = fdec.vararg_parameter.as_ref().map(|vararg| {
             let picked_typ = self.get_declared_type(&vararg.typ).unwrap();
-            (vararg.identifier.clone(), picked_typ.id)
+            TypeIdWithIdentifier {
+                identifier: vararg.identifier.clone(),
+                id: picked_typ.id,
+            }
         });
 
         let function_type_id = self.insert_type(
             None,
             Type {
-                kind: TypeKind::Function {
+                kind: TypeKind::Function(FunctionTypeKind {
                     parameter_type_ids,
                     vararg_parameter_type_id,
                     declaration_pos: fdec.identifier_pos.clone(),
-                },
+                }),
                 type_parameters: vec![],
             },
         );

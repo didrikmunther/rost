@@ -76,6 +76,21 @@ pub enum VariableKind {
 }
 
 #[derive(Debug, Clone)]
+
+pub struct TypeIdWithIdentifier {
+    pub id: TypeId,
+    pub identifier: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct FunctionTypeKind {
+    pub parameter_type_ids: Vec<TypeIdWithIdentifier>,
+    pub vararg_parameter_type_id: Option<TypeIdWithIdentifier>,
+    pub declaration_pos: Range<usize>,
+    // return_type: TypeId,
+}
+
+#[derive(Debug, Clone)]
 pub enum TypeKind {
     Generic {
         identifier: String,
@@ -83,12 +98,7 @@ pub enum TypeKind {
     Intrinsic {
         identifier: String,
     },
-    Function {
-        parameter_type_ids: Vec<(String, TypeId)>,
-        vararg_parameter_type_id: Option<(String, TypeId)>,
-        declaration_pos: Range<usize>,
-        // return_type: TypeId,
-    },
+    Function(FunctionTypeKind),
     UserDefined {
         identifier: String,
         declaration_pos: Range<usize>,
@@ -108,14 +118,14 @@ impl Type {
             TypeKind::Intrinsic {
                 identifier: typ_identifier,
             } => typ_identifier.into(),
-            TypeKind::Function {
+            TypeKind::Function(FunctionTypeKind {
                 parameter_type_ids,
                 vararg_parameter_type_id,
                 declaration_pos,
-            } => {
+            }) => {
                 let parameters = parameter_type_ids
                     .iter()
-                    .map(|(identifier, id)| {
+                    .map(|TypeIdWithIdentifier { id, identifier }| {
                         let typ = program.types.get(*id).unwrap();
                         format!("{}: {}", identifier, typ.format(program))
                     })
@@ -124,7 +134,7 @@ impl Type {
 
                 let vararg = vararg_parameter_type_id
                     .as_ref()
-                    .map(|(identifier, id)| {
+                    .map(|TypeIdWithIdentifier { id, identifier }| {
                         let typ = program.types.get(*id).unwrap();
                         format!(", ...{}: {}", identifier, typ.format(program))
                     })
