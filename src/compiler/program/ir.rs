@@ -121,7 +121,7 @@ impl Type {
             TypeKind::Function(FunctionTypeKind {
                 parameter_type_ids,
                 vararg_parameter_type_id,
-                declaration_pos,
+                declaration_pos: _,
             }) => {
                 let parameters = parameter_type_ids
                     .iter()

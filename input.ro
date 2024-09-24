@@ -1,6 +1,6 @@
 __builtin fn printf(format: str, ...args: any);
 
-fn add_two_numbers(a: int, b: int) {
+fn add_two_numbers(a: int, b: any) {
 	let c = a + b;
 
 	printf("%i + %i = %i\n", a, b, c);

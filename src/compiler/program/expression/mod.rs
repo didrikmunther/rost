@@ -1,15 +1,3 @@
-// use crate::{
-//     compiler::{
-//         builder::Builder,
-//         definition::{Arithmetic, OperandValue, Procedure, ProcedureKind},
-//         error::CompilerError,
-//         program::Program,
-//         scope::variable::VariableType,
-//     },
-//     lexer::Keyword,
-//     parser::definition::{Binary, Expression, ExpressionKind, Unary},
-// };
-
 use crate::{
     compiler::error::{CompilerError, CompilerErrorKind, WrongType},
     lexer::{Keyword, Literal},
@@ -18,7 +6,7 @@ use crate::{
 
 use super::{
     builder::Builder,
-    ir::{Arithmetic, ExpressedType, Instruction, InstructionKind, NormalVariable, VariableKind},
+    ir::{Arithmetic, ExpressedType, Instruction, InstructionKind},
     Program,
 };
 
@@ -86,9 +74,9 @@ impl Program {
                 let right = self.infer_type(&binary.right)?;
 
                 if left == right {
-                    return Ok(left);
+                    Ok(left)
                 } else {
-                    return Err(CompilerError::new(
+                    Err(CompilerError::new(
                         binary.left.pos.clone(),
                         CompilerErrorKind::WrongBinaryExpressionTypes {
                             got: WrongType::from_expressed_type(left, self),
@@ -97,7 +85,7 @@ impl Program {
                             operator: binary.operator,
                             operator_pos: binary.operator_pos.clone(),
                         },
-                    ));
+                    ))
                 }
 
                 // let inferred = self.infer_binary_result_type(&left, &right, binary.operator);

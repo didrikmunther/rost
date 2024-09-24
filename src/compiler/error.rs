@@ -1,7 +1,4 @@
-use super::program::{
-    ir::{ExpressedType, Type},
-    Program,
-};
+use super::program::{ir::ExpressedType, Program};
 use crate::{
     error::{RostError, RostErrorElement},
     lexer::Keyword,

@@ -3,11 +3,11 @@ use super::{
     LSPServer,
 };
 use crate::{
-    compiler::program::ir::{FunctionTypeKind, TypeKind, VariableKind},
+    compiler::program::ir::{FunctionTypeKind, TypeKind},
     lsp::util::{find_block, get_processed_code, get_variable_at_position},
 };
 use lsp_types::{Hover, HoverParams};
-use std::{error::Error, fmt::format};
+use std::error::Error;
 
 impl LSPServer {
     pub async fn handle_hover(

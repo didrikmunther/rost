@@ -1,6 +1,6 @@
 use crate::{
     compiler::{
-        error::{CompilerError, CompilerErrorKind, WrongFunctionArguments, WrongType},
+        error::{CompilerError, CompilerErrorKind, WrongFunctionArguments},
         program::ir::{Instruction, InstructionKind, ProcedureCall},
     },
     parser::definition::{
