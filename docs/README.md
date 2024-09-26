@@ -46,8 +46,12 @@ my_func("abc");
 
 ![CleanShot 2024-09-26 at 11 05 04](https://github.com/user-attachments/assets/94b859b9-80df-4340-af2a-e8aa25eece19)
 
-
 ## LSP Server
+
+- [x] VS Code extension
+- [x] Hover support
+- [x] Goto declaration/definition support
+- [ ] Code action (quick fix) support
 
 ### Example Program
 
