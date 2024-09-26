@@ -1,7 +1,7 @@
 use super::{
     definition::{
         Declaration, DeclarationKind, FunctionDeclaration, FunctionDeclarationContent,
-        FunctionDeclarationParameter,
+        FunctionDeclarationParameter, GenericParameterDeclaration,
     },
     error::{ParserError, ParserErrorKind},
     util::get_block_identifier,
@@ -17,7 +17,6 @@ impl<'a> Parser<'a> {
         }
 
         if builtin || self.get(&[Keyword::Fn]).is_some() {
-            let mut vararg_parameter: Option<FunctionDeclarationParameter> = None;
             let fn_identifier = self.expect(&[Keyword::Identifier])?;
 
             let identifier = match get_block_identifier(fn_identifier) {
@@ -33,8 +32,44 @@ impl<'a> Parser<'a> {
                 }
             };
 
+            let mut type_params: Option<Vec<GenericParameterDeclaration>> = None;
+            if self.get(&[Keyword::LessThan]).is_some() {
+                let mut type_params_vec = Vec::new();
+
+                loop {
+                    let type_param = self.expect(&[Keyword::Identifier])?;
+
+                    let identifier = match get_block_identifier(type_param) {
+                        Some(identifier) => identifier,
+                        _ => {
+                            return Err(ParserError::new(
+                                fn_identifier.pos.clone(),
+                                ParserErrorKind::Expected {
+                                    expected: &[Keyword::Identifier],
+                                    got: type_param.kind,
+                                },
+                            ))
+                        }
+                    };
+
+                    type_params_vec.push(GenericParameterDeclaration {
+                        identifier,
+                        pos: type_param.pos.clone(),
+                    });
+
+                    if self.get(&[Keyword::Comma]).is_none() {
+                        break;
+                    }
+                }
+
+                self.expect(&[Keyword::GreaterThan])?;
+
+                type_params = Some(type_params_vec);
+            }
+
             let par_open = self.expect(&[Keyword::ParLeft])?;
             let mut parameters = Vec::new();
+            let mut vararg_parameter: Option<FunctionDeclarationParameter> = None;
 
             loop {
                 if self.is_end() {
@@ -71,6 +106,7 @@ impl<'a> Parser<'a> {
                             kind: DeclarationKind::FunctionDeclaration(FunctionDeclaration {
                                 identifier,
                                 identifier_pos: fn_identifier.pos.clone(),
+                                type_params,
                                 parameters,
                                 vararg_parameter,
                                 content,

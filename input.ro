@@ -1,18 +1,26 @@
 __builtin fn printf(format: str, ...args: any);
 
-fn add_two_numbers(a: int, b: int) {
-	let c = a + b;
+fn add_two_things<T>(format: str, a: T, b: T) {
+	let c: T = a + b;
 
-	let k: int = c;
-
-	printf("%i + %i = %i\n", a, b, c);
+	printf(format, a, b, c);
 }
 
 
 let a: int = 1;
-let b: int = 5 + a;
+//let b: int = 5 + a;
+let c: int = 5;
 
-add_two_numbers(
+let strvar = "abc";
+
+add_two_things(
+	"%i + %i = %i\n",
 	a,
-	b
+	c
+);
+
+add_two_things(
+	"%s + %s = %s\n",
+	strvar,
+	"def"
 );

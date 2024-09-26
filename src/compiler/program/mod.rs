@@ -18,7 +18,6 @@ pub mod ir;
 mod scope;
 pub mod typ;
 mod util;
-mod variable;
 
 pub type Location = usize;
 

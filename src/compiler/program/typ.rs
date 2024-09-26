@@ -1,5 +1,5 @@
-use std::ops::Range;
 use super::Program;
+use std::ops::Range;
 
 pub type TypeId = usize;
 
@@ -22,6 +22,7 @@ pub struct FunctionTypeKind {
 pub enum TypeKind {
     Generic {
         identifier: String,
+        declaration_pos: Range<usize>,
     },
     Intrinsic {
         identifier: String,
@@ -42,14 +43,14 @@ pub struct Type {
 impl Type {
     pub fn format(&self, program: &Program) -> String {
         match &self.kind {
-            TypeKind::Generic { identifier } => identifier.to_string(),
+            TypeKind::Generic { identifier, .. } => identifier.to_string(),
             TypeKind::Intrinsic {
                 identifier: typ_identifier,
             } => typ_identifier.into(),
             TypeKind::Function(FunctionTypeKind {
                 parameter_type_ids,
                 vararg_parameter_type_id,
-                declaration_pos: _,
+                ..
             }) => {
                 let parameters = parameter_type_ids
                     .iter()
@@ -84,6 +85,22 @@ pub struct ExpressedType {
 }
 
 impl Program {
+    pub fn insert_type(&mut self, identifier: Option<&str>, typ: Type) -> usize {
+        let type_id = self.types.len();
+        self.types.push(typ);
+
+        if let Some(identifier) = identifier {
+            self.get_scope_mut()
+                .type_lookup
+                .insert(identifier.to_string(), type_id);
+
+            self.reverse_type_lookup
+                .insert(type_id, identifier.to_string());
+        }
+
+        type_id
+    }
+
     pub fn add_intrinsic_type(&mut self, identifier: &str) -> TypeId {
         self.insert_type(
             Some(identifier),

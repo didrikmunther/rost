@@ -57,6 +57,15 @@ pub struct WrongFunctionArguments {
     pub declaration_pos: Range<usize>,
 }
 
+#[derive(Debug, Clone)]
+pub struct WrongGenericFunctionArguments {
+    pub generic_identifier: String,
+    pub generic_position: Range<usize>,
+    pub expected: String,
+    pub got: String,
+    pub declaration_pos: Range<usize>,
+}
+
 impl WrongFunctionArguments {
     pub fn from_expressed_type(
         expected: usize,
@@ -65,6 +74,31 @@ impl WrongFunctionArguments {
         program: &Program,
     ) -> Self {
         Self {
+            got: program.types.get(got).unwrap().format(program).to_string(),
+            expected: program
+                .types
+                .get(expected)
+                .unwrap()
+                .clone()
+                .format(program)
+                .to_string(),
+            declaration_pos,
+        }
+    }
+}
+
+impl WrongGenericFunctionArguments {
+    pub fn from_expressed_type(
+        generic_identifier: String,
+        generic_position: Range<usize>,
+        expected: usize,
+        got: usize,
+        declaration_pos: Range<usize>,
+        program: &Program,
+    ) -> Self {
+        Self {
+            generic_identifier,
+            generic_position,
             got: program.types.get(got).unwrap().format(program).to_string(),
             expected: program
                 .types
@@ -92,6 +126,7 @@ pub enum CompilerErrorKind {
         got: usize,
     },
     WrongFunctionArguments(WrongFunctionArguments),
+    WrongGenericFunctionArguments(WrongGenericFunctionArguments),
     RedeclaredVariable(String, Range<usize>),
     NotSupported(String),
     UndefinedType(WrongType),
@@ -114,6 +149,18 @@ pub enum CompilerErrorKind {
         file: &'static str,
         line: u32,
     },
+}
+
+impl CompilerErrorKind {
+    pub fn at_pos(self, pos: &Range<usize>) -> CompilerError {
+        CompilerError::new(pos.clone(), self)
+    }
+}
+
+impl<T> From<CompilerError> for Result<T, CompilerError> {
+    fn from(val: CompilerError) -> Self {
+        Err(val)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -183,6 +230,28 @@ impl CompilerError {
                     ),
                     (
                         format!("Expected {expected} in declaration"),
+                        declaration_pos.clone(),
+                    ),
+                ]
+            }
+            CompilerErrorKind::WrongGenericFunctionArguments(WrongGenericFunctionArguments {
+                generic_identifier,
+                generic_position,
+                expected,
+                got,
+                declaration_pos,
+            }) => {
+                vec![
+                    (
+                        format!("Conflicting generic types in function call for generic type {generic_identifier}"),
+                        generic_position.clone(),
+                    ),
+                    (
+                        format!("Variable setting generic type is of type {got}"),
+                        self.pos.clone(),
+                    ),
+                    (
+                        format!("Generic variable is expected to be {expected}, but got {got}"),
                         declaration_pos.clone(),
                     ),
                 ]

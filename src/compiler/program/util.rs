@@ -1,4 +1,8 @@
-use super::{builder::Builder, Program};
+use super::{
+    builder::Builder,
+    ir::{Variable, VariableId},
+    Program,
+};
 use crate::{compiler::error::CompilerError, parser::definition::Declaration};
 
 impl Program {
@@ -19,6 +23,24 @@ impl Program {
         }
 
         Ok(builder)
+    }
+
+    pub fn insert_variable(&mut self, variable: Variable, identifier: Option<&str>) -> VariableId {
+        let variable_id = self.variables.len();
+
+        if let Some(identifier) = identifier {
+            self.get_scope_mut()
+                .variable_lookup
+                .insert(identifier.to_string(), variable_id);
+        }
+
+        self.variables.push(variable);
+
+        variable_id
+    }
+
+    pub fn get_variable(&self, identifier: &str) -> Option<VariableId> {
+        self.get_scope().variable_lookup.get(identifier).copied()
     }
 
     // pub fn get_variable(&self, identifier: &String) -> Option<&StoredVariable> {

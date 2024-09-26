@@ -1,6 +1,10 @@
+use std::collections::HashMap;
+
 use crate::{
     compiler::{
-        error::{CompilerError, CompilerErrorKind, WrongFunctionArguments},
+        error::{
+            CompilerError, CompilerErrorKind, WrongFunctionArguments, WrongGenericFunctionArguments,
+        },
         program::ir::{Instruction, InstructionKind, ProcedureCall},
     },
     parser::definition::{
@@ -10,8 +14,8 @@ use crate::{
 
 use super::{
     builder::Builder,
-    ir::{Function, FunctionBody, Variable, VariableId},
-    typ::{ExpressedType, FunctionTypeKind, TypeIdWithIdentifier, TypeKind},
+    ir::{Function, FunctionBody, FunctionId, Variable, VariableId},
+    typ::{ExpressedType, FunctionTypeKind, TypeId, TypeIdWithIdentifier, TypeKind},
     Program,
 };
 
@@ -54,6 +58,13 @@ fn add_function_parameters(this: &mut Program, fdec: &FunctionDeclaration) -> Ve
 }
 
 impl Program {
+    fn insert_function(&mut self, function: Function) -> FunctionId {
+        let function_id = self.functions.len();
+        self.functions.push(function);
+
+        function_id
+    }
+
     fn check_parameter_correctness(
         &mut self,
         function_type_kind: &FunctionTypeKind,
@@ -120,6 +131,8 @@ impl Program {
             .take_while(|(x, y)| x.is_some() || y.is_some())
             .collect::<Vec<_>>();
 
+        let mut generic_to_type_map = HashMap::<String, TypeId>::new();
+
         for ((mut par, arg), mut fdec_par) in par_args
             .into_iter()
             .zip(function_template.parameters.iter())
@@ -140,18 +153,53 @@ impl Program {
                     _ => false,
                 };
 
-                if !is_any && !is_unknown && arg_typ.id != par.unwrap().1 {
-                    self.add_error(CompilerError::new(
-                        arg.pos.clone(),
-                        CompilerErrorKind::WrongFunctionArguments(
-                            WrongFunctionArguments::from_expressed_type(
-                                par.unwrap().1,
-                                arg_typ.id,
-                                fdec_par.pos.clone(),
-                                self,
-                            ),
-                        ),
-                    ));
+                let par_id = match &par.unwrap().2.kind {
+                    TypeKind::Generic {
+                        identifier,
+                        declaration_pos,
+                    } => {
+                        if let Some(&id) = generic_to_type_map.get(identifier) {
+                            if !is_unknown && arg_typ.id != id {
+                                self.add_error(
+                                    CompilerErrorKind::WrongGenericFunctionArguments(
+                                        WrongGenericFunctionArguments::from_expressed_type(
+                                            identifier.clone(),
+                                            declaration_pos.clone(),
+                                            id,
+                                            arg_typ.id,
+                                            fdec_par.pos.clone(),
+                                            self,
+                                        ),
+                                    )
+                                    .at_pos(&arg.pos),
+                                );
+
+                                None
+                            } else {
+                                Some(id)
+                            }
+                        } else {
+                            generic_to_type_map.insert(identifier.clone(), arg_typ.id);
+                            Some(arg_typ.id)
+                        }
+                    }
+                    _ => Some(par.unwrap().1),
+                };
+
+                if let Some(par_id) = par_id {
+                    if !is_any && !is_unknown && arg_typ.id != par_id {
+                        self.add_error(
+                            CompilerErrorKind::WrongFunctionArguments(
+                                WrongFunctionArguments::from_expressed_type(
+                                    par_id,
+                                    arg_typ.id,
+                                    fdec_par.pos.clone(),
+                                    self,
+                                ),
+                            )
+                            .at_pos(&arg.pos),
+                        );
+                    }
                 }
             }
         }
@@ -181,10 +229,9 @@ impl Program {
             .get(&identifier)
             .copied()
         else {
-            return Err(CompilerError::new(
-                fcall.left.pos.clone(),
-                CompilerErrorKind::UndefinedFunction(identifier),
-            ));
+            return CompilerErrorKind::UndefinedFunction(identifier)
+                .at_pos(&fcall.left.pos)
+                .into();
         };
 
         let function_template = self.function_templates.get(function_template_id).unwrap();
@@ -192,10 +239,9 @@ impl Program {
         let function_type = self.types.get(function_template.typ).unwrap();
 
         let TypeKind::Function(function_type_kind) = &function_type.kind.clone() else {
-            return Err(CompilerError::new(
-                fcall.left.pos.clone(),
-                CompilerErrorKind::NotAFunction(identifier),
-            ));
+            return CompilerErrorKind::NotAFunction(identifier)
+                .at_pos(&fcall.left.pos)
+                .into();
         };
 
         self.check_parameter_correctness(

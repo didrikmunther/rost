@@ -14,7 +14,6 @@ use super::{
 mod identifier;
 mod literal;
 mod primary;
-mod reference;
 
 impl Program {
     fn get_arithmetic_operation(operator: Keyword) -> Arithmetic {
@@ -54,10 +53,9 @@ impl Program {
             ExpressionKind::Primary(primary) => match primary {
                 Primary::Identifier(ref identifier) => {
                     let Some(variable_id) = self.get_variable(identifier) else {
-                        return Err(CompilerError::new(
-                            expr.pos.clone(),
-                            CompilerErrorKind::UndefinedVariable(identifier.clone()),
-                        ));
+                        return CompilerErrorKind::UndefinedVariable(identifier.clone())
+                            .at_pos(&expr.pos)
+                            .into();
                     };
 
                     let variable = self.variables.get(variable_id).unwrap();
@@ -131,9 +129,9 @@ impl Program {
                 // Ok(typ)
             }
             _ => {
-                eprintln!("Expression: {:?}", expr);
+                eprintln!("Unknown expression: {:?}", expr);
 
-                todo!()
+                Ok(self.get_intrinstic_type("unknown"))
             } // ExpressionKind::ArrayIndex(index) => {
               //     let expr_type = self.infer_type(&index.left)?;
 
@@ -201,8 +199,8 @@ impl Program {
     ) -> Result<Builder, CompilerError> {
         let operation = Self::get_arithmetic_operation(binary.operator);
         let _ = self.infer_type(expression)?;
-        let right = self.infer_type(&binary.right)?;
-        let left = self.infer_type(&binary.left)?;
+        let _right = self.infer_type(&binary.right)?;
+        let _left = self.infer_type(&binary.left)?;
 
         let instruction_kind = match operation {
             Arithmetic::Add => InstructionKind::IntAdd,

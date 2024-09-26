@@ -18,16 +18,15 @@ impl Program {
                 StatementKind::VariableAssignment(assignment) => {
                     self.handle_variable_assignment(assignment)
                 }
-                _ => Err(CompilerError::new(
-                    declaration.pos.clone(),
-                    CompilerErrorKind::NotSupported(format!("{:?}", statement.kind)),
-                )), // StatementKind::IfStatements(if_statements) => {
-                    //     self.handle_if_statement(statement, if_statements)
-                    // }
-                    // StatementKind::WhileStatement(while_statement) => {
-                    //     self.handle_while_statement(statement, while_statement)
-                    // }
-                    // StatementKind::ReturnStatement(ret_statement) => self.handle_return_statement(statement, ret_statement),
+                _ => CompilerErrorKind::NotSupported(format!("{:?}", statement.kind))
+                    .at_pos(&declaration.pos)
+                    .into(),
+                //     self.handle_if_statement(statement, if_statements)
+                // }
+                // StatementKind::WhileStatement(while_statement) => {
+                //     self.handle_while_statement(statement, while_statement)
+                // }
+                // StatementKind::ReturnStatement(ret_statement) => self.handle_return_statement(statement, ret_statement),
             },
             DeclarationKind::FunctionDeclaration(fn_declaration) => {
                 self.handle_function_declaration(declaration, fn_declaration)
@@ -35,10 +34,9 @@ impl Program {
             // DeclarationKind::StructDeclaration(struct_declaration) => {
             //     self.handle_struct_declaration(declaration, struct_declaration)
             // }
-            _ => Err(CompilerError::new(
-                declaration.pos.clone(),
-                CompilerErrorKind::NotSupported(format!("{:?}", declaration.kind)),
-            )),
+            _ => CompilerErrorKind::NotSupported(format!("{:?}", declaration.kind))
+                .at_pos(&declaration.pos)
+                .into(),
         }
     }
 }

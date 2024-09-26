@@ -2,7 +2,10 @@ use super::{
     util::{create_code_block, Compiled, CompilerResult, LspRequest},
     LSPServer,
 };
-use crate::{compiler::program::typ::{FunctionTypeKind, TypeKind}, lsp::util::{find_block, get_processed_code, get_variable_at_position}};
+use crate::{
+    compiler::program::typ::{FunctionTypeKind, TypeKind},
+    lsp::util::{find_block, get_processed_code, get_variable_at_position},
+};
 use lsp_types::{Hover, HoverParams};
 use std::error::Error;
 
@@ -46,7 +49,7 @@ impl LSPServer {
         eprintln!("kind: {:?}", typ.kind);
 
         let type_visualization = match &typ.kind {
-            TypeKind::Generic { identifier } => vec![identifier.into()],
+            TypeKind::Generic { identifier, .. } => vec![identifier.into()],
             TypeKind::Intrinsic { .. } => vec![
                 create_code_block(
                     "rost",
@@ -62,9 +65,9 @@ impl LSPServer {
                 //     .into(),
             ],
             TypeKind::Function(FunctionTypeKind {
-                parameter_type_ids,
-                vararg_parameter_type_id,
-                declaration_pos,
+                parameter_type_ids: _,
+                vararg_parameter_type_id: _,
+                declaration_pos: _,
             }) => vec![
                 // create_code_block("rost", &format!("{}()", variable.identifier)).to_string()
                 create_code_block(
@@ -74,8 +77,8 @@ impl LSPServer {
                 .to_string(),
             ],
             TypeKind::UserDefined {
-                identifier,
-                declaration_pos,
+                identifier: _,
+                declaration_pos: _,
             } => vec!["user defined".into()],
         };
 

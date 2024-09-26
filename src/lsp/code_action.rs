@@ -1,5 +1,5 @@
-use crate::lsp::util::{find_block, get_processed_code, get_variable_at_position, pos_to_row_col};
-use lsp_types::{CodeActionParams, GotoDefinitionResponse, Location};
+use crate::lsp::util::get_processed_code;
+use lsp_types::CodeActionParams;
 use std::error::Error;
 
 use super::{
@@ -18,8 +18,8 @@ impl LSPServer {
 
         let processed = get_processed_code(&text, uri.as_str());
         let CompilerResult::Compiled {
-            lexed,
-            compiled: Compiled { program, .. },
+            lexed: _,
+            compiled: Compiled { program: _, .. },
             ..
         } = processed
         else {

@@ -1,13 +1,12 @@
 use super::{
     builder::Builder,
-    ir::{Function, FunctionId, FunctionTemplate},
-    typ::{ExpressedType, FunctionTypeKind, Type, TypeKind},
+    typ::{ExpressedType, FunctionTypeKind, TypeKind},
     Program,
 };
 use crate::{
     compiler::{
         error::{CompilerError, CompilerErrorKind, WrongType},
-        program::ir::{Instruction, InstructionKind, Variable, VariableId},
+        program::ir::{Instruction, InstructionKind, Variable},
     },
     parser::{
         definition::{ExpressionKind, Primary, VariableAssignment, VariableDeclaration},
@@ -15,93 +14,7 @@ use crate::{
     },
 };
 
-/*
-    ```rost
-    fn main() {
-        let a = 1 + 2;
-        let b = a + 3 * 4;
-
-        printf("%i %i", a, b);
-    }
-    ```
-
-    ```irrepresentation
-    global_vars = ["%i %i\n"]
-    instructions = [
-        Push(Int(1), Int),
-        Push(Int(2), Int),
-        IntAdd,
-        Assign(Var(0), Int),
-        Push(Int(3), Int),
-        Push(Int(4), Int),
-        IntMul,
-        Assign(Var(1), Int),
-        Push(Var(1), Int),
-        Push(Var(0), Int),
-        Push(GlobalVar(0), String),
-        BuiltinFunction("printf", 3),
-        Pop,
-    ]
-    ```
-*/
-
 impl Program {
-    pub fn insert_type(&mut self, identifier: Option<&str>, typ: Type) -> usize {
-        let type_id = self.types.len();
-        self.types.push(typ);
-
-        if let Some(identifier) = identifier {
-            self.get_scope_mut()
-                .type_lookup
-                .insert(identifier.to_string(), type_id);
-
-            self.reverse_type_lookup
-                .insert(type_id, identifier.to_string());
-        }
-
-        type_id
-    }
-
-    pub fn insert_function_template(
-        &mut self,
-        identifier: &str,
-        function_template: FunctionTemplate,
-    ) -> usize {
-        let function_template_id = self.function_templates.len();
-        self.function_templates.push(function_template);
-
-        self.get_scope_mut()
-            .function_template_lookup
-            .insert(identifier.to_string(), function_template_id);
-
-        function_template_id
-    }
-
-    pub fn insert_function(&mut self, function: Function) -> FunctionId {
-        let function_id = self.functions.len();
-        self.functions.push(function);
-
-        function_id
-    }
-
-    pub fn insert_variable(&mut self, variable: Variable, identifier: Option<&str>) -> VariableId {
-        let variable_id = self.variables.len();
-
-        if let Some(identifier) = identifier {
-            self.get_scope_mut()
-                .variable_lookup
-                .insert(identifier.to_string(), variable_id);
-        }
-
-        self.variables.push(variable);
-
-        variable_id
-    }
-
-    pub fn get_variable(&self, identifier: &str) -> Option<VariableId> {
-        self.get_scope().variable_lookup.get(identifier).copied()
-    }
-
     pub fn get_declared_type(&self, typ: &ParserType) -> Option<ExpressedType> {
         let type_lookup = &self.get_scope().type_lookup;
 
@@ -111,26 +24,29 @@ impl Program {
                 let ctyp = &self.types[*type_id];
 
                 match &ctyp.kind {
-                    TypeKind::Intrinsic { identifier } => Some(ExpressedType {
+                    TypeKind::Intrinsic { identifier: _ } => Some(ExpressedType {
                         // identifier: identifier.clone(),
                         id: *type_id,
                         arguments: None,
                     }),
                     TypeKind::Function(FunctionTypeKind {
-                        parameter_type_ids,
-                        vararg_parameter_type_id,
-                        declaration_pos,
+                        parameter_type_ids: _,
+                        vararg_parameter_type_id: _,
+                        declaration_pos: _,
                     }) => todo!(),
                     TypeKind::UserDefined {
-                        identifier,
-                        declaration_pos,
+                        identifier: _,
+                        declaration_pos: _,
                     } => todo!(),
-                    _ => todo!(),
+                    TypeKind::Generic { .. } => Some(ExpressedType {
+                        id: *type_id,
+                        arguments: None,
+                    }),
                 }
             }
             ParserTypeKind::Composed {
-                identifier,
-                children,
+                identifier: _,
+                children: _,
             } => todo!(),
             ParserTypeKind::Pointer(_) => todo!(),
         }
@@ -176,9 +92,11 @@ impl Program {
                                     .map(|typ| typ.pos.clone()),
                             },
                         ));
-                    }
 
-                    inferred_typ
+                        self.get_intrinstic_type("unknown")
+                    } else {
+                        inferred_typ
+                    }
                 }
             }
         } else {
@@ -219,23 +137,19 @@ impl Program {
         let builder = match &assignment.left.kind {
             ExpressionKind::Primary(Primary::Identifier(identifier)) => {
                 let Some(variable_id) = self.get_variable(identifier) else {
-                    return Err(CompilerError::new(
-                        assignment.left_pos.clone(),
-                        CompilerErrorKind::UndefinedVariable(identifier.clone()),
-                    ));
+                    return CompilerErrorKind::UndefinedVariable(identifier.clone())
+                        .at_pos(&assignment.left_pos)
+                        .into();
                 };
 
                 if infered_left != infered_right {
-                    return Err(CompilerError::new(
-                        assignment.right_pos.clone(),
-                        CompilerErrorKind::WrongAssignmentType {
-                            typ: WrongType::from_expressed_type(infered_left, self),
-                            got: WrongType::from_expressed_type(infered_right, self),
-                            declaration_pos: Some(
-                                self.variables[variable_id].declaration_pos.clone(),
-                            ),
-                        },
-                    ));
+                    return (CompilerErrorKind::WrongAssignmentType {
+                        typ: WrongType::from_expressed_type(infered_left, self),
+                        got: WrongType::from_expressed_type(infered_right, self),
+                        declaration_pos: Some(self.variables[variable_id].declaration_pos.clone()),
+                    })
+                    .at_pos(&assignment.right_pos)
+                    .into();
                 }
 
                 Builder::new().append(value).push(Instruction {

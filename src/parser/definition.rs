@@ -42,6 +42,12 @@ pub struct FunctionDeclarationParameter {
 }
 
 #[derive(Debug, Clone)]
+pub struct GenericParameterDeclaration {
+    pub identifier: String,
+    pub pos: Range<usize>,
+}
+
+#[derive(Debug, Clone)]
 pub enum FunctionDeclarationContent {
     Block(Vec<Declaration>),
     Builtin,
@@ -51,6 +57,7 @@ pub enum FunctionDeclarationContent {
 pub struct FunctionDeclaration {
     pub identifier: String,
     pub identifier_pos: Range<usize>,
+    pub type_params: Option<Vec<GenericParameterDeclaration>>, // todo: add constraints
     pub parameters: Vec<FunctionDeclarationParameter>,
     pub vararg_parameter: Option<FunctionDeclarationParameter>,
     pub content: FunctionDeclarationContent,

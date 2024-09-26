@@ -46,26 +46,50 @@ def __intrinsic__stack_pop():
 # boilerplate_start end
 
 # Builtin function: printf
-def __userf__6():
+def __userf__9():
 	__builtin__printf()
-# User function: add_two_numbers
-def __userf__7():
+# User function: add_two_things
+def __userf__10():
 	__intrinsic__stack_pop()
-	_2_a = __intrinsic__stack_pop()
-	_3_b = __intrinsic__stack_pop()
-	__intrinsic__stack_push(_3_b)
-	__intrinsic__stack_push(_2_a)
+	_5_format = __intrinsic__stack_pop()
+	_6_a = __intrinsic__stack_pop()
+	_7_b = __intrinsic__stack_pop()
+	__intrinsic__stack_push(_7_b)
+	__intrinsic__stack_push(_6_a)
 	__intrinsic__stack_add()
-	_4_c = __intrinsic__stack_pop()
-	__intrinsic__stack_push(_4_c)
-	_5_k = __intrinsic__stack_pop()
-	__intrinsic__stack_push(_4_c)
-	__intrinsic__stack_push(_3_b)
-	__intrinsic__stack_push(_2_a)
-	__intrinsic__stack_push(__global_data[0])
+	_8_c = __intrinsic__stack_pop()
+	__intrinsic__stack_push(_8_c)
+	__intrinsic__stack_push(_7_b)
+	__intrinsic__stack_push(_6_a)
+	__intrinsic__stack_push(_5_format)
 	__intrinsic__stack_push(4)
 	# Procedure call: printf
-	__userf__6()
+	__userf__9()
+	__intrinsic__stack_pop()
+
+	__intrinsic__stack_push(0)
+	pass
+
+# Builtin function: printf
+def __userf__15():
+	__builtin__printf()
+# User function: add_two_things
+def __userf__16():
+	__intrinsic__stack_pop()
+	_11_format = __intrinsic__stack_pop()
+	_12_a = __intrinsic__stack_pop()
+	_13_b = __intrinsic__stack_pop()
+	__intrinsic__stack_push(_13_b)
+	__intrinsic__stack_push(_12_a)
+	__intrinsic__stack_add()
+	_14_c = __intrinsic__stack_pop()
+	__intrinsic__stack_push(_14_c)
+	__intrinsic__stack_push(_13_b)
+	__intrinsic__stack_push(_12_a)
+	__intrinsic__stack_push(_11_format)
+	__intrinsic__stack_push(4)
+	# Procedure call: printf
+	__userf__15()
 	__intrinsic__stack_pop()
 
 	__intrinsic__stack_push(0)
@@ -74,21 +98,32 @@ def __userf__7():
 
 def __setup():
 	global __global_data
-	__global_data = list(range(1))
-	__global_data[0] = "%i + %i = %i\n"
+	__global_data = list(range(4))
+	__global_data[0] = "abc"
+	__global_data[1] = "%i + %i = %i\n"
+	__global_data[2] = "def"
+	__global_data[3] = "%s + %s = %s\n"
 
 def __main():
 	__intrinsic__stack_push(1)
-	_0_a = __intrinsic__stack_pop()
-	__intrinsic__stack_push(_0_a)
+	_2_a = __intrinsic__stack_pop()
 	__intrinsic__stack_push(5)
-	__intrinsic__stack_add()
-	_1_b = __intrinsic__stack_pop()
-	__intrinsic__stack_push(_1_b)
-	__intrinsic__stack_push(_0_a)
-	__intrinsic__stack_push(2)
-	# Procedure call: add_two_numbers
-	__userf__7()
+	_3_c = __intrinsic__stack_pop()
+	__intrinsic__stack_push(__global_data[0])
+	_4_strvar = __intrinsic__stack_pop()
+	__intrinsic__stack_push(_3_c)
+	__intrinsic__stack_push(_2_a)
+	__intrinsic__stack_push(__global_data[1])
+	__intrinsic__stack_push(3)
+	# Procedure call: add_two_things
+	__userf__10()
+	__intrinsic__stack_pop()
+	__intrinsic__stack_push(__global_data[2])
+	__intrinsic__stack_push(_4_strvar)
+	__intrinsic__stack_push(__global_data[3])
+	__intrinsic__stack_push(3)
+	# Procedure call: add_two_things
+	__userf__16()
 	__intrinsic__stack_pop()
 
 	pass
