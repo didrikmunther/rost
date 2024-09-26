@@ -61,6 +61,7 @@ pub struct WrongFunctionArguments {
 pub struct WrongGenericFunctionArguments {
     pub generic_identifier: String,
     pub generic_position: Range<usize>,
+    pub generic_setting_position: Range<usize>,
     pub expected: String,
     pub got: String,
     pub declaration_pos: Range<usize>,
@@ -91,6 +92,7 @@ impl WrongGenericFunctionArguments {
     pub fn from_expressed_type(
         generic_identifier: String,
         generic_position: Range<usize>,
+        generic_setting_position: Range<usize>,
         expected: usize,
         got: usize,
         declaration_pos: Range<usize>,
@@ -99,6 +101,7 @@ impl WrongGenericFunctionArguments {
         Self {
             generic_identifier,
             generic_position,
+            generic_setting_position,
             got: program.types.get(got).unwrap().format(program).to_string(),
             expected: program
                 .types
@@ -237,6 +240,7 @@ impl CompilerError {
             CompilerErrorKind::WrongGenericFunctionArguments(WrongGenericFunctionArguments {
                 generic_identifier,
                 generic_position,
+                generic_setting_position,
                 expected,
                 got,
                 declaration_pos,
@@ -247,8 +251,12 @@ impl CompilerError {
                         generic_position.clone(),
                     ),
                     (
-                        format!("Variable setting generic type is of type {got}"),
-                        self.pos.clone(),
+                        format!("Variable setting generic type is of type {expected}"),
+                        generic_setting_position.clone()
+                    ),
+                    (
+                        format!("Conflicting variable type {got}"),
+                        self.pos.clone()
                     ),
                     (
                         format!("Generic variable is expected to be {expected}, but got {got}"),

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::Range};
 
 use crate::{
     compiler::{
@@ -131,7 +131,7 @@ impl Program {
             .take_while(|(x, y)| x.is_some() || y.is_some())
             .collect::<Vec<_>>();
 
-        let mut generic_to_type_map = HashMap::<String, TypeId>::new();
+        let mut generic_to_type_map = HashMap::<String, (TypeId, Range<usize>)>::new();
 
         for ((mut par, arg), mut fdec_par) in par_args
             .into_iter()
@@ -158,14 +158,17 @@ impl Program {
                         identifier,
                         declaration_pos,
                     } => {
-                        if let Some(&id) = generic_to_type_map.get(identifier) {
-                            if !is_unknown && arg_typ.id != id {
+                        if let Some((id, generic_declaration_pos)) =
+                            generic_to_type_map.get(identifier)
+                        {
+                            if !is_unknown && arg_typ.id != *id {
                                 self.add_error(
                                     CompilerErrorKind::WrongGenericFunctionArguments(
                                         WrongGenericFunctionArguments::from_expressed_type(
                                             identifier.clone(),
                                             declaration_pos.clone(),
-                                            id,
+                                            generic_declaration_pos.clone(),
+                                            *id,
                                             arg_typ.id,
                                             fdec_par.pos.clone(),
                                             self,
@@ -176,10 +179,11 @@ impl Program {
 
                                 None
                             } else {
-                                Some(id)
+                                Some(*id)
                             }
                         } else {
-                            generic_to_type_map.insert(identifier.clone(), arg_typ.id);
+                            generic_to_type_map
+                                .insert(identifier.clone(), (arg_typ.id, arg.pos.clone()));
                             Some(arg_typ.id)
                         }
                     }

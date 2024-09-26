@@ -15,7 +15,7 @@ let strvar = "abc";
 add_two_things(
 	"%i + %i = %i\n",
 	a,
-	c
+	"hej"
 );
 
 add_two_things(
