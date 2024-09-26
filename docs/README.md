@@ -57,7 +57,9 @@ my_func("abc");
 - [x] Goto declaration/definition support
 - [ ] Code action (quick fix) support
 
-### Example Program
+## Preview
+
+### Example program
 
 ```rost
 __builtin fn printf(format: str, ...args: any);
