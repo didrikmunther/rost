@@ -51,7 +51,7 @@ my_func("abc");
 <table cellpadding="0">
   <tr style="padding: 0">
     <td valign="top">
-	<img src="https://github.com/user-attachments/assets/a609c1f7-ba3d-4cca-8f93-3ff87c28bd64">
+	<img src="https://github.com/user-attachments/assets/9294157c-000e-45dc-976f-486449061a93">
     </td>
     <td valign="top">
     	<img src="https://github.com/user-attachments/assets/81614c5d-44ad-445b-ba9c-2c4b058ee9c9">
