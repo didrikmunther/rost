@@ -2,7 +2,29 @@
 
 Compiles the Rost language to a Python stack machine backend.
 
-## Compile Rost program
+## Roadmap
+
+- [x] Recursive descent parser
+- [x] AST representation
+- [x] IR representation
+- [x] Scoping of variables
+- [x] Type checking
+- [x] Generics
+- [x] Error handling and reporting
+- [x] LSP server
+- [x] Builtin functions (externals)
+- [x] Builtin types
+- [x] Function calls
+- [x] Function definitions
+- [x] Compilation to Python stack machine
+- [ ] Compilation to Webassembly
+- [ ] Compilation to Assembly
+- [ ] Custom types (structs)
+- [ ] Loops
+- [ ] If statements
+- [ ] Trait system
+
+## Usage
 
 `cargo run --bin main input.ro -o out.py && python out.py`
 
@@ -13,6 +35,16 @@ You may pass a compilation level argument, e.g. `cargo run --bin main input.ro p
 | lexed    |
 | parsed   |
 | compiled |
+
+## Error Handling
+
+```rost
+fn my_func(in: int) {}
+
+my_func("abc");
+```
+
+## LSP Server
 
 ### Example Program
 

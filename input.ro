@@ -1,25 +1,3 @@
-__builtin fn printf(format: str, ...args: any);
+fn my_func(in: int) {}
 
-fn add_two_things<T>(format: str, a: T, b: T) {
-	let c: T = a + b;
-
-	printf(format, a, b, c);
-}
-
-
-let a: int = 1;
-let c: int = 5;
-
-let strvar = "abc";
-
-add_two_things(
-	"%i + %i = %i\n",
-	a,
-	c
-);
-
-add_two_things(
-	"%s + %s = %s\n",
-	strvar,
-	"def"
-);
+my_func("abc");
