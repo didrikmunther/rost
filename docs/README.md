@@ -48,6 +48,8 @@ my_func("abc");
 
 ## LSP Server
 
+![CleanShot 2024-09-26 at 11 13 15@2x](https://github.com/user-attachments/assets/a609c1f7-ba3d-4cca-8f93-3ff87c28bd64)
+
 ![CleanShot 2024-09-26 at 11 07 17@2x](https://github.com/user-attachments/assets/81614c5d-44ad-445b-ba9c-2c4b058ee9c9)
 
 ![CleanShot 2024-09-26 at 11 09 17@2x](https://github.com/user-attachments/assets/4b1f1ed7-61c7-4f48-b5fc-e25eb47447b5)
