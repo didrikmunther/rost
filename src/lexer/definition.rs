@@ -28,13 +28,8 @@ pub enum Keyword {
     GreaterThan,
     Equality,
     Dot,
-
-    // Types
-    Int,
-    Bool,
-    String,
-    Char,
-    Pointer,
+    Builtin,
+    Ellipsis,
     Struct,
 
     // Abstract keywords

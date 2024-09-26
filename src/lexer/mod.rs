@@ -5,8 +5,8 @@ pub use letter::Letter;
 use self::system::LiteralBoolLexer;
 use letter::{get_letters, UnexpectedToken};
 use system::{
-    CommentLexer, IdentifierLexer, KeywordLexer, Lexer, LiteralNumberLexer, StringLexer,
-    SymbolLexer,
+    comment::{MultiLineCommentLexer, SingleLineCommentLexer},
+    IdentifierLexer, KeywordLexer, Lexer, LiteralNumberLexer, StringLexer, SymbolLexer,
 };
 
 pub mod definition;
@@ -21,9 +21,10 @@ pub fn lex(text: &str) -> Result<Vec<Block>, LexerError> {
     let mut pos = 0;
 
     let lexers: Vec<Box<dyn Lexer>> = vec![
-        Box::new(CommentLexer),
+        Box::new(SingleLineCommentLexer),
+        Box::new(MultiLineCommentLexer),
         Box::new(StringLexer),
-        Box::new(KeywordLexer::new()),
+        Box::new(KeywordLexer),
         Box::new(LiteralNumberLexer),
         Box::new(LiteralBoolLexer),
         Box::new(IdentifierLexer),

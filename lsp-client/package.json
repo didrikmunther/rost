@@ -16,11 +16,30 @@
   "engines": {
     "vscode": "^1.75.0"
   },
-  "activationEvents": [
-    "onLanguage:plaintext"
-  ],
   "main": "./client/out/extension",
+  "activationEvents": [
+    "onLanguage:rost"
+  ],
   "contributes": {
+    "languages": [
+      {
+        "id": "rost",
+        "aliases": [
+          "Rost",
+          "rost"
+        ],
+        "extensions": [
+          ".ro"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "rost",
+        "scopeName": "source.rost",
+        "path": "./syntaxes/rost.tmLanguage.json"
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "Example configuration",

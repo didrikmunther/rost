@@ -1,4 +1,4 @@
-use crate::lexer::{Block, Keyword};
+use crate::lexer::{Block, Keyword, Token};
 
 use self::{
     definition::{Ast, Declaration, Expression, Statement},
@@ -128,6 +128,19 @@ impl<'a> Parser<'a> {
         None
     }
 
+    pub fn extract_identifier(&mut self, block: &Block) -> Result<String, ParserError> {
+        match &block.token {
+            Token::Identifier(identifier) => Ok(identifier.to_string()),
+            _ => Err(ParserError::new(
+                block.pos.clone(),
+                ParserErrorKind::Expected {
+                    expected: &[Keyword::Identifier],
+                    got: block.kind,
+                },
+            )),
+        }
+    }
+
     pub fn expect(&mut self, tokens: &'static [Keyword]) -> Result<&'a Block, ParserError> {
         for token in tokens {
             if let Some(block) = self.check(*token) {
@@ -138,7 +151,10 @@ impl<'a> Parser<'a> {
 
         Err(ParserError::new(
             self.peek_or_eof()?.pos.clone(),
-            ParserErrorKind::Expected(tokens),
+            ParserErrorKind::Expected {
+                expected: tokens,
+                got: self.peek_or_eof()?.kind,
+            },
         ))
     }
 }

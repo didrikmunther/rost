@@ -1,4 +1,7 @@
-use std::{fmt::Debug, ops::Range};
+use std::{
+    fmt::{self, Debug, Display},
+    ops::Range,
+};
 
 use crate::{
     lexer::{Keyword, Token},
@@ -8,40 +11,57 @@ use crate::{
 use super::{error::ParserError, Parser};
 
 #[derive(Debug, Clone)]
-pub enum TypeIdentifier {
-    Primitive(Keyword),
-    Struct(String),
+pub enum TypeKind {
+    Identifier(String),
+    Composed {
+        identifier: String,
+        children: Vec<Type>,
+    },
+    Pointer(Box<Type>),
 }
 
 #[derive(Debug, Clone)]
 pub struct Type {
-    pub identifier: TypeIdentifier,
+    pub kind: TypeKind,
     pub pos: Range<usize>,
-    pub children: Option<Vec<Type>>,
+}
+
+impl Display for Type {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match &self.kind {
+            TypeKind::Identifier(identifier) => write!(f, "{}", identifier),
+            TypeKind::Composed {
+                identifier,
+                children,
+            } => {
+                write!(f, "{}<", identifier)?;
+                for (i, child) in children.iter().enumerate() {
+                    if i != 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{}", child)?;
+                }
+                write!(f, ">")
+            }
+            TypeKind::Pointer(child) => write!(f, "&{}", child),
+        }
+    }
 }
 
 impl<'a> Parser<'a> {
     pub fn parse_type(&mut self) -> Result<Type, ParserError> {
-        let next = self.peek_or_eof()?;
-        self.advance();
+        let next = self.expect(&[Keyword::Identifier, Keyword::Ampersand])?;
 
         let identifier = match &next.token {
-            Token::Keyword(keyword) => match keyword {
-                Keyword::Int | Keyword::Bool | Keyword::Char | Keyword::Pointer => {
-                    TypeIdentifier::Primitive(*keyword)
-                }
-                Keyword::Ampersand => {
-                    let child = self.parse_type()?;
+            Token::Keyword(Keyword::Ampersand) => {
+                let child = self.parse_type()?;
 
-                    return Ok(Type {
-                        identifier: TypeIdentifier::Primitive(Keyword::Pointer),
-                        pos: next.pos.start..child.pos.end,
-                        children: Some(vec![child]),
-                    });
-                }
-                _ => return parser_todo!(next.pos.clone(), "Unknown type"),
-            },
-            Token::Identifier(identifier) => TypeIdentifier::Struct(identifier.clone()),
+                return Ok(Type {
+                    pos: next.pos.start..child.pos.end,
+                    kind: TypeKind::Pointer(Box::new(child)),
+                });
+            }
+            Token::Identifier(identifier) => identifier.clone(),
             _ => return parser_todo!(next.pos.clone(), "Unknown type"),
         };
 
@@ -56,15 +76,16 @@ impl<'a> Parser<'a> {
             }
 
             Ok(Type {
-                identifier,
                 pos: next.pos.start..children.last().unwrap().pos.end,
-                children: Some(children),
+                kind: TypeKind::Composed {
+                    identifier,
+                    children,
+                },
             })
         } else {
             Ok(Type {
-                identifier,
+                kind: TypeKind::Identifier(identifier),
                 pos: next.pos.clone(),
-                children: None,
             })
         }
     }

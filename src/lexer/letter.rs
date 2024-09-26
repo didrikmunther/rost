@@ -2,6 +2,7 @@ use super::{error::LexerErrorKind, LexerError};
 
 use std::iter;
 
+// (position, character, is_eof)
 pub type Letter = (usize, char, bool);
 
 pub static EOF: Letter = (0, ' ', true);

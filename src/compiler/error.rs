@@ -1,49 +1,12 @@
-use std::ops::Range;
-
+use super::program::{typ::ExpressedType, Program};
 use crate::{
     error::{RostError, RostErrorElement},
     lexer::Keyword,
 };
-
-use super::scope::variable::VariableType;
-
-#[derive(Debug, PartialEq)]
-pub enum CompilerErrorKind {
-    UndefinedVariable(String),
-    UndefinedFunction(String),
-    RedeclaredVariable(String, Range<usize>),
-    DereferenceNonPointer(VariableType),
-    MissingMainFunction,
-    TooManyParametersInMainFunction,
-    WrongBinaryExpressionTypes {
-        got: VariableType,
-        expected: VariableType,
-        expected_pos: Range<usize>,
-        operator: Keyword,
-        operator_pos: Range<usize>,
-    },
-    WrongType {
-        got: VariableType,
-        expected: VariableType,
-    },
-    WrongArgumentType {
-        parameter: VariableType,
-        argument: VariableType,
-        parameter_pos: Range<usize>,
-    },
-    WrongAssignmentType {
-        got: VariableType,
-        typ: VariableType,
-        declaration_pos: Option<Range<usize>>,
-    },
-    
-    #[allow(dead_code)]
-    Todo {
-        msg: String,
-        file: &'static str,
-        line: u32,
-    },
-}
+use std::{
+    fmt::{Display, Formatter},
+    ops::Range,
+};
 
 #[macro_export]
 macro_rules! compiler_todo {
@@ -63,36 +26,167 @@ macro_rules! compiler_todo {
 #[allow(unused_imports)]
 pub use compiler_todo;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone)]
+pub struct WrongType {
+    pub content: String,
+}
+
+impl WrongType {
+    pub fn from_expressed_type(_typ: ExpressedType, _program: &Program) -> Self {
+        Self {
+            content: _program
+                .types
+                .get(_typ.id)
+                .unwrap()
+                .format(_program)
+                .to_string(),
+        }
+    }
+}
+
+impl Display for WrongType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.content)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct WrongFunctionArguments {
+    pub expected: String,
+    pub got: String,
+    pub declaration_pos: Range<usize>,
+}
+
+#[derive(Debug, Clone)]
+pub struct WrongGenericFunctionArguments {
+    pub generic_identifier: String,
+    pub generic_position: Range<usize>,
+    pub expected: String,
+    pub got: String,
+    pub declaration_pos: Range<usize>,
+}
+
+impl WrongFunctionArguments {
+    pub fn from_expressed_type(
+        expected: usize,
+        got: usize,
+        declaration_pos: Range<usize>,
+        program: &Program,
+    ) -> Self {
+        Self {
+            got: program.types.get(got).unwrap().format(program).to_string(),
+            expected: program
+                .types
+                .get(expected)
+                .unwrap()
+                .clone()
+                .format(program)
+                .to_string(),
+            declaration_pos,
+        }
+    }
+}
+
+impl WrongGenericFunctionArguments {
+    pub fn from_expressed_type(
+        generic_identifier: String,
+        generic_position: Range<usize>,
+        expected: usize,
+        got: usize,
+        declaration_pos: Range<usize>,
+        program: &Program,
+    ) -> Self {
+        Self {
+            generic_identifier,
+            generic_position,
+            got: program.types.get(got).unwrap().format(program).to_string(),
+            expected: program
+                .types
+                .get(expected)
+                .unwrap()
+                .clone()
+                .format(program)
+                .to_string(),
+            declaration_pos,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum CompilerErrorKind {
+    UndefinedVariable(String),
+    UndefinedFunction(String),
+    NotAFunction(String),
+    NotEnoughFunctionArguments {
+        missing: Vec<String>,
+        got: usize,
+    },
+    TooManyFunctionArguments {
+        expected: usize,
+        got: usize,
+    },
+    WrongFunctionArguments(WrongFunctionArguments),
+    WrongGenericFunctionArguments(WrongGenericFunctionArguments),
+    RedeclaredVariable(String, Range<usize>),
+    NotSupported(String),
+    UndefinedType(WrongType),
+    WrongAssignmentType {
+        got: WrongType,
+        typ: WrongType,
+        declaration_pos: Option<Range<usize>>,
+    },
+    WrongBinaryExpressionTypes {
+        got: WrongType,
+        expected: WrongType,
+        expected_pos: Range<usize>,
+        operator: Keyword,
+        operator_pos: Range<usize>,
+    },
+
+    #[allow(dead_code)]
+    Todo {
+        msg: String,
+        file: &'static str,
+        line: u32,
+    },
+}
+
+impl CompilerErrorKind {
+    pub fn at_pos(self, pos: &Range<usize>) -> CompilerError {
+        CompilerError::new(pos.clone(), self)
+    }
+}
+
+impl<T> From<CompilerError> for Result<T, CompilerError> {
+    fn from(val: CompilerError) -> Self {
+        Err(val)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct CompilerError {
     pub pos: Range<usize>,
-    pub kind: CompilerErrorKind,
+    pub kind: Box<CompilerErrorKind>,
 }
 
 // Todo: Allow errors without positions,
 // todo: such as no-main function.
 impl CompilerError {
     pub fn new(pos: Range<usize>, kind: CompilerErrorKind) -> Self {
-        Self { pos, kind }
+        Self {
+            pos,
+            kind: Box::new(kind),
+        }
     }
 
     fn get_messages(&self) -> Vec<(String, Range<usize>)> {
-        match &self.kind {
+        match &self.kind.as_ref() {
             CompilerErrorKind::Todo { file, line, msg } => vec![(
                 format!("Not yet implemented, {msg}. {file}:{line}"),
                 self.pos.clone(),
             )],
             // todo: get_message should be a closure, accepting a document containing helper functions for getting lines.
             //  todo: perhaps a builder pattern to be able to show errors on multiple lines.
-            CompilerErrorKind::MissingMainFunction => vec![("Missing main function".into(), 0..0)],
-            CompilerErrorKind::TooManyParametersInMainFunction => vec![(
-                "Too many parameters for main function, expected maximum of 2".into(),
-                self.pos.clone(),
-            )],
-            CompilerErrorKind::DereferenceNonPointer(typ) => vec![(
-                format!("Cannot dereference non-pointer value of type {typ}"),
-                self.pos.clone(),
-            )],
             CompilerErrorKind::RedeclaredVariable(identifier, pos) => vec![
                 (
                     format!("Redeclared variable: {identifier}"),
@@ -111,6 +205,73 @@ impl CompilerError {
                     format!("Undefined function: {identifier}"),
                     self.pos.clone(),
                 )]
+            }
+            CompilerErrorKind::NotAFunction(identifier) => {
+                vec![(format!("Not a function: {identifier}"), self.pos.clone())]
+            }
+            CompilerErrorKind::NotEnoughFunctionArguments { missing, got } => {
+                vec![(
+                    format!(
+                        "Not enough function arguments, only got {got}, missing: {missing}",
+                        missing = missing.join(", "),
+                    ),
+                    self.pos.clone(),
+                )]
+            }
+            CompilerErrorKind::WrongFunctionArguments(WrongFunctionArguments {
+                expected,
+                got,
+                declaration_pos,
+            }) => {
+                vec![
+                    (
+                        format!("Wrong type in function call: {got}"),
+                        self.pos.clone(),
+                    ),
+                    (
+                        format!("Expected {expected} in declaration"),
+                        declaration_pos.clone(),
+                    ),
+                ]
+            }
+            CompilerErrorKind::WrongGenericFunctionArguments(WrongGenericFunctionArguments {
+                generic_identifier,
+                generic_position,
+                expected,
+                got,
+                declaration_pos,
+            }) => {
+                vec![
+                    (
+                        format!("Conflicting generic types in function call for generic type {generic_identifier}"),
+                        generic_position.clone(),
+                    ),
+                    (
+                        format!("Variable setting generic type is of type {got}"),
+                        self.pos.clone(),
+                    ),
+                    (
+                        format!("Generic variable is expected to be {expected}, but got {got}"),
+                        declaration_pos.clone(),
+                    ),
+                ]
+            }
+            CompilerErrorKind::UndefinedType(WrongType { content }) => {
+                vec![(format!("Undefined type: {content}"), self.pos.clone())]
+            }
+            CompilerErrorKind::WrongAssignmentType {
+                got,
+                typ,
+                declaration_pos,
+            } => {
+                if let Some(pos) = declaration_pos {
+                    vec![
+                        (format!("Wrong type in assignment: {got}"), self.pos.clone()),
+                        (format!("Variable declared with type {typ}"), pos.clone()),
+                    ]
+                } else {
+                    vec![(format!("Wrong type in assignment: {got}"), self.pos.clone())]
+                }
             }
             CompilerErrorKind::WrongBinaryExpressionTypes {
                 got,
@@ -131,41 +292,14 @@ impl CompilerError {
                     (format!("Other type is {expected}"), expected_pos.clone()),
                 ]
             }
-            CompilerErrorKind::WrongAssignmentType {
-                got,
-                typ,
-                declaration_pos,
-            } => {
-                if let Some(pos) = declaration_pos {
-                    vec![
-                        (format!("Wrong type in assignment: {got}"), self.pos.clone()),
-                        (format!("Variable declared with type {typ}"), pos.clone()),
-                    ]
-                } else {
-                    vec![(format!("Wrong type in assignment: {got}"), self.pos.clone())]
-                }
-            }
-            CompilerErrorKind::WrongArgumentType {
-                argument,
-                parameter,
-                parameter_pos,
-            } => {
-                vec![
-                    (
-                        format!("Wrong type in argument: {argument}"),
-                        self.pos.clone(),
-                    ),
-                    (
-                        format!("Function takes parameter of type: {parameter}"),
-                        parameter_pos.clone(),
-                    ),
-                ]
-            }
-            CompilerErrorKind::WrongType { got, expected } => {
+            CompilerErrorKind::TooManyFunctionArguments { expected, got } => {
                 vec![(
-                    format!("Wrong type: {got}, expected: {expected}"),
+                    format!("Too many function arguments, expected {expected}, got {got}",),
                     self.pos.clone(),
                 )]
+            }
+            CompilerErrorKind::NotSupported(v) => {
+                vec![(format!("Not supported: {v}"), self.pos.clone())]
             }
         }
     }

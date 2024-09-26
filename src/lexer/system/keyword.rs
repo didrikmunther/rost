@@ -3,34 +3,20 @@ use phf::phf_map;
 
 static KEYWORDS: phf::Map<&'static str, Keyword> = phf_map! {
     "let" => Keyword::Let,
-    "int" => Keyword::Int,
-    "pointer" => Keyword::Pointer,
-    "string" => Keyword::String,
-    "char" => Keyword::Char,
-    "bool" => Keyword::Bool,
     "fn" => Keyword::Fn,
     "return" => Keyword::Return,
     "if" => Keyword::If,
     "else" => Keyword::Else,
     "while" => Keyword::While,
     "struct" => Keyword::Struct,
+    "__builtin" => Keyword::Builtin,
 };
 
-pub struct KeywordLexer {
-    identifier_lexer: IdentifierLexer,
-}
-
-impl KeywordLexer {
-    pub fn new() -> Self {
-        Self {
-            identifier_lexer: IdentifierLexer::new(),
-        }
-    }
-}
+pub struct KeywordLexer;
 
 impl Lexer for KeywordLexer {
     fn lex(&self, chars: &[Letter]) -> Result<Option<(Token, usize)>, LexerError> {
-        match self.identifier_lexer.lex(chars) {
+        match IdentifierLexer.lex(chars) {
             Ok(Some((Token::Identifier(identifier), pos))) => Ok(KEYWORDS
                 .get(&identifier)
                 .map(|keyword| (Token::Keyword(*keyword), pos))),
@@ -47,7 +33,7 @@ mod tests {
     #[test]
     fn keyword_works() {
         let letters = &get_letters("let");
-        let lexed = KeywordLexer::new().lex(letters);
+        let lexed = KeywordLexer.lex(letters);
 
         assert_eq!(lexed, Ok(Some((Token::Keyword(Keyword::Let), 3))));
     }

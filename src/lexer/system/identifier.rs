@@ -11,12 +11,6 @@ fn is_identifier(word: &str) -> bool {
 
 pub struct IdentifierLexer;
 
-impl IdentifierLexer {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
-
 impl Lexer for IdentifierLexer {
     fn lex(&self, chars: &[Letter]) -> Result<Option<(Token, usize)>, LexerError> {
         let mut buf = Vec::<char>::new();
@@ -61,7 +55,7 @@ mod tests {
     #[test]
     fn identifier_works() {
         let letters = &get_letters("abc");
-        let lexed = IdentifierLexer::new().lex(letters);
+        let lexed = IdentifierLexer.lex(letters);
 
         assert_eq!(lexed, Ok(Some((Token::Identifier(String::from("abc")), 3))));
     }

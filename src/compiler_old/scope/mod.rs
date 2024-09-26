@@ -12,7 +12,7 @@ pub enum ProgramScope {
     RootScope(RootScope),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Scope {
     parent: Option<Box<Scope>>,
     pub variables: HashMap<String, Rc<StoredVariable>>,
@@ -22,12 +22,7 @@ pub struct Scope {
 
 impl Scope {
     pub fn new() -> Scope {
-        Scope {
-            parent: None,
-            variables: HashMap::new(),
-            name: String::new(),
-            n_child_scopes: 0,
-        }
+        Self::default()
     }
 
     fn get_child_scope_name(&self) -> String {

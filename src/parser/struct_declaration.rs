@@ -18,7 +18,10 @@ impl<'a> Parser<'a> {
                 _ => {
                     return Err(ParserError::new(
                         struct_identifier.pos.clone(),
-                        ParserErrorKind::Expected(&[Keyword::Identifier]),
+                        ParserErrorKind::Expected {
+                            expected: &[Keyword::Identifier],
+                            got: struct_identifier.kind,
+                        },
                     ))
                 }
             };
@@ -41,13 +44,19 @@ impl<'a> Parser<'a> {
                         } else {
                             return Err(ParserError::new(
                                 struct_identifier.pos.clone(),
-                                ParserErrorKind::Expected(&[Keyword::Identifier]),
+                                ParserErrorKind::Expected {
+                                    expected: &[Keyword::Identifier],
+                                    got: identifier.kind,
+                                },
                             ));
                         }
                     } else {
                         return Err(ParserError::new(
                             struct_identifier.pos.clone(),
-                            ParserErrorKind::Expected(&[Keyword::Identifier]),
+                            ParserErrorKind::Expected {
+                                expected: &[Keyword::Identifier],
+                                got: struct_identifier.kind,
+                            },
                         ));
                     };
 

@@ -1,0 +1,82 @@
+{
+	"scopeName": "source.rost",
+	"patterns": [
+		{
+			"name": "meta.function-call.rost",
+			"match": "(\\b[a-zA-Z_][a-zA-Z0-9_]*\\b)\\s*\\(",
+			"captures": {
+				"1": {
+					"name": "support.function.builtin.rost"
+				}
+			}
+		},
+		{
+			"name": "comment.block.rost",
+			"begin": "/\\*",
+			"end": "\\*/"
+		},
+		{
+			"name": "comment.line.rost",
+			"begin": "/\\*",
+			"end": "\\*/"
+		},
+		{
+			"name": "comment.line.double-slash.rost",
+			"match": "//.*$"
+		},
+		{
+			"name": "keyword.control.rost",
+			"match": "\\b(__builtin|pub|let|fn|if|else|for|while|return)\\b"
+		},
+		{
+			"name": "string.quoted.double.rost",
+			"begin": "\"",
+			"end": "\""
+		},
+		{
+			"name": "constant.numeric.rost",
+			"match": "\\b\\d+\\b"
+		},
+		{
+			"name": "variable.other.rost",
+			"match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+		},
+		{
+			"name": "punctuation.terminator.rost",
+			"match": ";"
+		},
+		{
+			"name": "punctuation.separator.rost",
+			"match": ","
+		},
+		{
+			"name": "punctuation.bracket.rost",
+			"match": "[\\[\\]\\(\\)\\{\\}]"
+		},
+		{
+			"name": "operator.arithmetic.rost",
+			"match": "[\\+\\-\\*\\/\\%]"
+		},
+		{
+			"name": "operator.comparison.rost",
+			"match": "[\\=\\!\\<\\>]"
+		},
+		{
+			"name": "operator.assignment.rost",
+			"match": "="
+		},
+		{
+			"name": "storage.type.rost",
+			"match": "\\b(int|float|double|char|void)\\b"
+		},
+		{
+			"name": "storage.class.rost",
+			"match": "\\b(struct|enum)\\b"
+		}
+	],
+	"repository": {},
+	"name": "Rost",
+	"fileTypes": [
+		".ro"
+	]
+}

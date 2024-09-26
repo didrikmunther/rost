@@ -32,7 +32,10 @@ pub enum ParserErrorKind {
         line: u32,
     },
     UnexpectedToken(Token),
-    Expected(&'static [Keyword]),
+    Expected {
+        expected: &'static [Keyword],
+        got: Keyword,
+    },
     ExpectedSemicolon,
     UnexpectedEOF,
     UnterminatedPair(Keyword),
@@ -40,6 +43,7 @@ pub enum ParserErrorKind {
         identifier: String,
         identifier_pos: Range<usize>,
     },
+    ParametersNotAllowedAfterVararg,
 }
 
 #[derive(Debug, PartialEq)]
@@ -76,7 +80,10 @@ impl ParserError {
             ParserErrorKind::UnexpectedToken(t) => {
                 vec![(format!("Unexpected token: {t:?}"), self.pos.clone())]
             }
-            ParserErrorKind::Expected(k) => vec![(format!("Expected: {k:?}"), self.pos.clone())],
+            ParserErrorKind::Expected { expected, got } => vec![(
+                format!("Expected: {expected:?}, got: {got:?}"),
+                self.pos.clone(),
+            )],
             ParserErrorKind::Unknown => vec![("Unknown".to_string(), self.pos.clone())],
             ParserErrorKind::FieldAlreadyDefined {
                 identifier,
@@ -89,6 +96,12 @@ impl ParserError {
                         identifier_pos.clone(),
                     ),
                 ]
+            }
+            ParserErrorKind::ParametersNotAllowedAfterVararg => {
+                vec![(
+                    "Parameters are not allowed after vararg".to_string(),
+                    self.pos.clone(),
+                )]
             }
         }
     }
