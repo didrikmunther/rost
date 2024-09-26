@@ -1,36 +1,48 @@
 # Rost
 
-Compiles the Rost language to NASM.
+Compiles the Rost language to a Python stack machine backend.
 
 ## Compile Rost program
 
-`./compile.sh input.rost [-no-optimize, -no-comments, -sl {0,1,2,3,4}]`
+`cargo run --bin main input.ro -o out.py && python out.py`
 
-The `-sl` flag determines the compilation level, where the outputs are the following:
+You may pass a compilation level argument, e.g. `cargo run --bin main input.ro parsed` to see intermittent representations of the code.
 
-| Level | Output                             |
-| ----- | ---------------------------------- |
-| 0     | Lexed                              |
-| 1     | Parsed                             |
-| 2     | Compiled                           |
-| 3     | CodeRows (Nasm abstraction)        |
-| 4     | No output, write nasm to `out.asm` |
+| Argument |
+| -------- |
+| lexed    |
+| parsed   |
+| compiled |
 
-## Run the nasm code
+### Example Program
 
-### Build Docker file
+```rost
+__builtin fn printf(format: str, ...args: any);
 
-`./build`
+fn add_two_things<T>(format: str, a: T, b: T) {
+	let c: T = a + b;
 
-### Run the NASM code
+	printf(format, a, b, c);
+}
 
-`./run.sh first-argument second-argument`
 
-## Registers
+let a: int = 1;
+let c: int = 5;
 
-Integer arguments: RDI/RSI/RDX/RCX/R8/R9
+let strvar = "abc";
 
-Float arguments: XMM0..XMM7
+add_two_things(
+	"%i + %i = %i\n",
+	a,
+	c
+);
+
+add_two_things(
+	"%s + %s = %s\n",
+	strvar,
+	"def"
+);
+```
 
 ## IR representation project
 
@@ -313,3 +325,21 @@ def main():
 		__builtin__printf(_global_vars['_g1'] % (_1_a))
 		_1_a = _1_a + 1
 ```
+
+# Legacy:
+
+## Run the nasm code
+
+### Build Docker file
+
+`./build`
+
+### Run the NASM code
+
+`./run.sh first-argument second-argument`
+
+## Registers
+
+Integer arguments: RDI/RSI/RDX/RCX/R8/R9
+
+Float arguments: XMM0..XMM7

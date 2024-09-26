@@ -8,7 +8,6 @@ fn add_two_things<T>(format: str, a: T, b: T) {
 
 
 let a: int = 1;
-//let b: int = 5 + a;
 let c: int = 5;
 
 let strvar = "abc";

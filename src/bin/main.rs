@@ -15,6 +15,10 @@ struct Args {
 
     // The file to compile
     file: Option<String>,
+
+    // The output file
+    #[arg(short, long, default_value = "out.py")]
+    output: String,
 }
 
 fn main() -> std::io::Result<()> {
@@ -38,7 +42,7 @@ fn main() -> std::io::Result<()> {
             level,
         });
         if let Some(generated) = generated {
-            fs::write("out.py", generated).expect("Unable to write file");
+            fs::write(args.output, generated).expect("Unable to write file");
             exit(0);
         }
 
