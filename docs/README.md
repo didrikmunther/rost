@@ -23,6 +23,9 @@ Compiles the Rost language to a Python stack machine backend.
 - [ ] Loops
 - [ ] If statements
 - [ ] Trait system
+- [ ] Broken code parsing
+- [ ] Import files
+- [ ] Package system
 
 ## Usage
 
