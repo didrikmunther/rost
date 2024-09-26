@@ -36,7 +36,7 @@ You may pass a compilation level argument, e.g. `cargo run --bin main input.ro p
 | parsed   |
 | compiled |
 
-## Error Handling
+## Errors (CLI)
 
 ```rost
 fn my_func(in: int) {}
@@ -64,6 +64,22 @@ my_func("abc");
 - [x] Hover support
 - [x] Goto declaration/definition support
 - [ ] Code action (quick fix) support
+
+### Generic type errors
+
+<img src="https://github.com/user-attachments/assets/a09ded4a-416d-48f8-8f20-b988232e97cc">
+
+### Multi-error support
+
+<img src="https://github.com/user-attachments/assets/080d7009-b981-4459-86a8-ee0ba8d03737">
+
+### Parser error
+
+<img src="https://github.com/user-attachments/assets/db68bff4-189d-4cbc-b28f-f1922e96b445">
+
+### Lexer error
+
+<img src="https://github.com/user-attachments/assets/b4538792-fe12-4155-a937-178e582c2006">
 
 ## Preview
 
