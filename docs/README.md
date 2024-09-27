@@ -29,7 +29,13 @@ Compiles the Rost language to a Python stack machine backend.
 
 ## Usage
 
-`cargo run --bin main input.ro -o out.py && python out.py`
+#### Python backend
+
+> `cargo run --bin main input.ro && python build/out.py`
+
+#### WebAssembly backend
+
+> `cargo run --bin main input.ro -b wasm && ./run-wasm.sh`
 
 You may pass a compilation level argument, e.g. `cargo run --bin main input.ro parsed` to see intermittent representations of the code.
 
@@ -283,6 +289,7 @@ if __name__ == "__main__":
 
 # boilerplate_exit end
 ```
+
 </details>
 
 ### Example program (WebAssembly backend)
@@ -324,6 +331,7 @@ print_raw("hejsan\n", 12);
 ;; boilerplate_exit.wat end
 
 ```
+
 </details>
 
 ## IR representation project
