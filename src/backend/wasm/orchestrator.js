@@ -10,7 +10,7 @@ const wasmFile = args[0];
 
 var memory = new WebAssembly.Memory({ initial: 1 });
 
-function print(offset, length) {
+function print_raw(length, offset) {
   var bytes = new Uint8Array(memory.buffer, offset, length);
   var string = new TextDecoder("utf8").decode(bytes);
   process.stdout.write(string);
@@ -18,16 +18,14 @@ function print(offset, length) {
 
 var importObject = {
   imports: {
-    print,
+    print_raw,
   },
   js: {
     mem: memory,
   },
 };
 
-
-
 const helloWasm = fs.readFileSync(wasmFile);
 WebAssembly.instantiate(new Uint8Array(helloWasm), importObject).then((obj) => {
-  obj.instance.exports.main();
+  obj.instance.exports.__main();
 });

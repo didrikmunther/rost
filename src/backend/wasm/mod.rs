@@ -10,6 +10,6 @@ pub struct WasmBackend;
 
 impl Backend for WasmBackend {
     fn generate(&mut self, program: &Program) -> Result<String, RostError> {
-        Ok(Generator.generate_code(program)?)
+        Ok(Generator::new().generate_code(program)?)
     }
 }

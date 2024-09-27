@@ -154,6 +154,7 @@ impl Generator {
                     elements.push(Element::FunctionCall(
                         self.get_user_function_name(*variable_id),
                     ));
+                    elements.push(Element::Pop); // TODO: Currently we don't care about the return value
                 }
                 _ => {
                     eprintln!("Instruction: {:?}", instruction);

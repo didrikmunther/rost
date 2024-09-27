@@ -331,31 +331,14 @@ impl Program {
             body,
         });
 
-        // for ((parameter_identifier, parameter), arg) in parameter_types.iter().zip(fcall.args.iter()) {
-        //     let arg_type = self.infer_type(arg)?;
-        //     if arg_type != parameter {
-        //         self.add_error(CompilerError::new(
-        //             arg.pos.clone(),
-        //             CompilerErrorKind::InvalidFunctionArgumentType {
-        //                 expected: parameter.1.clone(),
-        //                 got: arg_type,
-        //             },
-        //         ));
-        //     }
-        // }
-
-        let builder = builder
-            .push(Instruction::new(
-                expression.pos.clone(),
-                InstructionKind::ProcedureCall(ProcedureCall {
-                    nargs: fcall.args.len(),
-                    variable_id,
-                }),
-            ))
-            .push(Instruction::new(
-                expression.pos.clone(),
-                InstructionKind::Pop,
-            ));
+        // Backends should handle return values. E.g. are they on stack, or in a register?
+        let builder = builder.push(Instruction::new(
+            expression.pos.clone(),
+            InstructionKind::ProcedureCall(ProcedureCall {
+                nargs: fcall.args.len(),
+                variable_id,
+            }),
+        ));
 
         Ok(builder)
     }

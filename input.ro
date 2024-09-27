@@ -1,3 +1,5 @@
+/*
+
 __builtin fn printf(format: str, ...args: any);
 
 fn add_two_things<T>(format: str, a: T, b: T) {
@@ -23,3 +25,10 @@ add_two_things(
 	strvar,
 	"def"
 );
+
+*/
+
+// Wasm test
+__builtin fn print_raw(content: str, length: int);
+
+print_raw("hejsan\n", 12);

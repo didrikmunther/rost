@@ -1,4 +1,12 @@
-use std::fmt::{Arguments, Display, Formatter};
+use std::fmt::{Display, Formatter};
+
+#[derive(Debug, Clone)]
+pub enum WasmValue {
+    I32(i32),
+    I64(i64),
+    F32(f32),
+    F64(f64),
+}
 
 #[derive(Debug, Clone)]
 pub enum Element {
@@ -6,25 +14,27 @@ pub enum Element {
     Raw(String),
     Assign(String),
     Pop,
-    Push(String),
+    Push(WasmValue),
     Add,
     Mul,
     Comment(String),
     FunctionCall(String),
     FunctionDefinition {
         identifier: String,
+        export: bool,
         content: Box<Element>,
     },
-
-    #[allow(dead_code)]
-    Pass,
 }
 
 impl Element {
     fn fmt(&self, fmt: &mut Formatter<'_>, n_indent: usize) -> Result<(), std::fmt::Error> {
         let indent = "\t".repeat(n_indent);
 
-        let mut w = |args: Arguments| fmt.write_fmt(format_args!("{indent}{args}"));
+        macro_rules! w {
+            ($($arg:tt)*) => {
+                fmt.write_fmt(format_args!("{}{}", indent, format_args!($($arg)*)))
+            }
+        }
 
         match self {
             Element::Block(elements) => {
@@ -33,22 +43,24 @@ impl Element {
                     fmt.write_fmt(format_args!("\n"))?;
                 }
             }
-            Element::Pass => w(format_args!("pass"))?,
-            Element::Assign(name) => w(format_args!("{name} = __intrinsic__stack_pop()"))?,
-            Element::Raw(raw) => w(format_args!("{raw}"))?,
-            Element::Pop => w(format_args!("__intrinsic__stack_pop()"))?,
-            Element::Add => w(format_args!("__intrinsic__stack_add()"))?,
-            Element::Mul => w(format_args!("__intrinsic__stack_mul()"))?,
-            Element::Comment(line) => w(format_args!("# {line}"))?,
-            Element::Push(el) => w(format_args!("__intrinsic__stack_push({el})"))?,
-            Element::FunctionCall(identifier) => w(format_args!("{identifier}()"))?,
+            Element::Raw(raw) => w!("{raw}")?,
+            Element::Comment(line) => w!(";; {line}")?,
+            Element::Push(value) => w!("{value}")?,
+            Element::FunctionCall(identifier) => w!("call ${identifier}")?,
             Element::FunctionDefinition {
                 identifier,
+                export,
                 content,
             } => {
-                w(format_args!("def {identifier}():\n"))?;
+                w!("(func ${identifier}\n")?;
                 content.fmt(fmt, n_indent + 1)?;
+                w!(")\n")?;
+
+                if *export {
+                    w!("(export \"{identifier}\" (func ${identifier}))")?;
+                }
             }
+            _ => todo!("{:?}", self),
         }
 
         Ok(())
@@ -68,6 +80,17 @@ impl Code {
 
 impl Display for Code {
     fn fmt(&self, fmt: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
-        self.root_element.fmt(fmt, 0)
+        self.root_element.fmt(fmt, 1)
+    }
+}
+
+impl Display for WasmValue {
+    fn fmt(&self, fmt: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        match self {
+            WasmValue::I32(value) => fmt.write_fmt(format_args!("i32.const {}", value)),
+            WasmValue::I64(value) => fmt.write_fmt(format_args!("i64.const {}", value)),
+            WasmValue::F32(value) => fmt.write_fmt(format_args!("f32.const {}", value)),
+            WasmValue::F64(value) => fmt.write_fmt(format_args!("f64.const {}", value)),
+        }
     }
 }
