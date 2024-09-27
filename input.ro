@@ -29,6 +29,6 @@ add_two_things(
 */
 
 // Wasm test
-__builtin fn print_raw(content: str, length: int);
+__builtin fn print(content: str);
 
-print_raw("hejsan\n", 12);
+print("hejsan");

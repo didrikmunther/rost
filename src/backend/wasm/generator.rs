@@ -94,7 +94,7 @@ impl Generator {
         let mut current_offset: i32 = 0;
         for (i, global_data) in program.global_data.iter().enumerate() {
             let (value, offset_delta) = match global_data {
-                PrimitiveValue::String(value) => (format!("\"{}\"", value), value.len()),
+                PrimitiveValue::String(value) => (format!("\"{}\\00\"", value), value.len()),
                 PrimitiveValue::Int(value) => (value.to_string(), 1),
                 _ => todo!(),
             };

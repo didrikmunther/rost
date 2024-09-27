@@ -8,17 +8,38 @@ if (args.length <= 0) {
 
 const wasmFile = args[0];
 
-var memory = new WebAssembly.Memory({ initial: 1 });
+let memory = new WebAssembly.Memory({ initial: 1 });
 
-function print_raw(length, offset) {
-  var bytes = new Uint8Array(memory.buffer, offset, length);
-  var string = new TextDecoder("utf8").decode(bytes);
+let batch_size = 128;
+let max_until_overflow = 1024;
+
+function print(offset) {
+  let string = "";
+  let new_offset = offset;
+  let finished = false;
+
+  while (!finished && new_offset - offset < max_until_overflow) {
+    let new_bytes = new Uint8Array(memory.buffer, new_offset, batch_size);
+    let new_string = new TextDecoder("utf8").decode(new_bytes);
+
+    for (let char of new_string) {
+      if (char == "\0") {
+        finished = true;
+        break;
+      }
+
+      string += char;
+    }
+
+    new_offset += batch_size;
+  }
+
   process.stdout.write(string);
 }
 
 var importObject = {
   imports: {
-    print_raw,
+    print,
   },
   js: {
     mem: memory,
