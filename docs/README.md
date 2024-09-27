@@ -86,7 +86,7 @@ my_func("abc");
 
 ## Preview
 
-### Example program
+### Example program (Python backend)
 
 ```rost
 __builtin fn printf(format: str, ...args: any);
@@ -116,7 +116,8 @@ add_two_things(
 );
 ```
 
-### Example Output
+<details>
+	<summary>Python backend output</summary>
 
 ```python
 # boilerplate_start begin
@@ -282,6 +283,48 @@ if __name__ == "__main__":
 
 # boilerplate_exit end
 ```
+</details>
+
+### Example program (WebAssembly backend)
+
+```rost
+__builtin fn print_raw(content: str, length: int);
+
+print_raw("hejsan\n", 12);
+```
+
+<details>
+	<summary>WebAssembly backend output</summary>
+
+```wasm
+	;; boilerplate_entry.wat begin
+
+(module
+    ;; Imports from JavaScript namespace
+    (import  "imports"  "print_raw" (func  $print_raw (param  i32  i32))) ;; Import log function
+    (import  "js"  "mem" (memory  1)) ;; Import 1 page of memory (54kb)
+
+;; boilerplate_entry.wat end
+	;; Global data section begin
+	(data (i32.const 0) "hejsan\n")
+
+	;; Function definitions begin
+	;; Builtin function: 'print_raw' aliasing to '$print_raw'
+
+	;; Main function definition
+	(func $__main
+		i32.const 12
+		i32.const 0
+		;; Builtin call: print_raw
+		call $print_raw
+	)
+	(export "__main" (func $__main))
+	;; boilerplate_exit.wat begin
+)
+;; boilerplate_exit.wat end
+
+```
+</details>
 
 ## IR representation project
 
