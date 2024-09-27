@@ -1,6 +1,6 @@
 use std::{fs, process::exit};
 
-use backend::{python::PythonBackend, Backend};
+use backend::Backend;
 use clap::Subcommand;
 
 use crate::error::RostError;
@@ -27,6 +27,7 @@ pub struct ShellSettings {
 pub struct RunSettings {
     pub file_name: Option<String>,
     pub level: CompilationLevel,
+    pub backend: Box<dyn Backend>,
 }
 
 // fn flush() {
@@ -98,7 +99,7 @@ pub struct RunSettings {
 // }
 
 #[allow(dead_code)]
-pub fn run(settings: RunSettings) -> Option<String> {
+pub fn run(mut settings: RunSettings) -> Option<String> {
     let file = if let Some(file) = settings.file_name {
         file
     } else {
@@ -155,7 +156,7 @@ pub fn run(settings: RunSettings) -> Option<String> {
         return None;
     }
 
-    match PythonBackend::generate(&program) {
+    match settings.backend.generate(&program) {
         Ok(generated) => Some(generated),
         Err(err) => {
             print_error(vec![err]);

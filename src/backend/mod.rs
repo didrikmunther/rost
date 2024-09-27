@@ -1,7 +1,8 @@
 use crate::{compiler::program::Program, error::RostError};
 
 pub mod python;
+pub mod wasm;
 
 pub trait Backend {
-    fn generate(program: &Program) -> Result<String, RostError>;
+    fn generate(&mut self, program: &Program) -> Result<String, RostError>;
 }

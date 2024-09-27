@@ -1,6 +1,16 @@
-use clap::Parser;
-use rost::{run, CompilationLevel, RunSettings};
+use clap::{Parser, ValueEnum};
+use rost::{
+    backend::{python, wasm, Backend as RostBackend},
+    run, CompilationLevel, RunSettings,
+};
 use std::{fs, process::exit};
+
+// Enum backend, python and wasm
+#[derive(Parser, Debug, ValueEnum, Clone)]
+enum Backend {
+    Python,
+    Wasm,
+}
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -16,9 +26,17 @@ struct Args {
     // The file to compile
     file: Option<String>,
 
-    // The output file
-    #[arg(short, long, default_value = "out.py")]
-    output: String,
+    // The output directory
+    #[arg(short, long, default_value = "build")]
+    dir: String,
+
+    // The output file name, without extension
+    #[arg(short, long, default_value = "out")]
+    output_filename: String,
+
+    // Backend
+    #[arg(short, long, default_value = "python")]
+    backend: Backend,
 }
 
 fn main() -> std::io::Result<()> {
@@ -34,15 +52,26 @@ fn main() -> std::io::Result<()> {
         None => CompilationLevel::Generated,
     };
 
+    let (backend, extension): (Box<dyn RostBackend>, &str) = match args.backend {
+        Backend::Python => (Box::new(python::PythonBackend), "py"),
+        Backend::Wasm => (Box::new(wasm::WasmBackend), "wat"),
+    };
+
     if args.shell {
         // shell(ShellSettings { level });
     } else {
         let generated = run(RunSettings {
             file_name: args.file,
             level,
+            backend,
         });
         if let Some(generated) = generated {
-            fs::write(args.output, generated).expect("Unable to write file");
+            fs::write(
+                format!("{}/{}.{}", args.dir, args.output_filename, extension),
+                generated,
+            )
+            .expect("Unable to write file");
+        
             exit(0);
         }
 
