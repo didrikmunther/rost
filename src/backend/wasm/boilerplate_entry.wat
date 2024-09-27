@@ -5,4 +5,4 @@
     (import  "imports"  "print" (func  $print (param  i32))) ;; Import print function
     (import  "js"  "mem" (memory  1)) ;; Import 1 page of memory (54kb)
 
-;; boilerplate_entry.wat end
+    ;; boilerplate_entry.wat end

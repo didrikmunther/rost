@@ -48,6 +48,10 @@ impl Generator {
         Ok(format!("{}", code))
     }
 
+    fn get_user_function_name(&self, variable_id: VariableId) -> String {
+        format!("__userf__{}", variable_id)
+    }
+
     pub fn get_functions(&mut self, program: &Program) -> Result<Vec<Element>, WasmError> {
         let mut elements = vec![Element::Comment("Function definitions begin".into())];
 
@@ -63,25 +67,23 @@ impl Generator {
                     self.function_types
                         .insert(function.variable_id, FunctionType::Builtin);
                 }
-                _ => todo!(),
-                // FunctionBody::Block {
-                //     body_contains_error: _body_contains_error,
-                //     content,
-                // } => {
-                //     elements.push(Element::Comment(format!(
-                //         "User function: {}",
-                //         var_identifier
-                //     )));
+                FunctionBody::Block {
+                    body_contains_error: _body_contains_error,
+                    content,
+                } => {
+                    elements.push(Element::Comment(format!(
+                        "User function: {}",
+                        var_identifier
+                    )));
 
-                //     elements.push(Element::FunctionDefinition {
-                //         identifier: format!("__userf__{}", function.variable_id),
-                //         content: Box::new(Element::Block(vec![
-                //             self.get_program(content, program)?,
-                //             Element::Push("0".into()),
-                //             Element::Pass,
-                //         ])),
-                //     });
-                // }
+                    elements.push(Element::FunctionDefinition {
+                        identifier: format!("__userf__{}", function.variable_id),
+                        export: false,
+                        content: Box::new(Element::Block(
+                            vec![self.get_program(content, program)?],
+                        )),
+                    });
+                }
             }
         }
 
@@ -94,7 +96,7 @@ impl Generator {
         let mut current_offset: i32 = 0;
         for (i, global_data) in program.global_data.iter().enumerate() {
             let (value, offset_delta) = match global_data {
-                PrimitiveValue::String(value) => (format!("\"{}\\00\"", value), value.len()),
+                PrimitiveValue::String(value) => (format!("\"{}\\00\"", value), value.len() + 1),
                 PrimitiveValue::Int(value) => (value.to_string(), 1),
                 _ => todo!(),
             };
@@ -145,7 +147,7 @@ impl Generator {
 
                     //     elements.push(Element::Push(variable_name));
                     // }
-                    _ => todo!(),
+                    _ => todo!("{:?}", instruction.kind),
                 },
                 InstructionKind::Pop => elements.push(Element::Pop),
                 // InstructionKind::IntAdd => elements.push(Element::Add),
@@ -160,13 +162,13 @@ impl Generator {
                         elements.push(Element::Comment(format!("Builtin call: {}", identifier)));
                         elements.push(Element::FunctionCall(identifier));
                     } else {
-                        todo!()
+                        // todo!()
                         // elements.push(Element::Push(nargs.to_string()));
-                        // let identifier = program.variables[*variable_id].identifier.clone();
-                        // elements.push(Element::Comment(format!("Procedure call: {}", identifier)));
-                        // // elements.push(Element::FunctionCall(
-                        // //     self.get_user_function_name(*variable_id),
-                        // // ));
+                        let identifier = program.variables[*variable_id].identifier.clone();
+                        elements.push(Element::Comment(format!("Procedure call: {}", identifier)));
+                        elements.push(Element::FunctionCall(
+                            self.get_user_function_name(*variable_id),
+                        ));
                     }
                 }
                 _ => {

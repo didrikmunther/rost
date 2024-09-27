@@ -71,9 +71,9 @@ impl Generator {
                     elements.push(Element::FunctionDefinition {
                         identifier: format!("__userf__{}", function.variable_id),
                         content: Box::new(Element::Block(vec![
+                            Element::Pop,
                             self.get_program(content, program)?,
                             Element::Push("0".into()),
-                            Element::Pass,
                         ])),
                     });
                 }

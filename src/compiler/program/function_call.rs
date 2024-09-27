@@ -270,10 +270,13 @@ impl Program {
 
                     // The first value on the stack on a function call is always amount of arguments.
                     // This is used for varargs functions, but we don't have those yet.
-                    let mut body = Builder::new().push(Instruction::new(
-                        fdec.identifier_pos.clone(),
-                        InstructionKind::Pop,
-                    ));
+                    // TODO: Let the backend handle this.
+                    // let mut body = Builder::new().push(Instruction::new(
+                    //     fdec.identifier_pos.clone(),
+                    //     InstructionKind::Pop,
+                    // ));
+
+                    let mut body = Builder::new();
 
                     let parameter_variable_ids = add_function_parameters(this, &fdec);
 

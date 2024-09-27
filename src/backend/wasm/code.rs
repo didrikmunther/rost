@@ -46,6 +46,7 @@ impl Element {
             Element::Raw(raw) => w!("{raw}")?,
             Element::Comment(line) => w!(";; {line}")?,
             Element::Push(value) => w!("{value}")?,
+            Element::Pop => w!("drop")?,
             Element::FunctionCall(identifier) => w!("call ${identifier}")?,
             Element::FunctionDefinition {
                 identifier,

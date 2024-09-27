@@ -31,4 +31,9 @@ add_two_things(
 // Wasm test
 __builtin fn print(content: str);
 
-print("hejsan");
+fn print_two_things() {
+	print("a1\n");
+	print("b2\n");
+}
+
+print_two_things();
