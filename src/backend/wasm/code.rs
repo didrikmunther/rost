@@ -6,6 +6,15 @@ pub enum WasmValue {
     I64(i64),
     F32(f32),
     F64(f64),
+    Variable(String),
+}
+
+#[derive(Debug, Clone)]
+pub enum WasmType {
+    I32,
+    I64,
+    F32,
+    F64,
 }
 
 #[derive(Debug, Clone)]
@@ -15,8 +24,8 @@ pub enum Element {
     Assign(String),
     Pop,
     Push(WasmValue),
-    Add,
-    Mul,
+    Add(WasmType),
+    Mul(WasmType),
     Comment(String),
     FunctionCall(String),
     FunctionDefinition {
@@ -48,6 +57,8 @@ impl Element {
             Element::Push(value) => w!("{value}")?,
             Element::Assign(identifier) => w!("local.set ${identifier}")?,
             Element::Pop => w!("drop")?,
+            Element::Add(typ) => w!("{typ}.add")?,
+            Element::Mul(typ) => w!("{typ}.mul")?,
             Element::FunctionCall(identifier) => w!("call ${identifier}")?,
             Element::FunctionDefinition {
                 identifier,
@@ -93,6 +104,20 @@ impl Display for WasmValue {
             WasmValue::I64(value) => fmt.write_fmt(format_args!("i64.const {}", value)),
             WasmValue::F32(value) => fmt.write_fmt(format_args!("f32.const {}", value)),
             WasmValue::F64(value) => fmt.write_fmt(format_args!("f64.const {}", value)),
+            WasmValue::Variable(identifier) => {
+                fmt.write_fmt(format_args!("local.get ${}", identifier))
+            }
+        }
+    }
+}
+
+impl Display for WasmType {
+    fn fmt(&self, fmt: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        match self {
+            WasmType::I32 => fmt.write_str("i32"),
+            WasmType::I64 => fmt.write_str("i64"),
+            WasmType::F32 => fmt.write_str("f32"),
+            WasmType::F64 => fmt.write_str("f64"),
         }
     }
 }

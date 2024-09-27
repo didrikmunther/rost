@@ -5,7 +5,10 @@ use crate::{
         error::{
             CompilerError, CompilerErrorKind, WrongFunctionArguments, WrongGenericFunctionArguments,
         },
-        program::ir::{Instruction, InstructionKind, ProcedureCall},
+        program::{
+            ir::{Instruction, InstructionKind, ProcedureCall},
+            scope::ScopedVariable,
+        },
     },
     parser::definition::{
         Expression, FunctionCall, FunctionDeclaration, FunctionDeclarationContent,
@@ -29,7 +32,7 @@ fn add_function_parameters(this: &mut Program, fdec: &FunctionDeclaration) -> Ve
     for param in &fdec.parameters {
         let picked_typ = this.get_declared_type(&param.typ).unwrap();
 
-        let variable_id = this.insert_variable(
+        let variable_id = this.insert_argument(
             Variable {
                 identifier: param.identifier.clone(),
                 typ: picked_typ,
@@ -238,62 +241,61 @@ impl Program {
             .function_declaration
             .clone();
 
-        let result = self.with_scope(|this| {
-            match &fdec.content {
-                FunctionDeclarationContent::Block(block) => {
-                    let location = block.iter().fold(fdec.identifier_pos.clone(), |acc, decl| {
-                        acc.start..decl.pos.end
-                    });
+        let result = self.with_scope(|this| match &fdec.content {
+            FunctionDeclarationContent::Block(block) => {
+                let location = block.iter().fold(fdec.identifier_pos.clone(), |acc, decl| {
+                    acc.start..decl.pos.end
+                });
 
-                    // The first value on the stack on a function call is always amount of arguments.
-                    // This is used for varargs functions, but we don't have those yet.
-                    // TODO: Let the backend handle this.
-                    // let mut body = Builder::new().push(Instruction::new(
-                    //     fdec.identifier_pos.clone(),
-                    //     InstructionKind::Pop,
-                    // ));
+                let mut body = Builder::new();
 
-                    let mut body = Builder::new();
+                let parameter_variable_ids = add_function_parameters(this, &fdec);
+                let instructions = this.get_instructions(block);
+                let function_body = this.get_or_add_error(instructions);
+                let body_contains_error = function_body.is_none();
+                body = body.append(function_body.unwrap_or_default());
 
-                    let parameter_variable_ids = add_function_parameters(this, &fdec);
+                let declared_variables: Vec<VariableId> = this
+                    .get_scope()
+                    .variable_lookup
+                    .values()
+                    .filter_map(|v| match v {
+                        ScopedVariable::Native(v) => Some(*v),
+                        _ => None,
+                    })
+                    .collect();
 
-                    for (&variable_id, param) in
-                        parameter_variable_ids.iter().zip(fdec.parameters.iter())
-                    {
-                        body = body.push(Instruction::new(
-                            param.pos.clone(),
-                            InstructionKind::Assign(variable_id),
-                        ));
-                    }
-
-                    let instructions = this.get_instructions(block);
-                    let function_body = this.get_or_add_error(instructions);
-                    let body_contains_error = function_body.is_none();
-                    body = body.append(function_body.unwrap_or_default());
-
-                    // Todo: get declared variables in the scope
-
-                    Ok((
+                Ok((
+                    (
                         FunctionBody::Block {
                             body_contains_error,
                             content: body,
                         },
-                        location,
-                    ))
-                }
-                FunctionDeclarationContent::Builtin => Ok((
-                    FunctionBody::Builtin(fdec.identifier.clone()),
-                    fdec.identifier_pos.clone(),
-                )),
+                        parameter_variable_ids,
+                        declared_variables,
+                    ),
+                    location,
+                ))
             }
+            FunctionDeclarationContent::Builtin => Ok((
+                (
+                    FunctionBody::Builtin(fdec.identifier.clone()),
+                    Vec::new(),
+                    Vec::new(),
+                ),
+                fdec.identifier_pos.clone(),
+            )),
         });
 
-        let function_body = self
-            .get_or_add_error(result)
-            .unwrap_or(FunctionBody::Block {
-                body_contains_error: true,
-                content: Builder::new(),
-            });
+        let (function_body, parameter_variable_ids, declared_variables) =
+            self.get_or_add_error(result).unwrap_or((
+                FunctionBody::Block {
+                    body_contains_error: true,
+                    content: Builder::new(),
+                },
+                Vec::new(),
+                Vec::new(),
+            ));
 
         let variable_id = self.insert_variable(
             Variable {
@@ -311,9 +313,10 @@ impl Program {
         self.insert_function(Function {
             function_template_id,
             variable_id,
-            parameter_variable_ids: vec![],
+            parameter_variable_ids,
             vararg_parameter: None,
             body: function_body,
+            declared_variables,
         });
 
         Ok(variable_id)

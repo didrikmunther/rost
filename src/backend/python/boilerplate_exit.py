@@ -1,7 +1,7 @@
 # boilerplate_exit begin
 
 
-def __push_init_args():
+def init_args():
     import sys
 
     args = [
@@ -10,21 +10,21 @@ def __push_init_args():
     ]
 
     for arg in args:
-        __intrinsic__stack_push(arg)
+        push(arg)
 
-    __intrinsic__stack_push(len(args))
+    push(len(args))
 
 
 if __name__ == "__main__":
     import sys
 
-    __push_init_args()
-    __setup()
+    init_args()
+    setup()
 
-    __push_init_args()
+    init_args()
     status = __main()
 
-    print("stack", __stack)
+    print("stack", stack)
 
     sys.exit(status)
 

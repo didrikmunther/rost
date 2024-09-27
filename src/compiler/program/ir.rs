@@ -1,4 +1,7 @@
-use super::{builder::Builder, typ::{ExpressedType, Type, TypeId}};
+use super::{
+    builder::Builder,
+    typ::{ExpressedType, Type, TypeId},
+};
 use crate::parser::definition::FunctionDeclaration;
 use std::ops::Range;
 
@@ -65,6 +68,7 @@ pub struct Function {
     pub parameter_variable_ids: Vec<VariableId>,
     pub vararg_parameter: Option<VariableId>,
     pub body: FunctionBody,
+    pub declared_variables: Vec<VariableId>,
 }
 
 #[derive(Debug)]

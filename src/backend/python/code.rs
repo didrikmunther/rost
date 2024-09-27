@@ -34,13 +34,13 @@ impl Element {
                 }
             }
             Element::Pass => w(format_args!("pass"))?,
-            Element::Assign(name) => w(format_args!("{name} = __intrinsic__stack_pop()"))?,
+            Element::Assign(name) => w(format_args!("{name} = pop()"))?,
             Element::Raw(raw) => w(format_args!("{raw}"))?,
-            Element::Pop => w(format_args!("__intrinsic__stack_pop()"))?,
-            Element::Add => w(format_args!("__intrinsic__stack_add()"))?,
-            Element::Mul => w(format_args!("__intrinsic__stack_mul()"))?,
+            Element::Pop => w(format_args!("pop()"))?,
+            Element::Add => w(format_args!("add()"))?,
+            Element::Mul => w(format_args!("mul()"))?,
             Element::Comment(line) => w(format_args!("# {line}"))?,
-            Element::Push(el) => w(format_args!("__intrinsic__stack_push({el})"))?,
+            Element::Push(el) => w(format_args!("push({el})"))?,
             Element::FunctionCall(identifier) => w(format_args!("{identifier}()"))?,
             Element::FunctionDefinition {
                 identifier,

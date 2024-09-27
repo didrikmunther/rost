@@ -24,7 +24,7 @@ impl Generator {
             Element::Raw(include_str!("boilerplate_entry.py").into()),
             Element::Block(self.get_functions(program)?),
             Element::FunctionDefinition {
-                identifier: "__setup".into(),
+                identifier: "setup".into(),
                 content: Box::new(self.get_setup(program)?),
             },
             Element::FunctionDefinition {
@@ -43,7 +43,7 @@ impl Generator {
     }
 
     fn get_user_function_name(&self, variable_id: VariableId) -> String {
-        format!("__userf__{}", variable_id)
+        format!("_userf_{}", variable_id)
     }
 
     pub fn get_functions(&self, program: &Program) -> Result<Vec<Element>, PythonError> {
@@ -61,7 +61,7 @@ impl Generator {
                     elements.push(Element::FunctionDefinition {
                         identifier: self.get_user_function_name(function.variable_id),
                         content: Box::new(Element::FunctionCall(format!(
-                            "__builtin__{}",
+                            "_builtin_{}",
                             var_identifier
                         ))),
                     });
@@ -75,13 +75,24 @@ impl Generator {
                         var_identifier
                     )));
 
+                    let argument_assignment = function
+                        .parameter_variable_ids
+                        .iter()
+                        .map(|variable_id| {
+                            let variable_name = program.variables[*variable_id].identifier.clone();
+                            Element::Assign(format!("_{variable_id}_{variable_name}"))
+                        })
+                        .collect::<Vec<_>>();
+
+                    let content = std::iter::once(Element::Pop)
+                        .chain(argument_assignment)
+                        .chain(std::iter::once(self.get_program(content, program)?))
+                        .chain(std::iter::once(Element::Push("0".into())))
+                        .collect::<Vec<_>>();
+
                     elements.push(Element::FunctionDefinition {
-                        identifier: format!("__userf__{}", function.variable_id),
-                        content: Box::new(Element::Block(vec![
-                            Element::Pop,
-                            self.get_program(content, program)?,
-                            Element::Push("0".into()),
-                        ])),
+                        identifier: self.get_user_function_name(function.variable_id),
+                        content: Box::new(Element::Block(content)),
                     });
                 }
             }
@@ -96,9 +107,9 @@ impl Generator {
             Element::Pop,
             Element::Pop,
             Element::Pop,
-            Element::Raw("global __global_data".into()),
+            Element::Raw("global glob_data".into()),
             Element::Raw(format!(
-                "__global_data = list(range({}))",
+                "glob_data = list(range({}))",
                 program.global_data.len()
             )),
         ];
@@ -110,7 +121,7 @@ impl Generator {
                 _ => todo!(),
             };
 
-            elements.push(Element::Raw(format!("__global_data[{i}] = {value}",)));
+            elements.push(Element::Raw(format!("glob_data[{i}] = {value}",)));
         }
 
         Ok(Element::Block(elements))
@@ -136,7 +147,7 @@ impl Generator {
                         _ => todo!(),
                     },
                     ValueKind::GlobalData(id) => {
-                        elements.push(Element::Push(format!("__global_data[{id}]")));
+                        elements.push(Element::Push(format!("glob_data[{id}]")));
                     }
                     &ValueKind::Variable(id) => {
                         // let variable = &program.variables[id];

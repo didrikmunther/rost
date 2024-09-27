@@ -14,6 +14,8 @@ use std::{
 
 #[derive(Debug, Clone)]
 pub enum ScopedVariable {
+    // The variable has been passed as an argument
+    Argument(VariableId),
     // The variable has been declared in this scope
     Native(VariableId),
     // The variable has been declared in a parent scope
@@ -24,7 +26,9 @@ pub enum ScopedVariable {
 impl ScopedVariable {
     pub fn get_id(&self) -> VariableId {
         match self {
-            ScopedVariable::Native(id) | ScopedVariable::Parent(id) => *id,
+            ScopedVariable::Argument(id)
+            | ScopedVariable::Native(id)
+            | ScopedVariable::Parent(id) => *id,
         }
     }
 }

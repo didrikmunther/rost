@@ -1,4 +1,4 @@
-
+/*
 
 __builtin fn printf(format: str, ...args: any);
 
@@ -35,16 +35,25 @@ fn main(argc: int, argv: str) {
 	);
 }
 
-/*
+*/
 
 // Wasm test
 __builtin fn print(content: str);
+__builtin fn printi(content: int);
 
-fn print_two_things(a: str, b: str) {
-	print("a");
-	print("b");
+fn print_two_strings(a: str, b: str) {
+	let c = a + b;
+
+	print(c);
 }
 
-print_two_things("a", "b");
+fn print_two_things(a: int, b: int) {
+	let c = a + b;
 
-*/
+	printi(c);
+}
+
+fn main() {
+	print_two_things(3, 4);
+	print_two_strings("abc", "def");
+}

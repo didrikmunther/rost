@@ -13,6 +13,10 @@ let memory = new WebAssembly.Memory({ initial: 1 });
 let batch_size = 128;
 let max_until_overflow = 1024;
 
+function printi(integer) {
+  console.log(integer);
+}
+
 function print(offset) {
   let string = "";
   let new_offset = offset;
@@ -40,6 +44,7 @@ function print(offset) {
 var importObject = {
   imports: {
     print,
+    printi,
   },
   js: {
     mem: memory,

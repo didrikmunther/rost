@@ -7,7 +7,7 @@ use crate::compiler::program::{
 };
 
 use super::{
-    code::{Code, Element, WasmValue},
+    code::{Code, Element, WasmType, WasmValue},
     error::WasmError,
 };
 
@@ -30,15 +30,26 @@ impl Generator {
     }
 
     pub fn generate_code(&mut self, program: &Program) -> Result<String, WasmError> {
+        let Some(main_function) = program.get_scope().variable_lookup.get("main") else {
+            todo!("Main function not found");
+        };
+
         let root_element = Element::Block(vec![
             Element::Raw(include_str!("boilerplate_entry.wat").into()),
             self.get_setup(program)?,
             Element::Block(self.get_functions(program)?),
-            Element::Comment("Main function definition".into()),
+            Element::FunctionDefinition {
+                identifier: "main".into(),
+                export: false,
+                content: Box::new(Element::Block(vec![
+                    self.get_program(&program.instructions, program)?,
+                    Element::FunctionCall(self.get_user_function_name(main_function.get_id())),
+                ])),
+            },
             Element::FunctionDefinition {
                 identifier: "__main".into(),
                 export: true,
-                content: Box::new(self.get_program(&program.instructions, program)?),
+                content: Box::new(Element::FunctionCall("main".into())),
             },
             Element::Raw(include_str!("boilerplate_exit.wat").into()),
         ]);
@@ -59,11 +70,7 @@ impl Generator {
             let var_identifier = &program.variables[function.variable_id].identifier;
 
             match &function.body {
-                FunctionBody::Builtin(builtin_identifier) => {
-                    elements.push(Element::Comment(format!(
-                        "Builtin function: '{builtin_identifier}' aliasing to '${var_identifier}'",
-                    )));
-
+                FunctionBody::Builtin(..) => {
                     self.function_types
                         .insert(function.variable_id, FunctionType::Builtin);
                 }
@@ -76,13 +83,38 @@ impl Generator {
                         var_identifier
                     )));
 
+                    // Parameters are newly declared in the function,
+                    // but we only care about non-parameter variables.
+                    let declared_variables = function
+                        .declared_variables
+                        .iter()
+                        .filter(|variable| !function.parameter_variable_ids.contains(variable));
+
+                    let content = function
+                        .parameter_variable_ids
+                        .iter()
+                        .map(|variable_id| {
+                            let variable_name = program.variables[*variable_id].identifier.clone();
+                            let typ = "i32";
+                            Element::Raw(format!("(param $_{variable_id}_{variable_name} {typ})"))
+                        })
+                        .rev() // We need to reverse the order of the parameters in WASM
+                        .chain(declared_variables.map(|variable_id| {
+                            let variable_name = program.variables[*variable_id].identifier.clone();
+                            let typ = "i32";
+                            Element::Raw(format!("(local $_{variable_id}_{variable_name} {typ})"))
+                        }))
+                        .chain(std::iter::once(self.get_program(content, program)?))
+                        .collect::<Vec<_>>();
+
                     elements.push(Element::FunctionDefinition {
                         identifier: format!("__userf__{}", function.variable_id),
                         export: false,
-                        content: Box::new(Element::Block(
-                            vec![self.get_program(content, program)?],
-                        )),
+                        content: Box::new(Element::Block(content)),
                     });
+
+                    self.function_types
+                        .insert(function.variable_id, FunctionType::User);
                 }
             }
         }
@@ -135,23 +167,21 @@ impl Generator {
                     ValueKind::GlobalData(id) => {
                         elements.push(Element::Push(WasmValue::I32(self.global_data_indexes[id])));
                     }
-                    // &ValueKind::Variable(id) => {
-                    //     // let variable = &program.variables[id];
-                    //     let variable_name = &program.variables[id].identifier;
-                    //     let variable_name = format!("_{id}_{variable_name}");
+                    &ValueKind::Variable(id) => {
+                        let variable_name = &program.variables[id].identifier;
+                        let variable_name = format!("_{id}_{variable_name}");
 
-                    //     // let value = match variable.scope {
-                    //     //     VariableScope::Local => variable_name,
-                    //     //     // VariableScope::Global => format!("__global_variables[{variable_name}]"),
-                    //     // };
+                        // let value = match variable.scope {
+                        //     VariableScope::Local => variable_name,
+                        //     // VariableScope::Global => format!("__global_variables[{variable_name}]"),
+                        // };
 
-                    //     elements.push(Element::Push(variable_name));
-                    // }
-                    _ => todo!("{:?}", instruction.kind),
+                        elements.push(Element::Push(WasmValue::Variable(variable_name)));
+                    }
                 },
                 InstructionKind::Pop => elements.push(Element::Pop),
-                // InstructionKind::IntAdd => elements.push(Element::Add),
-                // InstructionKind::IntMul => elements.push(Element::Mul),
+                InstructionKind::IntAdd => elements.push(Element::Add(WasmType::I32)),
+                InstructionKind::IntMul => elements.push(Element::Mul(WasmType::I32)),
                 &InstructionKind::Assign(id) => {
                     let variable_name = program.variables[id].identifier.clone();
                     elements.push(Element::Assign(format!("_{id}_{variable_name}")));
