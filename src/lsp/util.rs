@@ -216,7 +216,7 @@ pub fn get_variable_at_position<'a>(
         Token::Identifier(identifier) => scope
             .variable_lookup
             .get(identifier)
-            .and_then(|&v| program.variables.get(v)),
+            .and_then(|v| program.variables.get(v.get_id())),
         _ => {
             return None;
         }

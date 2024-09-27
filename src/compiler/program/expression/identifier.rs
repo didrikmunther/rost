@@ -48,7 +48,7 @@ impl Program {
 
         Ok(Builder::new().push(Instruction::new(
             expression.pos.clone(),
-            InstructionKind::Push(ValueKind::Variable(variable_id)),
+            InstructionKind::Push(ValueKind::Variable(variable_id.get_id())),
         )))
     }
 }

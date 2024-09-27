@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
-use super::error::CompilerError;
+use super::error::{CompilerError, CompilerErrorKind};
 use crate::parser::definition::Declaration;
 use builder::Builder;
+use function_call::FunctionCreationError;
 use ir::{Function, FunctionTemplate, PrimitiveValue, Variable};
 use rust_lapper::Lapper;
 use scope::{Scope, ScopeId, ScopeRange};
@@ -77,6 +78,19 @@ impl Program {
         }
     }
 
+    pub fn create_main_function(&mut self) -> Result<(), CompilerError> {
+        match self.create_function("main") {
+            Ok(variable_id) => variable_id,
+            Err(FunctionCreationError::NoSuchFunction) => {
+                return CompilerErrorKind::UndefinedFunction("main".into())
+                    .at_pos(&(0..0))
+                    .into();
+            }
+        };
+
+        Ok(())
+    }
+
     fn _compile(&mut self, parsed: Vec<Declaration>) -> Result<(), CompilerError> {
         let location = parsed
             .iter()
@@ -85,6 +99,7 @@ impl Program {
         self.scope_ranges.push((location, self.scope_id));
         self.add_builtin_types();
         self.instructions = self.get_instructions(&parsed)?;
+        self.create_main_function()?;
 
         Ok(())
     }

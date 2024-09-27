@@ -1,4 +1,4 @@
-/*
+
 
 __builtin fn printf(format: str, ...args: any);
 
@@ -8,32 +8,43 @@ fn add_two_things<T>(format: str, a: T, b: T) {
 	printf(format, a, b, c);
 }
 
-
-let a: int = 1;
-let c: int = 5;
-
-let strvar = "abc";
-
-add_two_things(
-	"%i + %i = %i\n",
-	a,
-	c
-);
-
+let a: int = 123;
 add_two_things(
 	"%s + %s = %s\n",
-	strvar,
-	"def"
+	"123",
+	"555"
 );
 
-*/
+
+fn main(argc: int, argv: str) {
+	let a: int = 1;
+	let c: int = 5;
+
+	let strvar = "abc";
+
+	add_two_things(
+		"%i + %i = %i\n",
+		a,
+		c
+	);
+
+	add_two_things(
+		"%s + %s = %s\n",
+		strvar,
+		"def"
+	);
+}
+
+/*
 
 // Wasm test
 __builtin fn print(content: str);
 
-fn print_two_things() {
-	print("a1\n");
-	print("b2\n");
+fn print_two_things(a: str, b: str) {
+	print("a");
+	print("b");
 }
 
-print_two_things();
+print_two_things("a", "b");
+
+*/

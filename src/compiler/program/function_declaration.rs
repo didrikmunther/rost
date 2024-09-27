@@ -5,7 +5,7 @@ use super::{
     Program,
 };
 use crate::{
-    compiler::error::CompilerError,
+    compiler::error::{CompilerError, CompilerErrorKind, WrongType},
     parser::definition::{Declaration, FunctionDeclaration},
 };
 
@@ -47,7 +47,14 @@ impl Program {
         }
 
         for param in &fdec.parameters {
-            let picked_typ = self.get_declared_type(&param.typ).unwrap();
+            let Some(picked_typ) = self.get_declared_type(&param.typ) else {
+                return CompilerErrorKind::UndefinedType(WrongType {
+                    content: param.typ.to_string(),
+                })
+                .at_pos(&param.typ.pos)
+                .into();
+            };
+
             parameter_type_ids.push(TypeIdWithIdentifier {
                 identifier: param.identifier.clone(),
                 id: picked_typ.id,

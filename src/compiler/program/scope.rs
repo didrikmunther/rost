@@ -12,9 +12,26 @@ use std::{
     ops::Range,
 };
 
+#[derive(Debug, Clone)]
+pub enum ScopedVariable {
+    // The variable has been declared in this scope
+    Native(VariableId),
+    // The variable has been declared in a parent scope
+    // We may assign to it, but we didn't declare it
+    Parent(VariableId),
+}
+
+impl ScopedVariable {
+    pub fn get_id(&self) -> VariableId {
+        match self {
+            ScopedVariable::Native(id) | ScopedVariable::Parent(id) => *id,
+        }
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct Scope {
-    pub variable_lookup: HashMap<String, VariableId>,
+    pub variable_lookup: HashMap<String, ScopedVariable>,
     pub type_lookup: HashMap<String, TypeId>,
     pub function_template_lookup: HashMap<String, FunctionTemplateId>,
 }
@@ -25,7 +42,6 @@ impl Scope {
         let scope = program.get_scope();
 
         Self {
-            variable_lookup: HashMap::new(),
             function_template_lookup: scope
                 .function_template_lookup
                 .clone()
@@ -36,14 +52,12 @@ impl Scope {
                 .clone()
                 .into_iter()
                 .collect::<HashMap<_, _>>(),
-            // variable_lookup: scope
-            //     .variable_lookup
-            //     .clone()
-            //     .into_iter()
-            //     // .filter(|(_, variable_id)| {
-            //     //     program.variables.get(*variable_id).unwrap().scope == Scoping::Global
-            //     // })
-            //     .collect::<HashMap<_, _>>(),
+            variable_lookup: scope
+                .variable_lookup
+                .clone()
+                .into_iter()
+                .map(|(key, id)| (key, ScopedVariable::Parent(id.get_id())))
+                .collect::<HashMap<_, _>>(),
         }
     }
 }

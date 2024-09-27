@@ -19,6 +19,10 @@ use super::{
     Program,
 };
 
+pub enum FunctionCreationError {
+    NoSuchFunction,
+}
+
 fn add_function_parameters(this: &mut Program, fdec: &FunctionDeclaration) -> Vec<VariableId> {
     let mut parameter_variable_ids = Vec::new();
 
@@ -211,48 +215,21 @@ impl Program {
         Ok(())
     }
 
-    pub fn handle_function_call(
+    pub fn create_function(
         &mut self,
-        expression: &Expression,
-        fcall: &FunctionCall,
-    ) -> Result<Builder, CompilerError> {
-        let mut builder = Builder::new();
-
-        for arg in fcall.args.iter().rev() {
-            let result = self.handle_expression(arg);
-            if let Some(expr) = self.get_or_add_error(result) {
-                builder = builder.append(expr);
-            }
-        }
-
-        let identifier = fcall.left.get_string().unwrap().to_string();
-
+        identifier: &str,
+    ) -> Result<VariableId, FunctionCreationError> {
         let Some(function_template_id) = self
             .get_scope()
             .function_template_lookup
-            .get(&identifier)
+            .get(identifier)
             .copied()
         else {
-            return CompilerErrorKind::UndefinedFunction(identifier)
-                .at_pos(&fcall.left.pos)
-                .into();
+            return Err(FunctionCreationError::NoSuchFunction);
         };
 
         let function_template = self.function_templates.get(function_template_id).unwrap();
         let function_template_typ = function_template.typ;
-        let function_type = self.types.get(function_template.typ).unwrap();
-
-        let TypeKind::Function(function_type_kind) = &function_type.kind.clone() else {
-            return CompilerErrorKind::NotAFunction(identifier)
-                .at_pos(&fcall.left.pos)
-                .into();
-        };
-
-        self.check_parameter_correctness(
-            function_type_kind,
-            &function_template.function_declaration.clone(),
-            fcall,
-        )?;
 
         let fdec = self
             .function_templates
@@ -289,11 +266,16 @@ impl Program {
                         ));
                     }
 
-                    body = body.append(this.get_instructions(block)?);
+                    let instructions = this.get_instructions(block);
+                    let function_body = this.get_or_add_error(instructions);
+                    let body_contains_error = function_body.is_none();
+                    body = body.append(function_body.unwrap_or_default());
+
+                    // Todo: get declared variables in the scope
 
                     Ok((
                         FunctionBody::Block {
-                            body_contains_error: false,
+                            body_contains_error,
                             content: body,
                         },
                         location,
@@ -306,7 +288,7 @@ impl Program {
             }
         });
 
-        let body = self
+        let function_body = self
             .get_or_add_error(result)
             .unwrap_or(FunctionBody::Block {
                 body_contains_error: true,
@@ -315,7 +297,7 @@ impl Program {
 
         let variable_id = self.insert_variable(
             Variable {
-                identifier: identifier.clone(),
+                identifier: identifier.to_string(),
                 typ: ExpressedType {
                     id: function_template_typ,
                     arguments: None,
@@ -323,7 +305,7 @@ impl Program {
                 declaration_pos: fdec.identifier_pos.clone(),
                 assignment_has_error: false,
             },
-            Some(identifier.as_str()),
+            Some(identifier),
         );
 
         self.insert_function(Function {
@@ -331,8 +313,62 @@ impl Program {
             variable_id,
             parameter_variable_ids: vec![],
             vararg_parameter: None,
-            body,
+            body: function_body,
         });
+
+        Ok(variable_id)
+    }
+
+    pub fn handle_function_call(
+        &mut self,
+        expression: &Expression,
+        fcall: &FunctionCall,
+    ) -> Result<Builder, CompilerError> {
+        let mut builder = Builder::new();
+
+        for arg in fcall.args.iter().rev() {
+            let result = self.handle_expression(arg);
+            if let Some(expr) = self.get_or_add_error(result) {
+                builder = builder.append(expr);
+            }
+        }
+
+        let identifier = fcall.left.get_string().unwrap().to_string();
+
+        let Some(function_template_id) = self
+            .get_scope()
+            .function_template_lookup
+            .get(&identifier)
+            .copied()
+        else {
+            return CompilerErrorKind::UndefinedFunction(identifier)
+                .at_pos(&fcall.left.pos)
+                .into();
+        };
+
+        let function_template = self.function_templates.get(function_template_id).unwrap();
+        let function_type = self.types.get(function_template.typ).unwrap();
+
+        let TypeKind::Function(function_type_kind) = &function_type.kind.clone() else {
+            return CompilerErrorKind::NotAFunction(identifier)
+                .at_pos(&fcall.left.pos)
+                .into();
+        };
+
+        self.check_parameter_correctness(
+            function_type_kind,
+            &function_template.function_declaration.clone(),
+            fcall,
+        )?;
+
+        let variable_id = match self.create_function(&identifier) {
+            Ok(variable_id) => variable_id,
+            Err(FunctionCreationError::NoSuchFunction) => {
+                return CompilerErrorKind::UndefinedFunction(identifier)
+                    .at_pos(&fcall.left.pos)
+                    .into();
+            }
+        };
 
         // Backends should handle return values. E.g. are they on stack, or in a register?
         let builder = builder.push(Instruction::new(

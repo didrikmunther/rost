@@ -58,7 +58,7 @@ impl Program {
                             .into();
                     };
 
-                    let variable = self.variables.get(variable_id).unwrap();
+                    let variable = self.variables.get(variable_id.get_id()).unwrap();
 
                     Ok(variable.typ.clone())
                 }

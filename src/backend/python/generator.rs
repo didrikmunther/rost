@@ -7,12 +7,19 @@ use crate::{
     },
 };
 
-use super::{code::Code, error::PythonError};
+use super::{
+    code::Code,
+    error::{PythonError, PythonErrorKind},
+};
 
 pub struct Generator;
 
 impl Generator {
     pub fn generate_code(self, program: &Program) -> Result<String, PythonError> {
+        let Some(main_function) = program.get_scope().variable_lookup.get("main") else {
+            return PythonErrorKind::MainFunctionNotFound.at_pos(&(0..0)).into();
+        };
+
         let root_element = Element::Block(vec![
             Element::Raw(include_str!("boilerplate_entry.py").into()),
             Element::Block(self.get_functions(program)?),
@@ -24,7 +31,7 @@ impl Generator {
                 identifier: "__main".into(),
                 content: Box::new(Element::Block(vec![
                     self.get_program(&program.instructions, program)?,
-                    Element::Pass,
+                    Element::FunctionCall(self.get_user_function_name(main_function.get_id())),
                 ])),
             },
             Element::Raw(include_str!("boilerplate_exit.py").into()),
@@ -85,6 +92,10 @@ impl Generator {
 
     pub fn get_setup(&self, program: &Program) -> Result<Element, PythonError> {
         let mut elements: Vec<Element> = vec![
+            // Pop n_args, argc, argv
+            Element::Pop,
+            Element::Pop,
+            Element::Pop,
             Element::Raw("global __global_data".into()),
             Element::Raw(format!(
                 "__global_data = list(range({}))",
