@@ -11,6 +11,7 @@ export function MainEditor({
     <>
       <Editor
         height="82vh"
+        width="82vh"
         defaultLanguage="rost"
         value={value}
         onChange={(v) => onChange(v ?? "")}

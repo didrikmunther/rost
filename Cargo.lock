@@ -442,6 +442,7 @@ dependencies = [
 name = "rost_wasm"
 version = "0.1.0"
 dependencies = [
+ "rost",
  "wasm-bindgen",
 ]
 
