@@ -1,8 +1,8 @@
 use super::util::{Compiled, CompilerResult};
 use super::LSPServer;
-use crate::error::{RostError, RostErrorElement};
 use crate::lsp::util::{get_processed_code, pos_to_row_col};
 use lsp_types::{Diagnostic, PublishDiagnosticsParams, Uri};
+use rost::error::{RostError, RostErrorElement};
 use std::error::Error;
 
 fn create_error_message(err: &RostError, element: &RostErrorElement) -> Vec<String> {

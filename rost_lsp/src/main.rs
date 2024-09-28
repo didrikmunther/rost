@@ -1,5 +1,7 @@
 use clap::Parser;
-use rost::lsp::LSPServer;
+use lsp::LSPServer;
+
+mod lsp;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]

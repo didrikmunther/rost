@@ -9,7 +9,6 @@ pub mod backend;
 pub mod compiler;
 pub mod error;
 pub mod lexer;
-pub mod lsp;
 pub mod parser;
 
 #[derive(Subcommand, PartialEq, Clone, Debug)]

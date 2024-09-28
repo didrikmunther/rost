@@ -1,18 +1,6 @@
-[package]
-name = "rost"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-phf = { version = "0.11", features = ["macros"] }
-itertools = "0.10.2"
-
-# Language server
-lsp-types = "0.97.0"
-tokio = { version = "1", features = ["full"] }
-serde_json = "1.0.128"
-serde = "1.0.210"
-clap = { version = "4.5.17", features = ["derive"] }
-rust-lapper = { version = "*", features = ["with_serde"] }
+[workspace]
+resolver = "2"
+members = [
+    "rost", "rost_lsp",
+    "rost_wasm",
+]

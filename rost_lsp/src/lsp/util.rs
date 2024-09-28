@@ -5,12 +5,12 @@ use lsp_types::{Position as LSPPosition, Range as LSPRange};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::compiler::program::ir::Variable;
-use crate::compiler::program::Program;
-use crate::error::RostError;
-use crate::lexer::{self, Block, Token};
-use crate::parser::definition::Ast;
-use crate::{compiler, parser};
+use rost::compiler::program::ir::Variable;
+use rost::compiler::program::Program;
+use rost::error::RostError;
+use rost::lexer::{self, Block, Token};
+use rost::parser::definition::Ast;
+use rost::{compiler, parser};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LspRequest {

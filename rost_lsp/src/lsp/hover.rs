@@ -2,11 +2,9 @@ use super::{
     util::{create_code_block, Compiled, CompilerResult, LspRequest},
     LSPServer,
 };
-use crate::{
-    compiler::program::typ::{FunctionTypeKind, TypeKind},
-    lsp::util::{find_block, get_processed_code, get_variable_at_position},
-};
+use crate::lsp::util::{find_block, get_processed_code, get_variable_at_position};
 use lsp_types::{Hover, HoverParams};
+use rost::compiler::program::typ::{FunctionTypeKind, TypeKind};
 use std::error::Error;
 
 impl LSPServer {
