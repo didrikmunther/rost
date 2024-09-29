@@ -121,22 +121,26 @@ export function RostCompiler({
   features: Record<string, boolean>;
 }) {
   const [compiled, setCompiled] = useState<string | undefined>();
+  const [error, setError] = useState<string | undefined>();
 
   const onExecute = async () => {
     try {
+      setError(undefined);
       setCompiled(compile(code));
     } catch (e) {
       setCompiled(undefined);
-      console.error(e);
+      setError(e as string);
     }
   };
 
   return (
-    <div style={{
-      display: "flex",
-      flexDirection: "column",
-      gap: "1rem",
-    }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "1rem",
+      }}
+    >
       <div>
         <button
           style={{
@@ -148,6 +152,15 @@ export function RostCompiler({
         </button>
       </div>
       <div>
+        {error && (
+          <div
+            style={{
+              color: "red",
+            }}
+          >
+            {error}
+          </div>
+        )}
         {compiled && (
           <WasmCompiler wabt={wabt} features={features} compiled={compiled} />
         )}
