@@ -2,6 +2,12 @@
 
 Compiles the Rost language to a Python stack machine backend.
 
+## Demo (Web assembly backend)
+
+Errors are shown in the console.
+
+[https://didrik.tech/rost/](https://didrik.tech/rost/)
+
 ## Roadmap
 
 - [x] Recursive descent parser
