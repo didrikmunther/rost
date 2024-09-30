@@ -2,9 +2,8 @@ use std::{collections::VecDeque, ops::Range};
 
 use rost::{
     backend::{wasm::WasmBackend, Backend},
-    compiler,
     error::{RostError, RostErrorElement},
-    lexer, parser,
+    util::{get_processed_code, CompilerResult},
 };
 use wasm_bindgen::prelude::*;
 
@@ -25,14 +24,6 @@ pub fn get_row_col_vecs(text: &str) -> (VecDeque<u32>, VecDeque<u32>) {
         .map(|c| c == '\n')
         .chain(std::iter::once(true))
         .collect::<Vec<_>>();
-
-    // eprintln!(
-    //     "new_lines :{:?}",
-    //     new_lines
-    //         .iter()
-    //         .map(|&v| if v { 1 } else { 0 })
-    //         .collect::<Vec<_>>()
-    // );
 
     let mut row_values = new_lines
         .iter()
@@ -99,13 +90,42 @@ fn create_error_message(code: &str, err: &RostError, element: &RostErrorElement)
         format!("{}", err.kind),
         format!(
             "[rows {}-{}] {}",
-            pos.start.line + 1, pos.end.line + 1, element.message
+            pos.start.line + 1,
+            pos.end.line + 1,
+            element.message
         ),
     ]
 }
 
 #[wasm_bindgen]
-pub fn compile(code: &str) -> Result<String, String> {
+struct WasmResult {
+    lexed: Result<String, String>,
+    parsed: Option<Result<String, String>>,
+    compiled: Option<Result<String, String>>,
+    wasm: Option<Result<String, String>>,
+}
+
+#[wasm_bindgen]
+impl WasmResult {
+    pub fn get_lexed(&self) -> Result<String, String> {
+        self.lexed.clone()
+    }
+
+    pub fn get_parsed(&self) -> Result<String, String> {
+        self.parsed.clone().unwrap_or(Ok("".to_string()))
+    }
+
+    pub fn get_compiled(&self) -> Result<String, String> {
+        self.compiled.clone().unwrap_or(Ok("".to_string()))
+    }
+
+    pub fn get_wasm(&self) -> Result<String, String> {
+        self.wasm.clone().unwrap_or(Ok("".to_string()))
+    }
+}
+
+#[wasm_bindgen]
+pub fn compile(code: &str) -> WasmResult {
     let return_error = |mut errs: Vec<RostError>| {
         errs.iter_mut()
             .flat_map(|err| {
@@ -119,30 +139,54 @@ pub fn compile(code: &str) -> Result<String, String> {
             .join("\n")
     };
 
-    let document = match lexer::lex(code) {
-        Ok(lexed) => lexed,
-        Err(err) => {
-            return Err(return_error(vec![err.into()]));
+    let (lexed, parsed, compiled) = match get_processed_code(code, "main.ro") {
+        CompilerResult::Lexed(lexed) => {
+            return WasmResult {
+                lexed: lexed
+                    .map(|lexed| format!("{lexed:#?}"))
+                    .map_err(|err| return_error(vec![err])),
+                parsed: None,
+                compiled: None,
+                wasm: None,
+            }
         }
+        CompilerResult::Parsed { lexed, parsed } => {
+            return WasmResult {
+                lexed: Ok(format!("{lexed:#?}")),
+                parsed: Some(
+                    parsed
+                        .map(|parsed| format!("{parsed:#?}"))
+                        .map_err(|err| return_error(vec![err])),
+                ),
+                compiled: None,
+                wasm: None,
+            }
+        }
+        CompilerResult::Compiled {
+            lexed,
+            parsed,
+            compiled,
+        } => (lexed, parsed, compiled),
     };
 
-    let parsed = match parser::parse(&document) {
-        Ok(program) => program,
-        Err(err) => {
-            return Err(return_error(vec![err.into()]));
-        }
-    };
-
-    let program = compiler::compile(parsed);
-
-    if !program.errors.is_empty() {
-        return Err(return_error(
-            program.errors.into_iter().map(|e| e.into()).collect(),
-        ));
+    if !compiled.errors.is_empty() {
+        return WasmResult {
+            lexed: Ok(format!("{lexed:#?}")),
+            parsed: Some(Ok(format!("{parsed:#?}"))),
+            compiled: Some(Err(return_error(compiled.errors))),
+            wasm: None,
+        };
     }
 
-    match WasmBackend.generate(&program) {
+    let wasm = match WasmBackend.generate(&compiled.program) {
         Ok(generated) => Ok(generated),
         Err(err) => Err(return_error(vec![err])),
+    };
+
+    WasmResult {
+        lexed: Ok(format!("{lexed:#?}")),
+        parsed: Some(Ok(format!("{parsed:#?}"))),
+        compiled: Some(Ok(format!("{:#?}", compiled.program))),
+        wasm: Some(wasm),
     }
 }

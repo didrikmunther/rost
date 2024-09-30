@@ -111,6 +111,8 @@ export const WasmCompiler = ({
   return <WasmExecutor rows={rows} />;
 };
 
+type Tabs = "lexed" | "parsed" | "compiled" | "wasm" | "execution";
+
 export function RostCompiler({
   code,
   wabt,
@@ -120,16 +122,33 @@ export function RostCompiler({
   wabt: Wabt;
   features: Record<string, boolean>;
 }) {
-  const [compiled, setCompiled] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
+  const [tab, setTab] = useState<Tabs>("execution");
+  const [result, setResult] = useState<Partial<Record<Tabs, string>>>({});
 
-  const onExecute = async () => {
-    try {
-      setError(undefined);
-      setCompiled(compile(code));
-    } catch (e) {
-      setCompiled(undefined);
-      setError(e as string);
+  const onExecute = () => {
+    const compiled = compile(code);
+    const fields: Partial<Record<Tabs, () => string>> = {
+      lexed: compiled.get_lexed,
+      parsed: compiled.get_parsed,
+      compiled: compiled.get_compiled,
+      wasm: compiled.get_wasm,
+    };
+
+    setError(undefined);
+    setResult({});
+
+    for (const [key, func] of Object.entries(fields)) {
+      try {
+        const result = func.bind(compiled)();
+        setResult((prev) => ({
+          ...prev,
+          [key]: result,
+        }));
+      } catch (e) {
+        setError(e as string);
+        return;
+      }
     }
   };
 
@@ -141,28 +160,63 @@ export function RostCompiler({
         gap: "1rem",
       }}
     >
-      <div>
+      <div
+        style={{
+          display: "flex",
+          gap: "1rem",
+        }}
+      >
         <button
           style={{
-            backgroundColor: "rgb(66 66 66)",
+            backgroundColor: "rgb(28 93 50)",
           }}
           onClick={onExecute}
         >
           Compile
         </button>
+        {["lexed", "parsed", "compiled", "wasm", "execution"].map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t as Tabs)}
+            style={{
+              backgroundColor: tab === t ? "#ccc" : "",
+              color: tab === t ? "black" : "",
+            }}
+          >
+            {t}
+          </button>
+        ))}
       </div>
       <div>
         {error && (
           <div
             style={{
+              background: "white",
               color: "red",
+              textAlign: "left",
+              padding: "1rem",
+              borderRadius: "5px",
             }}
           >
             {error}
           </div>
         )}
-        {compiled && (
-          <WasmCompiler wabt={wabt} features={features} compiled={compiled} />
+        {tab === "execution" ? (
+          result?.["wasm"] && (
+            <WasmCompiler
+              wabt={wabt}
+              features={features}
+              compiled={result["wasm"]}
+            />
+          )
+        ) : (
+          <pre
+            style={{
+              textAlign: "left",
+            }}
+          >
+            {result?.[tab]}
+          </pre>
         )}
       </div>
     </div>

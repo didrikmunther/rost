@@ -1,11 +1,9 @@
-use crate::lsp::util::{find_block, get_processed_code, get_variable_at_position, pos_to_row_col};
+use crate::lsp::util::{find_block, get_variable_at_position, pos_to_row_col};
 use lsp_types::{GotoDefinitionParams, GotoDefinitionResponse, Location};
+use rost::util::{get_processed_code, Compiled, CompilerResult};
 use std::error::Error;
 
-use super::{
-    util::{Compiled, CompilerResult, LspRequest},
-    LSPServer,
-};
+use super::{util::LspRequest, LSPServer};
 
 impl LSPServer {
     pub async fn handle_goto_definition(

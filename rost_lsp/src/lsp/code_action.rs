@@ -1,11 +1,8 @@
-use crate::lsp::util::get_processed_code;
 use lsp_types::CodeActionParams;
+use rost::util::{get_processed_code, Compiled, CompilerResult};
 use std::error::Error;
 
-use super::{
-    util::{Compiled, CompilerResult, LspRequest},
-    LSPServer,
-};
+use super::{util::LspRequest, LSPServer};
 
 impl LSPServer {
     pub async fn handle_code_action(
