@@ -21,7 +21,7 @@ Compiles the Rost language to a Python stack machine backend.
 - [x] Function calls
 - [x] Function definitions
 - [x] Compilation to Python stack machine
-- [ ] Compilation to Webassembly
+- [x] Compilation to Webassembly
 - [ ] Compilation to Assembly
 - [ ] Custom types (structs)
 - [ ] Loops
